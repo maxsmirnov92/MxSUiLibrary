@@ -134,7 +134,8 @@ public abstract class BaseRecyclerViewAdapter<I, VH extends BaseRecyclerViewAdap
         }
     }
 
-    protected void onItemsCleared(int previousSize) {}
+    protected void onItemsCleared(int previousSize) {
+    }
 
     public final void addItem(int to, @Nullable I item) throws IndexOutOfBoundsException {
         synchronized (mItems) {
@@ -330,11 +331,11 @@ public abstract class BaseRecyclerViewAdapter<I, VH extends BaseRecyclerViewAdap
         processItem(holder, item, position);
     }
 
-    protected boolean allowSetClickListener() {
+    protected boolean allowSetClickListener(@Nullable final I item, final int position) {
         return true;
     }
 
-    protected boolean allowSetLongClickListener() {
+    protected boolean allowSetLongClickListener(@Nullable final I item, final int position) {
         return true;
     }
 
@@ -348,7 +349,7 @@ public abstract class BaseRecyclerViewAdapter<I, VH extends BaseRecyclerViewAdap
 
         if (item != null) {
 
-            if (allowSetClickListener()) {
+            if (allowSetClickListener(item, position)) {
                 holder.itemView.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
@@ -359,7 +360,7 @@ public abstract class BaseRecyclerViewAdapter<I, VH extends BaseRecyclerViewAdap
                 });
             }
 
-            if (allowSetLongClickListener()) {
+            if (allowSetLongClickListener(item, position)) {
                 holder.itemView.setOnLongClickListener(new View.OnLongClickListener() {
                     @Override
                     public boolean onLongClick(View v) {
@@ -397,21 +398,11 @@ public abstract class BaseRecyclerViewAdapter<I, VH extends BaseRecyclerViewAdap
     }
 
     public void setOnItemClickListener(OnItemClickListener<I> listener) {
-        if (allowSetClickListener()) {
-            this.mItemClickListener = listener;
-        }
-//        else {
-//            throw new UnsupportedOperationException("setting click listener is not allowed");
-//        }
+        this.mItemClickListener = listener;
     }
 
     public void setOnItemLongClickListener(OnItemLongClickListener<I> listener) {
-        if (allowSetLongClickListener()) {
-            this.mItemLongClickListener = listener;
-        }
-//        else {
-//            throw new UnsupportedOperationException("setting long click listener is not allowed");
-//        }
+        this.mItemLongClickListener = listener;
     }
 
     public void setOnProcessingItemListener(OnProcessingItemListener<I, VH> l) {
@@ -423,9 +414,7 @@ public abstract class BaseRecyclerViewAdapter<I, VH extends BaseRecyclerViewAdap
     public void onViewRecycled(VH holder) {
         super.onViewRecycled(holder);
         holder.onViewRecycled();
-        if (allowSetClickListener()) {
-            holder.itemView.setOnClickListener(null);
-        }
+        holder.itemView.setOnClickListener(null);
     }
 
     public void setOnItemAddedListener(OnItemAddedListener<I> itemAddedListener) {
@@ -445,9 +434,9 @@ public abstract class BaseRecyclerViewAdapter<I, VH extends BaseRecyclerViewAdap
         @NonNull
         protected final Context context;
 
-        public ViewHolder(@NonNull Context context, @NonNull View view) {
+        public ViewHolder(@NonNull View view) {
             super(view);
-            this.context = context;
+            this.context = view.getContext();
         }
 
         protected void displayData(int position, @NonNull final I item) {
@@ -458,7 +447,8 @@ public abstract class BaseRecyclerViewAdapter<I, VH extends BaseRecyclerViewAdap
             itemView.setVisibility(View.GONE);
         }
 
-        protected void onViewRecycled() {}
+        protected void onViewRecycled() {
+        }
     }
 
     public interface OnItemClickListener<I> {
@@ -479,16 +469,19 @@ public abstract class BaseRecyclerViewAdapter<I, VH extends BaseRecyclerViewAdap
 
     public interface OnItemAddedListener<I> {
         void onItemAdded(int to, @Nullable I item);
+
         void onItemsAdded(int to, @NonNull Collection<I> items);
     }
 
     public interface OnItemsSetListener<I> {
         void onItemSet(int to, I item);
+
         void onItemsSet(@NonNull List<I> items);
     }
 
     public interface OnItemsRemovedListener<I> {
         void onItemRemoved(int from, I item);
+
         void onItemsRangeRemoved(int from, int to, int previousSize);
     }
 

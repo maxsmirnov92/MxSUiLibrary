@@ -15,7 +15,7 @@ import com.bejibx.android.recyclerview.selection.SelectionHelper;
 import java.util.Collection;
 import java.util.Set;
 
-public abstract class BaseSingleSelectionRecyclerViewAdapter<I, VH extends BaseRecyclerViewAdapter.ViewHolder> extends BaseRecyclerViewAdapter<I, VH> {
+public abstract class BaseSingleSelectionRecyclerViewAdapter<I, VH extends BaseRecyclerViewAdapter.ViewHolder<I>> extends BaseRecyclerViewAdapter<I, VH> {
 
     @Nullable
     private Drawable defaultDrawable, selectionDrawable;
@@ -83,6 +83,8 @@ public abstract class BaseSingleSelectionRecyclerViewAdapter<I, VH extends BaseR
                             if (position == selection) {
                                 if (allowTogglingSelection()) {
                                     toggleSelection(position, true);
+                                } else {
+                                    onReselect(position, true);
                                 }
                             } else {
                                 setSelection(position, true);
@@ -104,6 +106,8 @@ public abstract class BaseSingleSelectionRecyclerViewAdapter<I, VH extends BaseR
                             if (position == selection) {
                                 if (allowTogglingSelection()) {
                                     toggleSelection(position, true);
+                                } else {
+                                    onReselect(position, true);
                                 }
                             } else {
                                 setSelection(position, true);
@@ -223,6 +227,13 @@ public abstract class BaseSingleSelectionRecyclerViewAdapter<I, VH extends BaseR
         }
     }
 
+    @CallSuper
+    protected void onReselect(int index, boolean fromUser) {
+        if (selectedChangeListener != null) {
+            selectedChangeListener.onReselect(index, fromUser);
+        }
+    }
+
     @Nullable
     private OnSelectedChangeListener selectedChangeListener;
 
@@ -235,5 +246,7 @@ public abstract class BaseSingleSelectionRecyclerViewAdapter<I, VH extends BaseR
         void onSetSelection(int fromIndex, int toIndex, boolean fromUser);
 
         void onResetSelection(int onIndex, boolean fromUser);
+
+        void onReselect(int index, boolean fromUser);
     }
 }
