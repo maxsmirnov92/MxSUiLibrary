@@ -1,5 +1,6 @@
 package net.maxsmr.jugglerhelper.fragments.base;
 
+import android.content.Context;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.support.annotation.DrawableRes;
@@ -21,6 +22,8 @@ import me.ilich.juggler.gui.JugglerToolbarFragment;
 
 public abstract class BaseJugglerToolbarFragment extends JugglerToolbarFragment {
 
+    public static final String ARG_NAVIGATION_MODE = BaseJugglerToolbarFragment.class.getSimpleName() + ".ARG_NAVIGATION_MODE";
+
     @LayoutRes
     protected abstract int getLayoutId();
 
@@ -32,8 +35,9 @@ public abstract class BaseJugglerToolbarFragment extends JugglerToolbarFragment 
         return rootView;
     }
 
-    protected abstract void onBindViews(@NonNull View rootView);
-//        ButterKnife.bind(this, rootView);
+    protected void onBindViews(@NonNull View rootView) {
+
+    }
 
     protected void initToolbar() {
         View rootView = getView();
@@ -73,25 +77,28 @@ public abstract class BaseJugglerToolbarFragment extends JugglerToolbarFragment 
         setMode(getNavigationMode(), getMenuDrawableId(), getBackDrawableId());
     }
 
+    @SuppressWarnings("ConstantConditions")
+    @NonNull
+    protected NavigationMode getNavigationMode() {
+        return (NavigationMode) getArguments().getSerializable(ARG_NAVIGATION_MODE);
+    }
+
     @Override
-    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
-        super.onActivityCreated(savedInstanceState);
+    public void onAttach(Context context) {
+        super.onAttach(context);
         initToolbar();
         initTitle();
         initNavigationMode();
     }
 
     @Override
-    public void onDestroyView() {
-        super.onDestroyView();
+    public void onDetach() {
+        super.onDetach();
         ActionBar actionBar = getJugglerActivity().getSupportActionBar();
         if (actionBar != null) {
             actionBar.hide();
         }
     }
-
-    @NonNull
-    protected abstract NavigationMode getNavigationMode();
 
     private void setMode(NavigationMode mode, @DrawableRes int menuDrawableResId, @DrawableRes int backDrawableResId) {
 

@@ -4,17 +4,17 @@ apply plugin: 'maven'
 
 def groupId = "net.maxsmr"
 def artifactId = "jugglerhelper"
-def version = "1.0.2.5"
+def version = "1.0.3"
 
 def releaseDir = "${buildDir}/release"
 
 android {
-    compileSdkVersion 23
-    buildToolsVersion "23.0.3"
+    compileSdkVersion 24
+    buildToolsVersion "24.0.3"
 
     defaultConfig {
         minSdkVersion 15
-        targetSdkVersion 23
+        targetSdkVersion 24
         versionCode 1
         versionName version
     }
@@ -83,6 +83,7 @@ artifacts {
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
     testCompile 'junit:junit:4.12'
+
 
     compile 'net.maxsmr:networkutils:1.0.3.3'
     compile 'net.maxsmr:recyclerview-lib:1.0.2.3'

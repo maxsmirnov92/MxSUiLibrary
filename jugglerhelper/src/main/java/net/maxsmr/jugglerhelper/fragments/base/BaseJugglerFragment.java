@@ -33,14 +33,34 @@ import me.ilich.nestableviewpager.NestablePagerItem;
 public abstract class BaseJugglerFragment extends JugglerFragment implements NestablePagerItem {
 
     @Nullable
-    @SuppressWarnings("unchecked")
-    public <F extends JugglerFragment> F findFragment(Class<F> fragmentClass) {
-        FragmentManager fm = getChildFragmentManager();
-        List<Fragment> fragments = fm.getFragments();
-        if (fragments != null) {
-            for (Fragment fragment : fragments) {
-                if (fragment != null && !fragment.isDetached() && fragmentClass.isAssignableFrom(fragment.getClass())) {
-                    return (F) fragment;
+    public Fragment findChildFragmentByTag(String tag) {
+        return findFragmentByTag(getChildFragmentManager(), tag);
+    }
+
+    @Nullable
+    public Fragment findChildFragmentById(int id) {
+        return findFragmentById(getChildFragmentManager(), id);
+    }
+
+    @Nullable
+    public Fragment findRootFragmentByTag(String tag) {
+        return findFragmentByTag(getActivity() != null? getActivity().getSupportFragmentManager() : null, tag);
+    }
+
+    @Nullable
+    public Fragment findRootFragmentById(int id) {
+        return findFragmentById(getActivity() != null? getActivity().getSupportFragmentManager() : null, id);
+    }
+
+    @Nullable
+    private static Fragment findFragmentById(FragmentManager fm, int id) {
+        if (fm != null) {
+            List<Fragment> fragments = fm.getFragments();
+            if (fragments != null) {
+                for (Fragment fragment : fragments) {
+                    if (fragment != null && !fragment.isDetached() && fragment.getId() == id) {
+                        return fragment;
+                    }
                 }
             }
         }
@@ -48,29 +68,14 @@ public abstract class BaseJugglerFragment extends JugglerFragment implements Nes
     }
 
     @Nullable
-    @SuppressWarnings("unchecked")
-    public <F extends JugglerFragment> F findFragment(String tag) {
-        FragmentManager fm = getChildFragmentManager();
-        List<Fragment> fragments = fm.getFragments();
-        if (fragments != null) {
-            for (Fragment fragment : fragments) {
-                if (fragment != null && !fragment.isDetached() && CompareUtils.stringsEqual(fragment.getTag(), tag, false)) {
-                    return (F) fragment;
-                }
-            }
-        }
-        return null;
-    }
-
-    @Nullable
-    @SuppressWarnings("unchecked")
-    public <F extends JugglerFragment> F findFragment(int id) {
-        FragmentManager fm = getChildFragmentManager();
-        List<Fragment> fragments = fm.getFragments();
-        if (fragments != null) {
-            for (Fragment fragment : fragments) {
-                if (fragment != null && !fragment.isDetached() && CompareUtils.objectsEqual(fragment.getId(), id)) {
-                    return (F) fragment;
+    private static Fragment findFragmentByTag(FragmentManager fm, String tag) {
+        if (fm != null) {
+            List<Fragment> fragments = fm.getFragments();
+            if (fragments != null) {
+                for (Fragment fragment : fragments) {
+                    if (fragment != null && !fragment.isDetached() && CompareUtils.stringsEqual(fragment.getTag(), tag, false)) {
+                        return fragment;
+                    }
                 }
             }
         }
@@ -114,7 +119,6 @@ public abstract class BaseJugglerFragment extends JugglerFragment implements Nes
         return savedInstanceState;
     }
 
-
     @LayoutRes
     protected abstract int getContentLayoutId();
 
@@ -134,7 +138,6 @@ public abstract class BaseJugglerFragment extends JugglerFragment implements Nes
     }
 
     protected abstract void onBindViews(@NonNull View rootView);
-//        ButterKnife.bind(this, rootView);
 
     private Menu menu;
 
@@ -146,35 +149,11 @@ public abstract class BaseJugglerFragment extends JugglerFragment implements Nes
         this.menu = menu;
     }
 
-    protected void init() {}
-
-    protected void postInit() {}
-
-    protected void unlisten() {}
-
-    @Override
-    public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
-        super.onViewCreated(view, savedInstanceState);
-        init();
-    }
-
-    @Override
-    public void onResume() {
-        super.onResume();
-        postInit();
-    }
-
     @Override
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
         GuiUtils.setStatusBarColor(getStatusBarColor(), getBaseActivity().getWindow());
         GuiUtils.setNavigationBarColor(getNavigationBarColor(), getBaseActivity().getWindow());
-    }
-
-    @Override
-    public void onDestroyView() {
-        super.onDestroyView();
-        unlisten();
     }
 
     protected boolean clearFocus(View view) {

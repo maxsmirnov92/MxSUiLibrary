@@ -33,6 +33,7 @@ import net.maxsmr.commonutils.android.gui.views.RecyclerScrollableController;
 import net.maxsmr.commonutils.data.CompareUtils;
 import net.maxsmr.jugglerhelper.R;
 import net.maxsmr.networkutils.NetworkHelper;
+import net.maxsmr.permissionchecker.PermissionUtils;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -48,39 +49,33 @@ public abstract class BaseListJugglerFragment<I, Adapter extends BaseRecyclerVie
 
     private static final Logger logger = LoggerFactory.getLogger(BaseListJugglerFragment.class);
 
-
     private BroadcastReceiver networkReceiver;
 
-    private boolean isLoadErrorOccurred = false;
+    protected boolean isLoadErrorOccurred = false;
+    protected boolean isLoading = false;
 
-    //    @BindView(R.id.swipeRefreshLayout)
     @Nullable
-    SwipeRefreshLayout swipeRefreshLayout;
+    protected SwipeRefreshLayout swipeRefreshLayout;
 
-    //    @BindView(R.id.recycler)
-    RecyclerView recycler;
+    protected RecyclerView recycler;
 
-    //    @BindView(R.id.emptyText)
     @Nullable
-    TextView placeholder;
+    protected TextView placeholder;
 
-    //    @BindView(R.id.loading)
     @Nullable
-    LinearLayout loadingLayout;
+    protected LinearLayout loadingLayout;
 
-    //    @BindView(R.id.btRetry)
     @Nullable
-    Button retryButton;
+    protected TextView loadingMessageView;
 
-    private RecyclerScrollableController recyclerScrollableController;
+    @Nullable
+    protected Button retryButton;
 
-    private Adapter adapter;
+    protected RecyclerScrollableController recyclerScrollableController;
 
-    private Progressable progressable;
+    protected Adapter adapter;
 
-    protected final Progressable getProgressable() {
-        return progressable;
-    }
+    protected Progressable progressable;
 
     /**
      * @return 0 if it's not used or recycler has different layouts
@@ -113,6 +108,10 @@ public abstract class BaseListJugglerFragment<I, Adapter extends BaseRecyclerVie
         return R.id.loading;
     }
 
+    protected int getLoadingMessageViewId() {
+        return R.id.tvLoadingMessage;
+    }
+
     @IdRes
     protected int getRetryButtonId() {
         return R.id.btRetry;
@@ -120,61 +119,28 @@ public abstract class BaseListJugglerFragment<I, Adapter extends BaseRecyclerVie
 
     @CallSuper
     protected void onBindViews(@NonNull View rootView) {
-//        ButterKnife.bind(this, rootView);
         swipeRefreshLayout = GuiUtils.findViewById(rootView, getSwipeRefreshLayoutId());
         recycler = GuiUtils.findViewById(rootView, getRecyclerId());
         placeholder = GuiUtils.findViewById(rootView, getEmptyTextId());
         loadingLayout = GuiUtils.findViewById(rootView, getLoadingLayoutId());
+        loadingMessageView = GuiUtils.findViewById(rootView, getLoadingMessageViewId());
         retryButton = GuiUtils.findViewById(rootView, getRetryButtonId());
     }
 
+    protected boolean isNetworkBroadcastReceiverRegistered() {
+        return networkReceiver != null;
+    }
 
-    @CallSuper
-    protected void init() {
-        super.init();
-
-        View rootView = getView();
-
-        if (rootView == null) {
-            throw new IllegalStateException("root view was not created");
+    protected void registerNetworkBroadcastReceiver() {
+        if (PermissionUtils.has(getContext(), "android.permission.ACCESS_NETWORK_STATE") && !isNetworkBroadcastReceiverRegistered()) {
+            getContext().registerReceiver(networkReceiver = new NetworkBroadcastReceiver(), new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION));
         }
+    }
 
-        if (recycler == null) {
-            throw new RuntimeException("recycler view not found");
+    protected void unregisterNetworkBroadcastReceiver() {
+        if (isNetworkBroadcastReceiverRegistered()) {
+            getContext().unregisterReceiver(networkReceiver);
         }
-
-        if (swipeRefreshLayout != null) {
-            swipeRefreshLayout.setOnRefreshListener(this);
-            swipeRefreshLayout.setEnabled(enableSwipeRefresh());
-        }
-
-        adapter = initAdapter();
-        adapter.setOnItemClickListener(this);
-        adapter.setOnItemLongClickListener(this);
-        adapter.setOnItemAddedListener(this);
-        adapter.setOnItemsSetListener(this);
-        adapter.setOnItemsRemovedListener(this);
-
-        recycler.setLayoutManager(getRecyclerLayoutManager());
-        RecyclerView.ItemDecoration itemDecoration = getItemDecoration();
-        if (itemDecoration != null) {
-            recycler.addItemDecoration(itemDecoration);
-        }
-        recycler.setAdapter(adapter);
-        recycler.addOnScrollListener(recyclerScrollableController = new RecyclerScrollableController(this));
-
-        setLayoutParams();
-
-        progressable = initProgressable();
-
-        if (retryButton != null) {
-            retryButton.setOnClickListener(this);
-        }
-
-        applyTypeface();
-
-        networkReceiver = new NetworkBroadcastReceiver();
-        getContext().registerReceiver(networkReceiver, new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION));
     }
 
     @CallSuper
@@ -195,43 +161,9 @@ public abstract class BaseListJugglerFragment<I, Adapter extends BaseRecyclerVie
         }
     }
 
-    private void setLayoutParams() {
-
-        View rootView = getView();
-
-        if (rootView == null) {
-            throw new RuntimeException("root view was not inflated");
-        }
-
-        Pair<Integer, Integer> size = getRecyclerSize();
-
-        if (size != null) {
-
-            int width = size.first;
-            int height = size.second;
-
-            if ((width != ViewGroup.LayoutParams.MATCH_PARENT && width != ViewGroup.LayoutParams.WRAP_CONTENT && width <= 0) || (height != ViewGroup.LayoutParams.MATCH_PARENT && height != ViewGroup.LayoutParams.WRAP_CONTENT && height <= 0)) {
-                throw new RuntimeException("incorrect width or height");
-            }
-
-            ViewGroup.LayoutParams rootParams = rootView.getLayoutParams();
-            rootParams.width = width;
-            rootParams.height = height;
-            rootView.setLayoutParams(rootParams);
-
-            ViewGroup.LayoutParams recyclerParams = recycler.getLayoutParams();
-            recyclerParams.width = width;
-            recyclerParams.height = height;
-            recycler.setLayoutParams(recyclerParams);
-        }
-    }
-
-    @Override
-    public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
-        super.onViewCreated(view, savedInstanceState);
-        if (allowSetInitialItems()) {
-            reloadAdapter(getInitialItems());
-        }
+    private void invalidateLoading(@Nullable List<I> items) {
+        loading(isLoading);
+        afterLoading(items);
     }
 
 
@@ -239,30 +171,14 @@ public abstract class BaseListJugglerFragment<I, Adapter extends BaseRecyclerVie
         return true;
     }
 
-    /**
-     * @return pair with width and height {@link ViewGroup.LayoutParams#WRAP_CONTENT or @link android.view.ViewGroup.LayoutParams#MATCH_PARENT}; null if changing layout params not allowed
-     */
-    @Nullable
-    protected Pair<Integer, Integer> getRecyclerSize() {
-        return null;
-    }
-
     @NonNull
     protected RecyclerView.LayoutManager getRecyclerLayoutManager() {
         return new LinearLayoutManager(getContext(), LinearLayoutManager.VERTICAL, false);
     }
 
-    @Nullable
-    protected RecyclerView.ItemDecoration getItemDecoration() {
-        return null;
-    }
-
-    protected final RecyclerView getRecyclerView() {
-        return recycler;
-    }
-
-    protected final Adapter getAdapter() {
-        return adapter;
+    @NonNull
+    protected List<RecyclerView.ItemDecoration> getItemDecorations() {
+        return Collections.emptyList();
     }
 
     @NonNull
@@ -275,16 +191,11 @@ public abstract class BaseListJugglerFragment<I, Adapter extends BaseRecyclerVie
     @Nullable
     protected abstract List<I> getInitialItems();
 
-    protected synchronized void reloadAdapter(@Nullable List<I> items) {
-        logger.debug("reloadAdapter(), items=" + items + ", this=" + this);
+    protected void reloadAdapter(@Nullable List<I> items) {
+        logger.debug("reloadAdapter(), items=" + items);
         if (adapter != null) {
             sortAndRemoveDuplicateItemsFromList(items);
             adapter.setItems(items);
-            if (items != null && !items.isEmpty()) {
-                onLoaded(items);
-            } else {
-                onEmpty();
-            }
         }
     }
 
@@ -302,21 +213,16 @@ public abstract class BaseListJugglerFragment<I, Adapter extends BaseRecyclerVie
 
     @Override
     public void onRefresh() {
-        doRefreshList();
-    }
-//        if (progressable instanceof BaseListJugglerFragment.LoadListProgressable) {
-//            doRefreshList();
-//        } else {
-//            throw new RuntimeException("progressable is not instance of " + LoadListProgressable.class);
-//        }
-
-    protected void doRefreshList() {
-
+        if (allowSetInitialItems()) {
+            reloadAdapter(getInitialItems());
+        }
     }
 
-    protected void loading(boolean toggle) {
+
+    protected void loading(boolean isLoading) {
+        this.isLoading = isLoading;
         if (loadingLayout != null) {
-            loadingLayout.setVisibility(toggle ? View.VISIBLE : View.GONE);
+            loadingLayout.setVisibility(isLoading ? View.VISIBLE : View.GONE);
         }
         recycler.setVisibility(View.GONE);
         if (placeholder != null) {
@@ -326,18 +232,32 @@ public abstract class BaseListJugglerFragment<I, Adapter extends BaseRecyclerVie
             retryButton.setVisibility(View.GONE);
         }
         if (swipeRefreshLayout != null && swipeRefreshLayout.isEnabled()) {
-            if (swipeRefreshLayout.isRefreshing() != toggle) {
-                swipeRefreshLayout.setRefreshing(toggle);
+            if (swipeRefreshLayout.isRefreshing() != isLoading) {
+                swipeRefreshLayout.setRefreshing(isLoading);
             }
         }
-        if (!toggle) {
+        if (!isLoading) {
             processEmpty();
         }
     }
 
+    protected void afterLoading(@Nullable List<I> items) {
+        logger.debug("afterLoading");
+        if (items != null && !items.isEmpty()) {
+            onLoaded(items);
+        } else {
+            onEmpty();
+        }
+
+    }
+
+    protected boolean isDataEmpty() {
+        return adapter.isEmpty();
+    }
+
     protected void processEmpty() {
         if (adapter != null) {
-            boolean hasItems = adapter.getItemCount() > 0;
+            boolean hasItems = !isDataEmpty();
             recycler.setVisibility(hasItems ? View.VISIBLE : View.GONE);
             if (placeholder != null) {
                 placeholder.setVisibility(hasItems ? View.GONE : View.VISIBLE);
@@ -366,10 +286,61 @@ public abstract class BaseListJugglerFragment<I, Adapter extends BaseRecyclerVie
         }
     }
 
-    @CallSuper
-    protected void unlisten() {
-        super.unlisten();
 
+    @Override
+    public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+        View rootView = getView();
+
+        if (rootView == null) {
+            throw new IllegalStateException("root view was not created");
+        }
+
+        if (recycler == null) {
+            throw new RuntimeException("recycler view not found");
+        }
+
+        if (swipeRefreshLayout != null) {
+            swipeRefreshLayout.setOnRefreshListener(this);
+            swipeRefreshLayout.setEnabled(enableSwipeRefresh());
+        }
+
+        adapter = initAdapter();
+        adapter.setOnItemClickListener(this);
+        adapter.setOnItemLongClickListener(this);
+        adapter.setOnItemAddedListener(this);
+        adapter.setOnItemsSetListener(this);
+        adapter.setOnItemsRemovedListener(this);
+
+        recycler.setLayoutManager(getRecyclerLayoutManager());
+        for (RecyclerView.ItemDecoration decoration : getItemDecorations()) {
+            if (decoration != null) {
+                recycler.addItemDecoration(decoration);
+            }
+        }
+        recycler.setAdapter(adapter);
+        recycler.addOnScrollListener(recyclerScrollableController = new RecyclerScrollableController(this));
+
+        progressable = initProgressable();
+
+        if (retryButton != null) {
+            retryButton.setOnClickListener(this);
+        }
+
+        applyTypeface();
+
+        registerNetworkBroadcastReceiver();
+
+        if (allowSetInitialItems()) {
+            invalidateLoading(getInitialItems());
+        } else {
+            invalidateLoading(null);
+        }
+    }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
         if (swipeRefreshLayout != null) {
             swipeRefreshLayout.setOnRefreshListener(null);
         }
@@ -383,7 +354,7 @@ public abstract class BaseListJugglerFragment<I, Adapter extends BaseRecyclerVie
         recycler.removeOnScrollListener(recyclerScrollableController);
         recyclerScrollableController = null;
 
-        getContext().unregisterReceiver(networkReceiver);
+        unregisterNetworkBroadcastReceiver();
     }
 
     @Nullable
@@ -456,43 +427,43 @@ public abstract class BaseListJugglerFragment<I, Adapter extends BaseRecyclerVie
 
     @Override
     public void onItemClick(int position, I item) {
-        logger.debug("onItemClick(), position=" + position + ", item=" + item);
+//        logger.debug("onItemClick(), position=" + position + ", item=" + item);
     }
 
     @Override
     public boolean onItemLongClick(int position, I item) {
-        logger.debug("onItemLongClick()), position=" + position + ", item=" + item);
+//        logger.debug("onItemLongClick()), position=" + position + ", item=" + item);
         return false;
     }
 
     @Override
     public void onItemAdded(int to, I item) {
-        logger.debug("onItemAdded(), to=" + to + ", item=" + item);
+//        logger.debug("onItemAdded(), to=" + to + ", item=" + item);
     }
 
     @Override
     public void onItemsAdded(int to, @NonNull Collection<I> items) {
-        logger.debug("onItemsAdded(), to=" + to + ", items=" + items);
+//        logger.debug("onItemsAdded(), to=" + to + ", items=" + items);
     }
 
     @Override
     public void onItemSet(int to, I item) {
-        logger.debug("onItemSet(), to=" + to + ", item=" + item);
+//        logger.debug("onItemSet(), to=" + to + ", item=" + item);
     }
 
     @Override
     public void onItemsSet(@NonNull List<I> items) {
-        logger.debug("onItemsSet(), items=" + items);
+//        logger.debug("onItemsSet(), items=" + items);
     }
 
     @Override
     public void onItemRemoved(int from, I item) {
-        logger.debug("onItemRemoved(), from=" + from + ",  item=" + item);
+//        logger.debug("onItemRemoved(), from=" + from + ",  item=" + item);
     }
 
     @Override
     public void onItemsRangeRemoved(int from, int to, int previousSize) {
-        logger.debug("onItemsRangeRemoved(), from=" + from + ", to=" + ", previousSize=" + previousSize);
+//        logger.debug("onItemsRangeRemoved(), from=" + from + ", to=" + ", previousSize=" + previousSize);
     }
 
     @Override
@@ -501,9 +472,10 @@ public abstract class BaseListJugglerFragment<I, Adapter extends BaseRecyclerVie
     }
 
     @CallSuper
-    protected void onLoaded(List<I> items) {
+    protected void onLoaded(@Nullable List<I> items) {
         isLoadErrorOccurred = false;
         processEmpty();
+        reloadAdapter(items);
     }
 
     @CallSuper
@@ -511,18 +483,14 @@ public abstract class BaseListJugglerFragment<I, Adapter extends BaseRecyclerVie
         processEmpty();
     }
 
-
-    //    @OnClick(R.id.btRetry)
-//    @Optional
     protected void onRetryClick() {
-        if (allowSetInitialItems()) {
-            reloadAdapter(getInitialItems());
-        }
+        onRefresh();
     }
 
     @Override
+    @CallSuper
     public void onClick(View v) {
-        if (v.getId() == R.id.btRetry) {
+        if (v.getId() == getRetryButtonId()) {
             onRetryClick();
         }
     }
@@ -530,7 +498,7 @@ public abstract class BaseListJugglerFragment<I, Adapter extends BaseRecyclerVie
     @CallSuper
     protected void onNetworkStatusChanged(boolean isOnline) {
         if (isOnline && isLoadErrorOccurred && allowReloadOnNetworkRestored()) {
-            doRefreshList();
+            onRefresh();
         }
     }
 
@@ -571,19 +539,8 @@ public abstract class BaseListJugglerFragment<I, Adapter extends BaseRecyclerVie
         return new LoadListProgressable();
     }
 
-    protected final Progressable newDialogProgressable() {
-
-        if (getContext() == null) {
-            throw new IllegalStateException("fragment is not attached");
-        }
-
-        DialogProgressable p = new DialogProgressable(getContext());
-        GuiUtils.setProgressBarColor(ContextCompat.getColor(getContext(), R.color.progress_primary), ((DialogProgressable) progressable).getProgressBar());
-        String alias = getBaseFontAlias();
-        if (TextUtils.isEmpty(alias)) {
-            FontsHolder.getInstance().apply(p.getMessageView(), alias, false);
-        }
-        return p;
+    protected Progressable newDialogProgressable() {
+        return new DialogProgressable(getContext());
     }
 
     private class NetworkBroadcastReceiver extends BroadcastReceiver {
@@ -591,7 +548,7 @@ public abstract class BaseListJugglerFragment<I, Adapter extends BaseRecyclerVie
         @Override
         public void onReceive(Context context, Intent intent) {
             logger.debug("NetworkBroadcastReceiver :: onReceive(), intent=" + intent);
-            if (intent != null && CompareUtils.stringsEqual(intent.getAction(), ConnectivityManager.CONNECTIVITY_ACTION, true)) {
+            if (intent != null && ConnectivityManager.CONNECTIVITY_ACTION.equals(intent.getAction())) {
                 onNetworkStatusChanged(NetworkHelper.isOnline(context));
             }
         }

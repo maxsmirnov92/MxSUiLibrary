@@ -39,9 +39,9 @@ public abstract class BaseSplashJugglerFragment extends BaseJugglerFragment {
         expiredTime = savedInstanceState != null ? savedInstanceState.getLong(ARG_EXPIRED_TIME) : expiredTime;
     }
 
-    @CallSuper
     @Override
-    protected void init() {
+    public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
         if (allowResetOnRootClick()) {
 
             View rootView = getView();
@@ -60,9 +60,9 @@ public abstract class BaseSplashJugglerFragment extends BaseJugglerFragment {
         }
     }
 
-    @CallSuper
     @Override
-    protected void postInit() {
+    public void onResume() {
+        super.onResume();
         long timeout = getSplashTimeout();
 
         if (timeout < 0) {

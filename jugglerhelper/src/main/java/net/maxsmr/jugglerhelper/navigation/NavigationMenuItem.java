@@ -1,18 +1,12 @@
-package ru.gokidgo.gui.navigation;
+package net.maxsmr.jugglerhelper.navigation;
 
 import android.content.res.ColorStateList;
 import android.support.annotation.ColorRes;
 import android.support.annotation.DrawableRes;
 import android.support.annotation.Nullable;
 import android.support.annotation.StringRes;
-import android.view.MenuItem;
 
 import java.io.Serializable;
-import java.util.Collection;
-
-import ru.gokidgo.R;
-
-import static android.R.attr.id;
 
 public class NavigationMenuItem implements Serializable {
 

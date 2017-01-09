@@ -12,6 +12,7 @@ import android.view.MotionEvent;
 
 import net.maxsmr.commonutils.data.CompareUtils;
 import net.maxsmr.jugglerhelper.fragments.base.BaseJugglerFragment;
+import net.maxsmr.jugglerhelper.juggler.Juggler2;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,7 +23,6 @@ import me.ilich.juggler.Navigable;
 import me.ilich.juggler.gui.JugglerActivity;
 import me.ilich.juggler.gui.JugglerFragment;
 import me.ilich.juggler.states.State;
-import ru.gokidgo.gui.juggler.Juggler2;
 
 
 public class BaseJugglerActivity extends JugglerActivity {
@@ -85,11 +85,6 @@ public class BaseJugglerActivity extends JugglerActivity {
     protected void onResumeFragments() {
         super.onResumeFragments();
         isCommitAllowed = true;
-    }
-
-    @Override
-    protected void onRestoreInstanceState(Bundle savedInstanceState) {
-        super.onRestoreInstanceState(savedInstanceState);
         juggler2.activateCurrentState();
     }
 
@@ -215,7 +210,7 @@ public class BaseJugglerActivity extends JugglerActivity {
         List<Fragment> fragments = fm.getFragments();
         if (fragments != null) {
             for (Fragment fragment : fragments) {
-                if (fragment != null && !fragment.isDetached() && CompareUtils.objectsEqual(fragment.getId(), id)) {
+                if (fragment != null && !fragment.isDetached() && fragment.getId() == id) {
                     return fragment;
                 }
             }

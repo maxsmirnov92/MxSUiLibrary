@@ -42,25 +42,10 @@ public abstract class BaseTabsJugglerFragment<PagerAdapter extends CustomFragmen
         viewPager = GuiUtils.findViewById(rootView, R.id.pager);
     }
 
+    @SuppressWarnings("WrongConstant")
     @Override
     public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        init();
-    }
-
-    @TabLayout.TabGravity
-    protected int getTabGravity() {
-        return TabLayout.GRAVITY_CENTER;
-    }
-
-    @TabLayout.Mode
-    protected int getTabMode() {
-        return TabLayout.MODE_FIXED;
-    }
-
-    @SuppressWarnings("WrongConstant")
-    @CallSuper
-    protected void init() {
 
         if (viewPager == null) {
             throw new RuntimeException("viewPager not found");
@@ -84,6 +69,18 @@ public abstract class BaseTabsJugglerFragment<PagerAdapter extends CustomFragmen
 
         reload();
     }
+
+    @TabLayout.TabGravity
+    protected int getTabGravity() {
+        return TabLayout.GRAVITY_CENTER;
+    }
+
+    @TabLayout.Mode
+    protected int getTabMode() {
+        return TabLayout.MODE_FIXED;
+    }
+
+
 
     protected void setTabsTypeface(String alias) {
         for (int i = 0; i < tabLayout.getTabCount(); i++) {
