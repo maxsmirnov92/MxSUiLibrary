@@ -141,12 +141,12 @@ public abstract class BaseCheckableRecyclerViewAdapter<I, VH extends BaseRecycle
     }
 
     @Override
-    protected final boolean allowSetClickListener() {
+    protected final boolean allowSetClickListener(@Nullable I item, int position) {
         return false;
     }
 
     @Override
-    protected final boolean allowSetLongClickListener() {
+    protected final boolean allowSetLongClickListener(@Nullable I item, int position) {
         return false;
     }
 

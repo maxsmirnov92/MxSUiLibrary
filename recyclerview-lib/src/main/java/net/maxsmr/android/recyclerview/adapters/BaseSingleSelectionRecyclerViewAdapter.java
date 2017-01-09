@@ -89,7 +89,7 @@ public abstract class BaseSingleSelectionRecyclerViewAdapter<I, VH extends BaseR
                             } else {
                                 setSelection(position, true);
                             }
-                            if (allowSetClickListener()) {
+                            if (allowSetClickListener(item, position)) {
                                 if (mItemClickListener != null) {
                                     mItemClickListener.onItemClick(position, item);
                                 }
@@ -112,7 +112,7 @@ public abstract class BaseSingleSelectionRecyclerViewAdapter<I, VH extends BaseR
                             } else {
                                 setSelection(position, true);
                             }
-                            if (allowSetLongClickListener()) {
+                            if (allowSetLongClickListener(item, position)) {
                                 if (mItemLongClickListener != null) {
                                     mItemLongClickListener.onItemLongClick(position, item);
                                 }
