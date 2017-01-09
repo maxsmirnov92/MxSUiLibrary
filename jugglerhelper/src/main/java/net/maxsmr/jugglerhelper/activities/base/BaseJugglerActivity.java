@@ -25,7 +25,6 @@ import me.ilich.juggler.states.State;
 import ru.gokidgo.gui.juggler.Juggler2;
 
 
-// TODO move
 public class BaseJugglerActivity extends JugglerActivity {
 
     private static final Logger logger = LoggerFactory.getLogger(BaseJugglerActivity.class);
