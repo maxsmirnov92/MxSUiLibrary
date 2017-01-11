@@ -19,6 +19,7 @@ import net.maxsmr.jugglerhelper.R;
 import net.maxsmr.jugglerhelper.navigation.NavigationMode;
 
 import me.ilich.juggler.gui.JugglerToolbarFragment;
+import me.ilich.juggler.states.State;
 
 public abstract class BaseJugglerToolbarFragment extends JugglerToolbarFragment {
 
@@ -74,7 +75,7 @@ public abstract class BaseJugglerToolbarFragment extends JugglerToolbarFragment 
     }
 
     protected void initNavigationMode() {
-        setMode(getNavigationMode(), getMenuDrawableId(), getBackDrawableId());
+        setMode(getNavigationMode(), getUpIcon());
     }
 
     @SuppressWarnings("ConstantConditions")
@@ -84,23 +85,23 @@ public abstract class BaseJugglerToolbarFragment extends JugglerToolbarFragment 
     }
 
     @Override
-    public void onAttach(Context context) {
-        super.onAttach(context);
+    public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
         initToolbar();
         initTitle();
         initNavigationMode();
     }
 
     @Override
-    public void onDetach() {
-        super.onDetach();
+    public void onDestroyView() {
+        super.onDestroyView();
         ActionBar actionBar = getJugglerActivity().getSupportActionBar();
         if (actionBar != null) {
             actionBar.hide();
         }
     }
 
-    private void setMode(NavigationMode mode, @DrawableRes int menuDrawableResId, @DrawableRes int backDrawableResId) {
+    private void setMode(NavigationMode mode, @Nullable Drawable upIcon) {
 
         if (mode != null) {
 
@@ -110,23 +111,20 @@ public abstract class BaseJugglerToolbarFragment extends JugglerToolbarFragment 
                 throw new RuntimeException("toolbar was not initialized");
             }
 
+            if (upIcon != null) {
+                toolbar.setNavigationIcon(upIcon);
+            }
+
             switch (mode) {
                 case SANDWICH:
                     setNavigationIconVisible(true);
-                    if (menuDrawableResId > 0) {
-                        toolbar.setNavigationIcon(menuDrawableResId);
-                    }
                     break;
                 case BACK:
                     setNavigationIconVisible(true);
-                    if (backDrawableResId > 0) {
-                        toolbar.setNavigationIcon(backDrawableResId);
-                    }
                     break;
                 case NONE:
                     setNavigationIconVisible(false);
                     toolbar.setVisibility(View.VISIBLE);
-                    setNavigationIconVisible(false);
                     break;
                 case INVISIBLE:
                     setNavigationIconVisible(false);
@@ -136,14 +134,10 @@ public abstract class BaseJugglerToolbarFragment extends JugglerToolbarFragment 
         }
     }
 
-    @DrawableRes
-    protected int getBackDrawableId() {
-        return 0;
-    }
-
-    @DrawableRes
-    protected int getMenuDrawableId() {
-        return 0;
+    @Nullable
+    protected Drawable getUpIcon() {
+        State state = getState();
+        return state != null? state.getUpNavigationIcon(getContext()) : null;
     }
 
     private void setNavigationIconVisible(boolean b) {

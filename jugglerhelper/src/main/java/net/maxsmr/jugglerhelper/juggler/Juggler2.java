@@ -24,7 +24,7 @@ import me.ilich.juggler.gui.JugglerActivity;
 import me.ilich.juggler.states.State;
 
 
-// TODO fix
+// TODO fix Juggler
 public class Juggler2 extends Juggler {
 
     private static final int NOT_SET = -1;

@@ -177,7 +177,7 @@ public abstract class BaseListJugglerFragment<I, Adapter extends BaseRecyclerVie
     }
 
     @NonNull
-    protected List<RecyclerView.ItemDecoration> getItemDecorations() {
+    protected List<? extends RecyclerView.ItemDecoration> getItemDecorations() {
         return Collections.emptyList();
     }
 

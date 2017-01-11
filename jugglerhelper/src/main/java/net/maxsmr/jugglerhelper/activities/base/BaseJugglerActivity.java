@@ -85,6 +85,11 @@ public class BaseJugglerActivity extends JugglerActivity {
     protected void onResumeFragments() {
         super.onResumeFragments();
         isCommitAllowed = true;
+    }
+
+    @Override
+    protected void onRestoreInstanceState(Bundle savedInstanceState) {
+        super.onRestoreInstanceState(savedInstanceState);
         juggler2.activateCurrentState();
     }
 
