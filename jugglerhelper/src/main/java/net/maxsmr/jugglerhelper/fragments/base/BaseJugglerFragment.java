@@ -28,6 +28,7 @@ import java.util.List;
 
 import me.ilich.juggler.gui.JugglerActivity;
 import me.ilich.juggler.gui.JugglerFragment;
+import me.ilich.juggler.states.State;
 import me.ilich.nestableviewpager.NestablePagerItem;
 
 public abstract class BaseJugglerFragment extends JugglerFragment implements NestablePagerItem {
@@ -44,12 +45,12 @@ public abstract class BaseJugglerFragment extends JugglerFragment implements Nes
 
     @Nullable
     public Fragment findRootFragmentByTag(String tag) {
-        return findFragmentByTag(getActivity() != null? getActivity().getSupportFragmentManager() : null, tag);
+        return findFragmentByTag(getActivity() != null ? getActivity().getSupportFragmentManager() : null, tag);
     }
 
     @Nullable
     public Fragment findRootFragmentById(int id) {
-        return findFragmentById(getActivity() != null? getActivity().getSupportFragmentManager() : null, id);
+        return findFragmentById(getActivity() != null ? getActivity().getSupportFragmentManager() : null, id);
     }
 
     @Nullable
@@ -221,10 +222,25 @@ public abstract class BaseJugglerFragment extends JugglerFragment implements Nes
     }
 
 
+    @CallSuper
+    public void onStateActivated(JugglerActivity activity, State<?> state) {
+        FragmentManager fm = getChildFragmentManager();
+        List<Fragment> fragments = fm.getFragments();
+        if (fragments != null) {
+            for (Fragment fragment : fragments) {
+                if (fragment instanceof BaseJugglerFragment) {
+                    ((BaseJugglerFragment) fragment).onStateActivated(activity, state);
+                } else if (fragment instanceof BaseJugglerToolbarFragment) {
+                    ((BaseJugglerToolbarFragment) fragment).onStateActivated(activity, state);
+                }
+            }
+        }
+    }
+
     @Nullable
     @Override
     public ViewPager getNestedViewPager() {
         return null;
     }
-
 }
+

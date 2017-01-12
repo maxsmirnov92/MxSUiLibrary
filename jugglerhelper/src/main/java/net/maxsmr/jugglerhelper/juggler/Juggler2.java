@@ -3,6 +3,7 @@ package net.maxsmr.jugglerhelper.juggler;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.AnimRes;
+import android.support.annotation.CallSuper;
 import android.support.annotation.LayoutRes;
 import android.support.annotation.Nullable;
 import android.support.annotation.VisibleForTesting;
@@ -10,6 +11,10 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 
 import net.maxsmr.jugglerhelper.activities.base.BaseJugglerActivity;
+import net.maxsmr.jugglerhelper.fragments.base.BaseJugglerFragment;
+import net.maxsmr.jugglerhelper.fragments.base.BaseJugglerToolbarFragment;
+
+import java.util.List;
 
 import me.ilich.juggler.Juggler;
 import me.ilich.juggler.Log;
@@ -90,9 +95,7 @@ public class Juggler2 extends Juggler {
 
     public void activateCurrentState() {
         State state = currentStateHolder.get();
-        if (state != null) {
-            state.onActivate(activity);
-        }
+        onActivateState(state);
     }
 
     @Override
@@ -158,9 +161,7 @@ public class Juggler2 extends Juggler {
             @Override
             public void onBackStackChanged() {
                 State state = currentStateHolder.get();
-                if (state != null) {
-                    state.onActivate(Juggler2.this.activity);
-                }
+                onActivateState(state);
             }
         };
         this.activity.getSupportFragmentManager().addOnBackStackChangedListener(onBackStackChangedListener);
@@ -170,6 +171,27 @@ public class Juggler2 extends Juggler {
         State state = currentStateHolder.get();
         if (state != null) {
             state.onPostCreate(activity, savedInstanceState);
+        }
+    }
+
+    @CallSuper
+    protected void onActivateState(State state) {
+        if (activity == null) {
+            throw new IllegalStateException("activity == null");
+        }
+        if (state != null) {
+            state.onActivate(activity);
+            FragmentManager fm = activity.getSupportFragmentManager();
+            List<Fragment> fragments = fm.getFragments();
+            if (fragments != null) {
+                for (Fragment fragment : fragments) {
+                    if (fragment instanceof BaseJugglerFragment) {
+                        ((BaseJugglerFragment) fragment).onStateActivated(activity, state);
+                    } else if (fragment instanceof BaseJugglerToolbarFragment) {
+                        ((BaseJugglerToolbarFragment) fragment).onStateActivated(activity, state);
+                    }
+                }
+            }
         }
     }
 

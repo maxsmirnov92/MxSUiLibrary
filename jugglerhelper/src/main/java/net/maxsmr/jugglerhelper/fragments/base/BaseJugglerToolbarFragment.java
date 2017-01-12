@@ -1,13 +1,14 @@
 package net.maxsmr.jugglerhelper.fragments.base;
 
-import android.content.Context;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
-import android.support.annotation.DrawableRes;
+import android.support.annotation.CallSuper;
 import android.support.annotation.LayoutRes;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.annotation.StringRes;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
 import android.support.v7.app.ActionBar;
 import android.support.v7.widget.Toolbar;
 import android.view.LayoutInflater;
@@ -18,6 +19,9 @@ import net.maxsmr.commonutils.android.gui.GuiUtils;
 import net.maxsmr.jugglerhelper.R;
 import net.maxsmr.jugglerhelper.navigation.NavigationMode;
 
+import java.util.List;
+
+import me.ilich.juggler.gui.JugglerActivity;
 import me.ilich.juggler.gui.JugglerToolbarFragment;
 import me.ilich.juggler.states.State;
 
@@ -176,6 +180,22 @@ public abstract class BaseJugglerToolbarFragment extends JugglerToolbarFragment 
             throw new RuntimeException("toolbar was not initialized");
         }
         toolbar.setLogo(icon);
+    }
+
+    @CallSuper
+    public void onStateActivated(JugglerActivity activity, State<?> state) {
+        initTitle();
+        FragmentManager fm = getChildFragmentManager();
+        List<Fragment> fragments = fm.getFragments();
+        if (fragments != null) {
+            for (Fragment fragment : fragments) {
+                if (fragment instanceof BaseJugglerFragment) {
+                    ((BaseJugglerFragment) fragment).onStateActivated(activity, state);
+                } else if (fragment instanceof BaseJugglerToolbarFragment) {
+                    ((BaseJugglerToolbarFragment) fragment).onStateActivated(activity, state);
+                }
+            }
+        }
     }
 
 }

@@ -474,8 +474,8 @@ public abstract class BaseListJugglerFragment<I, Adapter extends BaseRecyclerVie
     @CallSuper
     protected void onLoaded(@Nullable List<I> items) {
         isLoadErrorOccurred = false;
-        processEmpty();
         reloadAdapter(items);
+        processEmpty();
     }
 
     @CallSuper
