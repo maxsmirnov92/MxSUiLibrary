@@ -20,8 +20,7 @@
             android:elevation="@dimen/space_4"
             android:minHeight="?attr/actionBarSize"
             app:tabIndicatorColor="@color/colorControlActivated"
-            app:tabIndicatorHeight="4dp"
-            app:tabBackground="@android:color/white"/>
+            app:tabIndicatorHeight="4dp" />
 
         <android.support.v4.view.ViewPager
             android:id="@+id/pager"

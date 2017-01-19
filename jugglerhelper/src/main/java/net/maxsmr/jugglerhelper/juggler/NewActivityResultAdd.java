@@ -14,6 +14,7 @@ import me.ilich.juggler.change.Item;
 import me.ilich.juggler.gui.JugglerActivity;
 import me.ilich.juggler.states.State;
 
+@Deprecated
 public class NewActivityResultAdd implements Add.Interface {
 
     private final State state;

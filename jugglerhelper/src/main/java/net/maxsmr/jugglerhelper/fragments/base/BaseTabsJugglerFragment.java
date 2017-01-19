@@ -3,6 +3,7 @@ package net.maxsmr.jugglerhelper.fragments.base;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.support.annotation.CallSuper;
+import android.support.annotation.IdRes;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.TabLayout;
@@ -24,22 +25,35 @@ public abstract class BaseTabsJugglerFragment<PagerAdapter extends CustomFragmen
     protected abstract PagerAdapter initStatePagerAdapter();
 
     @SuppressWarnings("unchecked")
-    @Nullable
     protected final PagerAdapter getStatePagerAdapter() {
         return (PagerAdapter) viewPager.getAdapter();
     }
 
-//    @BindView(R.id.tab_layout)
+    @Nullable
     protected TabLayout tabLayout;
 
-//    @BindView(R.id.pager)
     protected ViewPager viewPager;
+
+    @IdRes
+    protected int getTabLayoutId() {
+        return R.id.tab_layout;
+    }
+
+    @IdRes
+    protected int getPagerId() {
+        return R.id.pager;
+    }
+
+    @Override
+    protected int getContentLayoutId() {
+        return R.layout.tabs;
+    }
 
     @Override
     @CallSuper
     protected void onBindViews(@NonNull View rootView) {
-        tabLayout = GuiUtils.findViewById(rootView, R.id.tab_layout);
-        viewPager = GuiUtils.findViewById(rootView, R.id.pager);
+        tabLayout = GuiUtils.findViewById(rootView, getTabLayoutId());
+        viewPager = GuiUtils.findViewById(rootView, getPagerId());
     }
 
     @SuppressWarnings("WrongConstant")
@@ -51,21 +65,19 @@ public abstract class BaseTabsJugglerFragment<PagerAdapter extends CustomFragmen
             throw new RuntimeException("viewPager not found");
         }
 
-        if (tabLayout == null) {
-            throw new RuntimeException("tabLayout not found");
-        }
+        if (tabLayout != null) {
+            int tabGravity = getTabGravity();
+            if (tabGravity != TabLayout.GRAVITY_CENTER && tabGravity != TabLayout.GRAVITY_FILL) {
+                throw new IllegalArgumentException("incorrect tabGravity: " + tabGravity);
+            }
+            tabLayout.setTabGravity(tabGravity);
 
-        int tabGravity = getTabGravity();
-        if (tabGravity != TabLayout.GRAVITY_CENTER && tabGravity != TabLayout.GRAVITY_FILL) {
-            throw new IllegalArgumentException("incorrect tabGravity: " + tabGravity);
+            int tabMode = getTabMode();
+            if (tabMode != TabLayout.MODE_FIXED && tabMode != TabLayout.MODE_SCROLLABLE) {
+                throw new IllegalArgumentException("incorrect tabMode: " + tabMode);
+            }
+            tabLayout.setTabMode(tabMode);
         }
-        tabLayout.setTabGravity(tabGravity);
-
-        int tabMode = getTabMode();
-        if (tabMode != TabLayout.MODE_FIXED && tabMode != TabLayout.MODE_SCROLLABLE) {
-            throw new IllegalArgumentException("incorrect tabMode: " + tabMode);
-        }
-        tabLayout.setTabMode(tabMode);
 
         reload();
     }
@@ -80,27 +92,27 @@ public abstract class BaseTabsJugglerFragment<PagerAdapter extends CustomFragmen
         return TabLayout.MODE_FIXED;
     }
 
-
-
     protected void setTabsTypeface(String alias) {
-        for (int i = 0; i < tabLayout.getTabCount(); i++) {
-            TabLayout.Tab tab = tabLayout.getTabAt(i);
-            if (tab != null) {
-                Field field = null;
-                try {
-                    field = tab.getClass().getDeclaredField("mView");
-                } catch (NoSuchFieldException e) {
-                    e.printStackTrace();
-                }
-                if (field != null) {
-                    View tabView = null;
+        if (tabLayout != null && !TextUtils.isEmpty(alias)) {
+            for (int i = 0; i < tabLayout.getTabCount(); i++) {
+                TabLayout.Tab tab = tabLayout.getTabAt(i);
+                if (tab != null) {
+                    Field field = null;
                     try {
-                        field.setAccessible(true);
-                        tabView = (View) field.get(tab);
-                    } catch (IllegalAccessException e) {
+                        field = tab.getClass().getDeclaredField("mView");
+                    } catch (NoSuchFieldException e) {
                         e.printStackTrace();
                     }
-                    FontsHolder.getInstance().apply(tabView, alias, false);
+                    if (field != null) {
+                        View tabView = null;
+                        try {
+                            field.setAccessible(true);
+                            tabView = (View) field.get(tab);
+                        } catch (IllegalAccessException e) {
+                            e.printStackTrace();
+                        }
+                        FontsHolder.getInstance().apply(tabView, alias, false);
+                    }
                 }
             }
         }
@@ -120,21 +132,25 @@ public abstract class BaseTabsJugglerFragment<PagerAdapter extends CustomFragmen
         }
 
         viewPager.setAdapter(initStatePagerAdapter());
-        tabLayout.setupWithViewPager(viewPager);
+        if (tabLayout != null) {
+            tabLayout.setupWithViewPager(viewPager);
+        }
 
         notifyFragmentsChanged();
     }
 
-    private void updateTabIcons() {
-        PagerAdapter adapter = getStatePagerAdapter();
-        if (adapter != null) {
-            for (int i = 0; i < adapter.getCount(); i++) {
-                Fragment f = adapter.getFragmentInstance(i);
-                Drawable tabIcon = getTabIconForFragment(f);
-                if (tabIcon != null) {
-                    TabLayout.Tab tab = tabLayout.getTabAt(i);
-                    if (tab != null) {
-                        tab.setIcon(tabIcon);
+    protected void updateTabIcons() {
+        if (tabLayout != null) {
+            PagerAdapter adapter = getStatePagerAdapter();
+            if (adapter != null) {
+                for (int i = 0; i < adapter.getCount(); i++) {
+                    Fragment f = adapter.getFragmentInstance(i);
+                    Drawable tabIcon = getTabIconForFragment(f);
+                    if (tabIcon != null) {
+                        TabLayout.Tab tab = tabLayout.getTabAt(i);
+                        if (tab != null) {
+                            tab.setIcon(tabIcon);
+                        }
                     }
                 }
             }
@@ -143,9 +159,6 @@ public abstract class BaseTabsJugglerFragment<PagerAdapter extends CustomFragmen
 
     @Nullable
     protected abstract Drawable getTabIconForFragment(Fragment f);
-
-//    @Nullable
-//    protected abstract Pair<Integer, Integer> getTabTextColors();
 
     protected void notifyFragmentsChanged() {
 
@@ -166,14 +179,23 @@ public abstract class BaseTabsJugglerFragment<PagerAdapter extends CustomFragmen
     }
 
     public void selectTab(int at) {
+        PagerAdapter adapter = getStatePagerAdapter();
 
-        if (at < 0 || at >= tabLayout.getTabCount()) {
+        if (adapter == null) {
+            throw new RuntimeException("adapter is not initialized");
+        }
+
+        if (at < 0 || at >= adapter.getCount()) {
             throw new IndexOutOfBoundsException("incorrect tab index: " + at);
         }
 
-        TabLayout.Tab tab = tabLayout.getTabAt(at);
-        if (tab != null && !tab.isSelected()) {
-            tab.select();
+        if (tabLayout != null) {
+            TabLayout.Tab tab = tabLayout.getTabAt(at);
+            if (tab != null && !tab.isSelected()) {
+                tab.select();
+            }
+        } else {
+            viewPager.setCurrentItem(at, true);
         }
     }
 

@@ -50,34 +50,16 @@ public abstract class BaseJugglerNavigationFragment extends JugglerNavigationFra
         return null;
     }
 
-    @CallSuper
-    protected void init() {
-        getDrawerLayout().addDrawerListener(this);
-    }
-
-    protected void postInit() {}
-
-    @CallSuper
-    protected void unlisten() {
-        getDrawerLayout().removeDrawerListener(this);
-    }
-
     @Override
     public void onViewCreated(View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        init();
-    }
-
-    @Override
-    public void onResume() {
-        super.onResume();
-        postInit();
+        getDrawerLayout().addDrawerListener(this);
     }
 
     @Override
     public void onDestroyView() {
         super.onDestroyView();
-        unlisten();
+        getDrawerLayout().removeDrawerListener(this);
     }
 
     @Override

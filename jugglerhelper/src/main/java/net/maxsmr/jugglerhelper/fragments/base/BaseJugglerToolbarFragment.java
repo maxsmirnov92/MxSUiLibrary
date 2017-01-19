@@ -111,29 +111,28 @@ public abstract class BaseJugglerToolbarFragment extends JugglerToolbarFragment 
 
             Toolbar toolbar = getToolbar();
 
-            if (toolbar == null) {
-                throw new RuntimeException("toolbar was not initialized");
-            }
+            if (toolbar != null) {
 
-            if (upIcon != null) {
-                toolbar.setNavigationIcon(upIcon);
-            }
+                if (upIcon != null) {
+                    toolbar.setNavigationIcon(upIcon);
+                }
 
-            switch (mode) {
-                case SANDWICH:
-                    setNavigationIconVisible(true);
-                    break;
-                case BACK:
-                    setNavigationIconVisible(true);
-                    break;
-                case NONE:
-                    setNavigationIconVisible(false);
-                    toolbar.setVisibility(View.VISIBLE);
-                    break;
-                case INVISIBLE:
-                    setNavigationIconVisible(false);
-                    toolbar.setVisibility(View.GONE);
-                    break;
+                switch (mode) {
+                    case SANDWICH:
+                        setNavigationIconVisible(true);
+                        break;
+                    case BACK:
+                        setNavigationIconVisible(true);
+                        break;
+                    case NONE:
+                        setNavigationIconVisible(false);
+                        toolbar.setVisibility(View.VISIBLE);
+                        break;
+                    case INVISIBLE:
+                        setNavigationIconVisible(false);
+                        toolbar.setVisibility(View.GONE);
+                        break;
+                }
             }
         }
     }
@@ -141,7 +140,7 @@ public abstract class BaseJugglerToolbarFragment extends JugglerToolbarFragment 
     @Nullable
     protected Drawable getUpIcon() {
         State state = getState();
-        return state != null? state.getUpNavigationIcon(getContext()) : null;
+        return state != null ? state.getUpNavigationIcon(getContext()) : null;
     }
 
     private void setNavigationIconVisible(boolean b) {
@@ -160,10 +159,9 @@ public abstract class BaseJugglerToolbarFragment extends JugglerToolbarFragment 
 
     public void setTitle(CharSequence text) {
         Toolbar toolbar = getToolbar();
-        if (toolbar == null) {
-            throw new RuntimeException("toolbar was not initialized");
+        if (toolbar != null) {
+            toolbar.setTitle(text);
         }
-        toolbar.setTitle(text);
         ActionBar actionBar = getJugglerActivity().getSupportActionBar();
         if (actionBar != null) {
             actionBar.setTitle(text);

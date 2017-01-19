@@ -29,112 +29,22 @@ public class BaseJugglerActivity extends JugglerActivity {
 
     private static final Logger logger = LoggerFactory.getLogger(BaseJugglerActivity.class);
 
-    private static final String STATE_JUGGLER = "state_juggler";
-    private static final String EXTRA_STATE = "extra_state";
-
-    public static Intent state(Context context, State<?> state, @Nullable Intent intent) {
-        if (intent == null) {
-            intent = new Intent(context, JugglerActivity.class);
-        }
-        intent.putExtra(EXTRA_STATE, state);
-        return intent;
-    }
-
     private boolean isCommitAllowed = true;
-
-    private Juggler2 juggler2;
-    private int animationFinishEnter;
-    private int animationFinishExit;
 
     protected final boolean isCommitAllowed() {
         return isCommitAllowed;
     }
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        animationFinishEnter = getIntent().getIntExtra(Juggler2.DATA_ANIMATION_FINISH_ENTER, 0);
-        animationFinishExit = getIntent().getIntExtra(Juggler2.DATA_ANIMATION_FINISH_EXIT, 0);
-        if (savedInstanceState == null) {
-            juggler2 = createJuggler();
-        } else {
-            juggler2 = (Juggler2) savedInstanceState.getSerializable(STATE_JUGGLER);
-            if (juggler2 == null) {
-                throw new RuntimeException("savedInstanceState should contains Juggler instance");
-            }
-        }
-        juggler2.setActivity(this);
-        super.onCreate(savedInstanceState);
-    }
-
-    protected Juggler2 createJuggler() {
-        return new Juggler2();
-    }
-
-    protected State createState() {
-        return null;
-    }
-
-    @Override
     public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
         isCommitAllowed = false;
-        outState.putSerializable(STATE_JUGGLER, juggler2);
     }
 
     @Override
     protected void onResumeFragments() {
         super.onResumeFragments();
         isCommitAllowed = true;
-    }
-
-    @Override
-    protected void onRestoreInstanceState(Bundle savedInstanceState) {
-        super.onRestoreInstanceState(savedInstanceState);
-        juggler2.activateCurrentState();
-    }
-
-    @Override
-    protected void onPostCreate(Bundle savedInstanceState) {
-        super.onPostCreate(savedInstanceState);
-        juggler2.onPostCreate(savedInstanceState);
-    }
-
-    @VisibleForTesting
-    public Navigable navigateTo() {
-        return juggler2;
-    }
-
-    @Override
-    public void onBackPressed() {
-        boolean b = juggler2.onBackPressed();
-        if (!b) {
-            b = juggler2.backState();
-            if (!b) {
-                finish();
-                overridePendingTransition(animationFinishEnter, animationFinishExit);
-            }
-        }
-    }
-
-    @Override
-    public boolean onSupportNavigateUp() {
-        boolean b = juggler2.onUpPressed();
-        if (!b) {
-            b = juggler2.upState();
-            if (!b) {
-                b = super.onSupportNavigateUp();
-                if (!b) {
-                    finish();
-                    overridePendingTransition(animationFinishEnter, animationFinishExit);
-                }
-            }
-        }
-        return b;
-    }
-
-    @VisibleForTesting
-    public Juggler2 getJuggler() {
-        return juggler2;
     }
 
     @Override
