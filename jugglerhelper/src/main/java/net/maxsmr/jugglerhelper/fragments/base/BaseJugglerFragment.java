@@ -153,8 +153,8 @@ public abstract class BaseJugglerFragment extends JugglerFragment implements Nes
     @Override
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
-        GuiUtils.setStatusBarColor(getStatusBarColor(), getBaseActivity().getWindow());
-        GuiUtils.setNavigationBarColor(getNavigationBarColor(), getBaseActivity().getWindow());
+        GuiUtils.setStatusBarColor(getStatusBarColor(), getActivity().getWindow());
+        GuiUtils.setNavigationBarColor(getNavigationBarColor(), getActivity().getWindow());
     }
 
     protected boolean clearFocus(View view) {

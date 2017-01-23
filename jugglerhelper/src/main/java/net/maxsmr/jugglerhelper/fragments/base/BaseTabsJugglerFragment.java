@@ -19,7 +19,11 @@ import net.maxsmr.jugglerhelper.R;
 
 import java.lang.reflect.Field;
 
-public abstract class BaseTabsJugglerFragment<PagerAdapter extends CustomFragmentStatePagerAdapter> extends BaseJugglerFragment {
+public abstract class BaseTabsJugglerFragment<PagerAdapter extends CustomFragmentStatePagerAdapter> extends BaseJugglerFragment implements ViewPager.OnPageChangeListener {
+
+    public static final int NO_IDX = -1;
+
+    public static final String ARG_TAB_FRAGMENT_INDEX = BaseTabsJugglerFragment.class.getSimpleName() + ".ARG_TAB_FRAGMENT_INDEX";
 
     @NonNull
     protected abstract PagerAdapter initStatePagerAdapter();
@@ -56,6 +60,10 @@ public abstract class BaseTabsJugglerFragment<PagerAdapter extends CustomFragmen
         viewPager = GuiUtils.findViewById(rootView, getPagerId());
     }
 
+    protected int getInitialTabFragmentIndex() {
+        return getArguments() != null ? getArguments().getInt(ARG_TAB_FRAGMENT_INDEX, -1) : -1;
+    }
+
     @SuppressWarnings("WrongConstant")
     @Override
     public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
@@ -79,8 +87,32 @@ public abstract class BaseTabsJugglerFragment<PagerAdapter extends CustomFragmen
             tabLayout.setTabMode(tabMode);
         }
 
+        viewPager.addOnPageChangeListener(this);
+
+        int tabFragmentIndex = getInitialTabFragmentIndex();
+        if (tabFragmentIndex >= 0 && tabFragmentIndex < getStatePagerAdapter().getCount()) {
+            if (tabFragmentIndex != viewPager.getCurrentItem()) {
+                viewPager.setCurrentItem(tabFragmentIndex, true);
+            } else {
+                invalidatePageSelected();
+            }
+        } else {
+            invalidatePageSelected();
+        }
+
         reload();
     }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        viewPager.removeOnPageChangeListener(this);
+    }
+
+    protected void invalidatePageSelected() {
+        onPageSelected(viewPager.getCurrentItem());
+    }
+
 
     @TabLayout.TabGravity
     protected int getTabGravity() {
@@ -213,5 +245,18 @@ public abstract class BaseTabsJugglerFragment<PagerAdapter extends CustomFragmen
     }
 
 
+    @Override
+    public void onPageSelected(int position) {
 
+    }
+
+    @Override
+    public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
+
+    }
+
+    @Override
+    public void onPageScrollStateChanged(int state) {
+
+    }
 }
