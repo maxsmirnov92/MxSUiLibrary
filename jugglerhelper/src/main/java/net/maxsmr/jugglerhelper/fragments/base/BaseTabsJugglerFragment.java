@@ -87,6 +87,8 @@ public abstract class BaseTabsJugglerFragment<PagerAdapter extends CustomFragmen
             tabLayout.setTabMode(tabMode);
         }
 
+        reload();
+
         viewPager.addOnPageChangeListener(this);
 
         int tabFragmentIndex = getInitialTabFragmentIndex();
@@ -99,8 +101,6 @@ public abstract class BaseTabsJugglerFragment<PagerAdapter extends CustomFragmen
         } else {
             invalidatePageSelected();
         }
-
-        reload();
     }
 
     @Override
@@ -112,7 +112,6 @@ public abstract class BaseTabsJugglerFragment<PagerAdapter extends CustomFragmen
     protected void invalidatePageSelected() {
         onPageSelected(viewPager.getCurrentItem());
     }
-
 
     @TabLayout.TabGravity
     protected int getTabGravity() {
