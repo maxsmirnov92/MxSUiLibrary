@@ -189,7 +189,9 @@ public abstract class BaseTabsJugglerFragment<PagerAdapter extends CustomFragmen
     }
 
     @Nullable
-    protected abstract Drawable getTabIconForFragment(Fragment f);
+    protected Drawable getTabIconForFragment(Fragment f) {
+        return null;
+    }
 
     protected void notifyFragmentsChanged() {
 

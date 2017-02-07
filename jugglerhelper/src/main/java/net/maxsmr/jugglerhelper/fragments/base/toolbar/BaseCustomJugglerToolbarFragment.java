@@ -1,4 +1,4 @@
-package net.maxsmr.jugglerhelper.fragments.base;
+package net.maxsmr.jugglerhelper.fragments.base.toolbar;
 
 import android.graphics.drawable.Drawable;
 import android.support.annotation.CallSuper;
@@ -12,8 +12,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
-
-import net.maxsmr.jugglerhelper.R;
 
 public abstract class BaseCustomJugglerToolbarFragment extends BaseJugglerToolbarFragment {
 

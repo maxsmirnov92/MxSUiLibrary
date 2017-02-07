@@ -1,4 +1,4 @@
-package net.maxsmr.jugglerhelper.fragments.base;
+package net.maxsmr.jugglerhelper.fragments.base.toolbar;
 
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
@@ -17,6 +17,7 @@ import android.view.ViewGroup;
 
 import net.maxsmr.commonutils.android.gui.GuiUtils;
 import net.maxsmr.jugglerhelper.R;
+import net.maxsmr.jugglerhelper.fragments.base.BaseJugglerFragment;
 import net.maxsmr.jugglerhelper.navigation.NavigationMode;
 
 import java.util.List;

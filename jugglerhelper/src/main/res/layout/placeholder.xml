@@ -9,4 +9,4 @@
     android:textColor="@color/gray_middle"
     android:textSize="18sp"
     android:textStyle="bold"
-    android:visibility="gone"/>
+    android:visibility="visible"/>

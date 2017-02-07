@@ -23,6 +23,7 @@ import android.view.ViewGroup;
 import net.maxsmr.commonutils.android.gui.GuiUtils;
 import net.maxsmr.commonutils.data.CompareUtils;
 import net.maxsmr.jugglerhelper.R;
+import net.maxsmr.jugglerhelper.fragments.base.toolbar.BaseJugglerToolbarFragment;
 
 import java.util.List;
 
@@ -32,6 +33,17 @@ import me.ilich.juggler.states.State;
 import me.ilich.nestableviewpager.NestablePagerItem;
 
 public abstract class BaseJugglerFragment extends JugglerFragment implements NestablePagerItem {
+
+    @Nullable
+    private Bundle savedInstanceState;
+
+    private Menu menu;
+
+    private boolean isCommitAllowed;
+
+    public boolean isCommitAllowed() {
+        return isAdded() && isCommitAllowed;
+    }
 
     @Nullable
     public Fragment findChildFragmentByTag(String tag) {
@@ -53,35 +65,6 @@ public abstract class BaseJugglerFragment extends JugglerFragment implements Nes
         return findFragmentById(getActivity() != null ? getActivity().getSupportFragmentManager() : null, id);
     }
 
-    @Nullable
-    private static Fragment findFragmentById(FragmentManager fm, int id) {
-        if (fm != null) {
-            List<Fragment> fragments = fm.getFragments();
-            if (fragments != null) {
-                for (Fragment fragment : fragments) {
-                    if (fragment != null && !fragment.isDetached() && fragment.getId() == id) {
-                        return fragment;
-                    }
-                }
-            }
-        }
-        return null;
-    }
-
-    @Nullable
-    private static Fragment findFragmentByTag(FragmentManager fm, String tag) {
-        if (fm != null) {
-            List<Fragment> fragments = fm.getFragments();
-            if (fragments != null) {
-                for (Fragment fragment : fragments) {
-                    if (fragment != null && !fragment.isDetached() && CompareUtils.stringsEqual(fragment.getTag(), tag, false)) {
-                        return fragment;
-                    }
-                }
-            }
-        }
-        return null;
-    }
 
     @SuppressWarnings("unchecked")
     @NonNull
@@ -112,8 +95,7 @@ public abstract class BaseJugglerFragment extends JugglerFragment implements Nes
         return null;
     }
 
-    @Nullable
-    private Bundle savedInstanceState;
+
 
     @Nullable
     public Bundle getSavedInstanceState() {
@@ -140,8 +122,6 @@ public abstract class BaseJugglerFragment extends JugglerFragment implements Nes
 
     protected abstract void onBindViews(@NonNull View rootView);
 
-    private Menu menu;
-
     public Menu getMenu() {
         return this.menu;
     }
@@ -157,18 +137,16 @@ public abstract class BaseJugglerFragment extends JugglerFragment implements Nes
         GuiUtils.setNavigationBarColor(getNavigationBarColor(), getActivity().getWindow());
     }
 
-    protected boolean clearFocus(View view) {
-        if (getActivity() == null) {
-            throw new IllegalStateException("fragment " + this + " is not attached to activity");
-        }
-        return !GuiUtils.clearFocus(view, getActivity());
+    @Override
+    public void onResume() {
+        super.onResume();
+        isCommitAllowed = true;
     }
 
-    protected boolean requestFocus(View view) {
-        if (getActivity() == null) {
-            throw new IllegalStateException("fragment " + this + " is not attached to activity");
-        }
-        return !GuiUtils.requestFocus(view, getActivity());
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        isCommitAllowed = false;
     }
 
     @CallSuper
@@ -240,6 +218,48 @@ public abstract class BaseJugglerFragment extends JugglerFragment implements Nes
     @Nullable
     @Override
     public ViewPager getNestedViewPager() {
+        return null;
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (isAdded()) {
+            for (Fragment f : getChildFragmentManager().getFragments()) {
+                if (f != null && !f.isDetached()) {
+                    f.onRequestPermissionsResult(requestCode, permissions, grantResults);
+                }
+            }
+        }
+    }
+
+    @Nullable
+    private static Fragment findFragmentById(FragmentManager fm, int id) {
+        if (fm != null) {
+            List<Fragment> fragments = fm.getFragments();
+            if (fragments != null) {
+                for (Fragment fragment : fragments) {
+                    if (fragment != null && !fragment.isDetached() && fragment.getId() == id) {
+                        return fragment;
+                    }
+                }
+            }
+        }
+        return null;
+    }
+
+    @Nullable
+    private static Fragment findFragmentByTag(FragmentManager fm, String tag) {
+        if (fm != null) {
+            List<Fragment> fragments = fm.getFragments();
+            if (fragments != null) {
+                for (Fragment fragment : fragments) {
+                    if (fragment != null && !fragment.isDetached() && CompareUtils.stringsEqual(fragment.getTag(), tag, false)) {
+                        return fragment;
+                    }
+                }
+            }
+        }
         return null;
     }
 }

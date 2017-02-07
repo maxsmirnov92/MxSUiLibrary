@@ -1,10 +1,9 @@
 package net.maxsmr.jugglerhelper.activities.base;
 
-import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.support.annotation.VisibleForTesting;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.view.KeyEvent;
@@ -12,17 +11,14 @@ import android.view.MotionEvent;
 
 import net.maxsmr.commonutils.data.CompareUtils;
 import net.maxsmr.jugglerhelper.fragments.base.BaseJugglerFragment;
-import net.maxsmr.jugglerhelper.juggler.Juggler2;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.List;
 
-import me.ilich.juggler.Navigable;
 import me.ilich.juggler.gui.JugglerActivity;
 import me.ilich.juggler.gui.JugglerFragment;
-import me.ilich.juggler.states.State;
 
 
 public class BaseJugglerActivity extends JugglerActivity {
@@ -132,4 +128,15 @@ public class BaseJugglerActivity extends JugglerActivity {
         }
         return null;
     }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        for (Fragment f : getSupportFragmentManager().getFragments()) {
+            if (f != null && !f.isDetached()) {
+                f.onRequestPermissionsResult(requestCode, permissions, grantResults);
+            }
+        }
+    }
+
 }

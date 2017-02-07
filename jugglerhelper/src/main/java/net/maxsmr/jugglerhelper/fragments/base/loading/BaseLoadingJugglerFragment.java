@@ -1,4 +1,4 @@
-package net.maxsmr.jugglerhelper.fragments.base;
+package net.maxsmr.jugglerhelper.fragments.base.loading;
 
 
 import android.content.BroadcastReceiver;
@@ -25,6 +25,7 @@ import net.maxsmr.commonutils.android.gui.fonts.FontsHolder;
 import net.maxsmr.commonutils.android.gui.progressable.DialogProgressable;
 import net.maxsmr.commonutils.android.gui.progressable.Progressable;
 import net.maxsmr.jugglerhelper.R;
+import net.maxsmr.jugglerhelper.fragments.base.BaseJugglerFragment;
 import net.maxsmr.networkutils.NetworkHelper;
 import net.maxsmr.permissionchecker.PermissionUtils;
 
@@ -132,9 +133,10 @@ public abstract class BaseLoadingJugglerFragment<I> extends BaseJugglerFragment 
         }
     }
 
-    private void invalidateLoading() {
+
+    protected void invalidateLoading(@Nullable I item) {
         loading(isLoading);
-        afterLoading();
+        afterLoading(item);
     }
 
     protected boolean enableSwipeRefresh() {
@@ -144,10 +146,15 @@ public abstract class BaseLoadingJugglerFragment<I> extends BaseJugglerFragment 
 
     protected abstract boolean allowReloadOnNetworkRestored();
 
-    protected void afterLoading() {
+    protected abstract boolean allowSetInitial();
+
+    @Nullable
+    protected abstract I getInitial();
+
+    protected void afterLoading(I item) {
         logger.debug("afterLoading");
             if (!isDataEmpty()) {
-                onLoaded();
+                onLoaded(item);
             } else {
                 onEmpty();
             }
@@ -168,6 +175,13 @@ public abstract class BaseLoadingJugglerFragment<I> extends BaseJugglerFragment 
         }
     }
 
+
+    @Override
+    public void onRefresh() {
+        if (allowSetInitial()) {
+            afterLoading(getInitial());
+        }
+    }
 
     protected void loading(boolean isLoading) {
         this.isLoading = isLoading;
@@ -237,13 +251,11 @@ public abstract class BaseLoadingJugglerFragment<I> extends BaseJugglerFragment 
 
         registerNetworkBroadcastReceiver();
 
-        invalidateLoading();
-    }
-
-    @Override
-    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
-        super.onActivityCreated(savedInstanceState);
-        getJugglerActivity().getJuggler().activateCurrentState();
+        if (allowSetInitial()) {
+            invalidateLoading(getInitial());
+        } else {
+            invalidateLoading(null);
+        }
     }
 
     @Override
@@ -265,13 +277,11 @@ public abstract class BaseLoadingJugglerFragment<I> extends BaseJugglerFragment 
         return getContext().getString(R.string.data_load_failed);
     }
 
-    @CallSuper
-    protected void onLoaded() {
+    protected void onLoaded(@Nullable I item) {
         isLoadErrorOccurred = false;
         processEmpty();
     }
 
-    @CallSuper
     protected void onEmpty() {
         processEmpty();
     }
@@ -316,24 +326,64 @@ public abstract class BaseLoadingJugglerFragment<I> extends BaseJugglerFragment 
 
         @Override
         public void onStart() {
-            if (isAdded()) {
+            if (isCommitAllowed()) {
                 loading(true);
             }
         }
 
         @Override
         public void onStop() {
-            if (isAdded()) {
+            if (isCommitAllowed()) {
                 loading(false);
             }
         }
     }
 
-    protected Progressable newLoadFragmentProgressable() {
+    protected class WrappedLoadFragmentProgressable implements Progressable {
+
+        private final LoadFragmentProgressable loadFragmentProgressable;
+
+        private final Progressable progressable;
+
+        public WrappedLoadFragmentProgressable(LoadFragmentProgressable loadFragmentProgressable, Progressable progressable) {
+            this.loadFragmentProgressable = loadFragmentProgressable;
+            this.progressable = progressable;
+        }
+
+        @Override
+        public void onStart() {
+            if (isCommitAllowed()) {
+                if (loadFragmentProgressable != null) {
+                    loadFragmentProgressable.onStart();
+                }
+                if (progressable != null) {
+                    progressable.onStart();
+                }
+            }
+        }
+
+        @Override
+        public void onStop() {
+            if (isCommitAllowed()) {
+                if (loadFragmentProgressable != null) {
+                    loadFragmentProgressable.onStop();
+                }
+                if (progressable != null) {
+                    progressable.onStop();
+                }
+            }
+        }
+    }
+
+    protected LoadFragmentProgressable newLoadFragmentProgressable() {
         return new LoadFragmentProgressable();
     }
 
-    protected Progressable newDialogProgressable() {
+    protected WrappedLoadFragmentProgressable newWrappedLoadFragmentProgressable(Progressable innerProgressable) {
+        return new WrappedLoadFragmentProgressable(newLoadFragmentProgressable(), innerProgressable);
+    }
+
+    protected DialogProgressable newDialogProgressable() {
         return new DialogProgressable(getContext());
     }
 

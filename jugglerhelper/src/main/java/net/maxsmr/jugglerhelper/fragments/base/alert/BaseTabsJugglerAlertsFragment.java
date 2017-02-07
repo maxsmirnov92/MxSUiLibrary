@@ -6,18 +6,14 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.annotation.StringRes;
 import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentManager;
 import android.view.KeyEvent;
 
 import net.maxsmr.commonutils.android.gui.adapters.CustomFragmentStatePagerAdapter;
-import net.maxsmr.commonutils.data.CompareUtils;
 import net.maxsmr.jugglerhelper.fragments.base.BaseTabsJugglerFragment;
-
-import java.util.List;
 
 public abstract class BaseTabsJugglerAlertsFragment<PagerAdapter extends CustomFragmentStatePagerAdapter> extends BaseTabsJugglerFragment<PagerAdapter> implements AlertDialogFragment.EventListener {
 
-    public static final String TAG_ALERT_FRAGMENT = BaseListJugglerAlertsFragment.class.getSimpleName() + ".TAG_ALERT_FRAGMENT";
+    public static final String TAG_ALERT_FRAGMENT = BaseListLoadingJugglerAlertsFragment.class.getSimpleName() + ".TAG_ALERT_FRAGMENT";
 
     @NonNull
     private String alertTag = TAG_ALERT_FRAGMENT;
@@ -48,6 +44,10 @@ public abstract class BaseTabsJugglerAlertsFragment<PagerAdapter extends CustomF
         if (alertFragment != null && alertFragment instanceof AlertDialogFragment) {
             ((AlertDialogFragment) alertFragment).setEventListener(this);
         }
+    }
+
+    protected AlertDialogFragment reshowAlert(@StringRes int messageResId) {
+        return reshowAlert(getContext().getString(messageResId));
     }
 
     protected AlertDialogFragment reshowAlert(String message) {
