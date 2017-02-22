@@ -39,9 +39,9 @@ public abstract class BaseJugglerFragment extends JugglerFragment implements Nes
 
     private Menu menu;
 
-    private boolean isCommitAllowed;
+    private boolean isCommitAllowed = false;
 
-    public boolean isCommitAllowed() {
+    public  boolean isCommitAllowed() {
         return isAdded() && isCommitAllowed;
     }
 
@@ -56,6 +56,11 @@ public abstract class BaseJugglerFragment extends JugglerFragment implements Nes
     }
 
     @Nullable
+    public <F extends Fragment> F findChildFragmentByClass(Class<F> clazz) {
+        return findFragmentByClass(getChildFragmentManager(), clazz);
+    }
+
+    @Nullable
     public Fragment findRootFragmentByTag(String tag) {
         return findFragmentByTag(getActivity() != null ? getActivity().getSupportFragmentManager() : null, tag);
     }
@@ -64,6 +69,12 @@ public abstract class BaseJugglerFragment extends JugglerFragment implements Nes
     public Fragment findRootFragmentById(int id) {
         return findFragmentById(getActivity() != null ? getActivity().getSupportFragmentManager() : null, id);
     }
+
+    @Nullable
+    public <F extends Fragment> F findRootFragmentByClass(Class<F> clazz) {
+        return findFragmentByClass(getFragmentManager(), clazz);
+    }
+
 
 
     @SuppressWarnings("unchecked")
@@ -122,12 +133,18 @@ public abstract class BaseJugglerFragment extends JugglerFragment implements Nes
 
     protected abstract void onBindViews(@NonNull View rootView);
 
-    public Menu getMenu() {
-        return this.menu;
+    protected Menu getMenu() {
+        return menu;
     }
 
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         this.menu = menu;
+    }
+
+    @Override
+    public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+        isCommitAllowed = true;
     }
 
     @Override
@@ -234,7 +251,7 @@ public abstract class BaseJugglerFragment extends JugglerFragment implements Nes
     }
 
     @Nullable
-    private static Fragment findFragmentById(FragmentManager fm, int id) {
+    public static Fragment findFragmentById(FragmentManager fm, int id) {
         if (fm != null) {
             List<Fragment> fragments = fm.getFragments();
             if (fragments != null) {
@@ -249,7 +266,7 @@ public abstract class BaseJugglerFragment extends JugglerFragment implements Nes
     }
 
     @Nullable
-    private static Fragment findFragmentByTag(FragmentManager fm, String tag) {
+    public static Fragment findFragmentByTag(FragmentManager fm, String tag) {
         if (fm != null) {
             List<Fragment> fragments = fm.getFragments();
             if (fragments != null) {
@@ -257,6 +274,20 @@ public abstract class BaseJugglerFragment extends JugglerFragment implements Nes
                     if (fragment != null && !fragment.isDetached() && CompareUtils.stringsEqual(fragment.getTag(), tag, false)) {
                         return fragment;
                     }
+                }
+            }
+        }
+        return null;
+    }
+
+    @Nullable
+    @SuppressWarnings("unchecked")
+    public static  <F extends Fragment> F findFragmentByClass(FragmentManager fm, Class<F> fragmentClass) {
+        List<Fragment> fragments = fm.getFragments();
+        if (fragments != null) {
+            for (Fragment fragment : fragments) {
+                if (fragment != null && !fragment.isDetached() && fragmentClass.isAssignableFrom(fragment.getClass())) {
+                    return (F) fragment;
                 }
             }
         }

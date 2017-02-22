@@ -25,10 +25,22 @@ public class BaseJugglerActivity extends JugglerActivity {
 
     private static final Logger logger = LoggerFactory.getLogger(BaseJugglerActivity.class);
 
-    private boolean isCommitAllowed = true;
+    private boolean isCommitAllowed = false;
 
-    protected final boolean isCommitAllowed() {
+    private boolean isResumed = false;
+
+    public boolean isCommitAllowed() {
         return isCommitAllowed;
+    }
+
+    public boolean isResumed() {
+        return isResumed;
+    }
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        isCommitAllowed = true;
     }
 
     @Override
@@ -44,17 +56,22 @@ public class BaseJugglerActivity extends JugglerActivity {
     }
 
     @Override
+    protected void onPause() {
+        super.onPause();
+        isResumed = false;
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        isResumed = true;
+    }
+
+    @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         logger.debug("onActivityResult(), this=" + this + ", requestCode=" + requestCode + ", resultCode=" + resultCode + ", data=" + data);
-        List<Fragment> fragments = getSupportFragmentManager().getFragments();
-        if (fragments != null) {
-            for (Fragment fragment : fragments) {
-                if (fragment != null && !fragment.isDetached()) {
-                    fragment.onActivityResult(requestCode, resultCode, data);
-                }
-            }
-        }
+
     }
 
     @Override
@@ -102,31 +119,18 @@ public class BaseJugglerActivity extends JugglerActivity {
     }
 
     @Nullable
-    public Fragment findFragmentByTag(String tag) {
-        FragmentManager fm = getSupportFragmentManager();
-        List<Fragment> fragments = fm.getFragments();
-        if (fragments != null) {
-            for (Fragment fragment : fragments) {
-                if (fragment != null && !fragment.isDetached() && CompareUtils.stringsEqual(fragment.getTag(), tag, false)) {
-                    return fragment;
-                }
-            }
-        }
-        return null;
+    public Fragment findFragmentById(int id) {
+        return BaseJugglerFragment.findFragmentById(getSupportFragmentManager(), id);
     }
 
     @Nullable
-    public Fragment findFragmentById(int id) {
-        FragmentManager fm = getSupportFragmentManager();
-        List<Fragment> fragments = fm.getFragments();
-        if (fragments != null) {
-            for (Fragment fragment : fragments) {
-                if (fragment != null && !fragment.isDetached() && fragment.getId() == id) {
-                    return fragment;
-                }
-            }
-        }
-        return null;
+    public Fragment findFragmentByTag(String tag) {
+        return BaseJugglerFragment.findFragmentByTag(getSupportFragmentManager(), tag);
+    }
+
+    @Nullable
+    public <F extends Fragment> F findFragmentByClass(Class<F> clazz) {
+        return BaseJugglerFragment.findFragmentByClass(getSupportFragmentManager(), clazz);
     }
 
     @Override

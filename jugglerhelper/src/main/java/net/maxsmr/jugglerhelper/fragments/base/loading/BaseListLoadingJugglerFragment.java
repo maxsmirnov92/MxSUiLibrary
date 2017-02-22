@@ -36,11 +36,9 @@ public abstract class BaseListLoadingJugglerFragment<I extends Comparable<I>, Ad
 
     private static final Logger logger = LoggerFactory.getLogger(BaseListLoadingJugglerFragment.class);
 
-    private ExecutorService service;
+    protected ExecutorService service;
 
     protected RecyclerView recycler;
-
-    protected RecyclerScrollableController recyclerScrollableController;
 
     protected Adapter adapter;
 
@@ -66,27 +64,37 @@ public abstract class BaseListLoadingJugglerFragment<I extends Comparable<I>, Ad
         return new LinearLayoutManager(getContext(), LinearLayoutManager.VERTICAL, false);
     }
 
-    @NonNull
+    @Nullable
     protected List<? extends RecyclerView.ItemDecoration> getItemDecorations() {
         return Collections.emptyList();
     }
+
+    @Nullable
+    protected List<? extends RecyclerView.OnScrollListener> getScrollListeners() {
+        return Collections.emptyList();
+    }
+
 
     @NonNull
     protected abstract Adapter initAdapter();
 
     protected abstract boolean allowReloadOnNetworkRestored();
 
+    protected abstract boolean allowDuplicateItems();
+
     protected void reloadAdapter(@Nullable List<I> items) {
         logger.debug("reloadAdapter(), items=" + items);
         if (adapter != null) {
-            sortAndRemoveDuplicateItemsFromList(items);
+            if (!allowDuplicateItems()) {
+                sortAndRemoveDuplicateItemsFromList(items);
+            }
             adapter.setItems(items);
         }
     }
 
     protected void loading(boolean isLoading) {
         super.loading(isLoading);
-        recycler.setVisibility(View.GONE);
+        recycler.setVisibility(isLoading? View.GONE : View.VISIBLE);
     }
 
     @Override
@@ -142,13 +150,23 @@ public abstract class BaseListLoadingJugglerFragment<I extends Comparable<I>, Ad
         adapter.setOnItemsRemovedListener(this);
 
         recycler.setLayoutManager(getRecyclerLayoutManager());
-        for (RecyclerView.ItemDecoration decoration : getItemDecorations()) {
-            if (decoration != null) {
-                recycler.addItemDecoration(decoration);
+
+        List<? extends RecyclerView.ItemDecoration> decorations = getItemDecorations();
+        if (decorations != null) {
+            for (RecyclerView.ItemDecoration decoration : decorations) {
+                if (decoration != null) {
+                    recycler.addItemDecoration(decoration);
+                }
             }
         }
+
+        List<? extends RecyclerView.OnScrollListener> scrollListeners = getScrollListeners();
+        if (scrollListeners != null) {
+            for (RecyclerView.OnScrollListener listener : scrollListeners)
+                recycler.addOnScrollListener(listener);
+        }
+
         recycler.setAdapter(adapter);
-        recycler.addOnScrollListener(recyclerScrollableController = new RecyclerScrollableController(this));
 
         super.onViewCreated(view, savedInstanceState);
     }
@@ -163,8 +181,20 @@ public abstract class BaseListLoadingJugglerFragment<I extends Comparable<I>, Ad
         adapter.setOnItemsSetListener(null);
         adapter.setOnItemsRemovedListener(null);
 
-        recycler.removeOnScrollListener(recyclerScrollableController);
-        recyclerScrollableController = null;
+        List<? extends RecyclerView.ItemDecoration> decorations = getItemDecorations();
+        if (decorations != null) {
+            for (RecyclerView.ItemDecoration decoration : decorations) {
+                if (decoration != null) {
+                    recycler.removeItemDecoration(decoration);
+                }
+            }
+        }
+
+        List<? extends RecyclerView.OnScrollListener> scrollListeners = getScrollListeners();
+        if (scrollListeners != null) {
+            for (RecyclerView.OnScrollListener listener : scrollListeners)
+                recycler.removeOnScrollListener(listener);
+        }
     }
 
     @Override
@@ -180,6 +210,26 @@ public abstract class BaseListLoadingJugglerFragment<I extends Comparable<I>, Ad
         return CompareUtils.objectsEqual(one, another); // TODO default
     }
 
+    protected void sortItems(List<I> items, @Nullable Comparator<? super I> comparator) {
+        if (items != null) {
+            if (comparator != null) {
+                Collections.sort(items, comparator);
+            } else {
+                Collections.sort(items);
+            }
+        }
+    }
+
+    protected void resortAdapterItems() {
+        resortAdapterItems(getSortComparator());
+    }
+
+    protected void resortAdapterItems(@Nullable Comparator<? super I> comparator) {
+        List<I> items = adapter.getItems();
+        sortItems(items, comparator);
+        adapter.setItems(items);
+    }
+
     /**
      * @param items will be modified if contains duplicate items
      * @return removed duplicate items
@@ -187,47 +237,61 @@ public abstract class BaseListLoadingJugglerFragment<I extends Comparable<I>, Ad
     @NonNull
     protected List<I> sortAndRemoveDuplicateItemsFromList(@Nullable List<I> items) {
 
-        final Comparator<I> comparator = getSortComparator();
-
         List<I> duplicateItems = new ArrayList<>();
 
         if (items != null) {
 
-            if (comparator != null) {
-                Collections.sort(items, comparator);
-            }
+            List<I> filteredItems = new ArrayList<>();
 
-            Iterator<I> iterator = items.iterator();
+            sortItems(items, getSortComparator());
 
-            int index = -1;
-
-            while (iterator.hasNext()) {
-
-                I item = iterator.next();
-                index++;
-
-                boolean isDuplicate = false;
-
-                for (int i = index + 1; i < items.size(); i++) {
-                    I compareItem = items.get(i);
-                    if (isDuplicateItems(compareItem, item)) {
-                        isDuplicate = true;
-                        break;
+            for (I item : items) {
+                if (item != null) {
+                    boolean isDuplicate = false;
+                    for (I filteredItem : filteredItems) {
+                        if (isDuplicateItems(item, filteredItem)) {
+                            duplicateItems.add(item);
+                            isDuplicate = true;
+                            break;
+                        }
+                    }
+                    if (!isDuplicate) {
+                        filteredItems.add(item);
                     }
                 }
-
-                if (isDuplicate || item == null) {
-                    logger.debug("removing duplicate item: " + item + "...");
-                    iterator.remove();
-                    index--;
-                    duplicateItems.add(item);
-                }
             }
 
-            if (comparator != null) {
-                Collections.sort(items, comparator);
-                logger.debug("sorted items: " + items);
-            }
+            items.clear();
+            items.addAll(filteredItems);
+
+            sortItems(items, getSortComparator());
+
+//            Iterator<I> iterator = items.iterator();
+//
+//            int index = -1;
+//
+//            while (iterator.hasNext()) {
+//
+//                I item = iterator.next();
+//                index++;
+//
+//                boolean isDuplicate = false;
+//
+//                    for (int i = index + 1; i < items.size(); i++) {
+//                        I compareItem = items.get(i);
+//                        if (isDuplicateItems(compareItem, item)) {
+//                            isDuplicate = true;
+//                            break;
+//                        }
+//                    }
+//
+//                if (isDuplicate || item == null) {
+//                    logger.debug("removing duplicate item: " + item + "...");
+//                    iterator.remove();
+//                    index--;
+//                    duplicateItems.add(item);
+//                }
+//            }
         }
 
         return duplicateItems;
@@ -279,23 +343,7 @@ public abstract class BaseListLoadingJugglerFragment<I extends Comparable<I>, Ad
         processEmpty();
     }
 
-    protected void resortAdapterItems() {
-        resortAdapterItems(getSortComparator());
-    }
-
-    protected void resortAdapterItems(@Nullable Comparator<? super I> comparator) {
-        List<I> items = adapter.getItems();
-        if (comparator == null) {
-            Collections.sort(items);
-        } else {
-            Collections.sort(items, comparator);
-        }
-        if (!items.equals(adapter.getItems())) {
-            adapter.setItems(items);
-        }
-    }
-
-    private void postActionOnRecyclerView(@NonNull final Runnable r, final long delay) {
+    protected void postActionOnRecyclerView(@NonNull final Runnable r, final long delay) {
 
         if (delay < 0) {
             throw new IllegalArgumentException("incorrect delay: " + delay);
@@ -324,7 +372,7 @@ public abstract class BaseListLoadingJugglerFragment<I extends Comparable<I>, Ad
         }
     }
 
-    private void postActionOnRecyclerView(@NonNull final Runnable r) {
+    protected void postActionOnRecyclerView(@NonNull final Runnable r) {
         postActionOnRecyclerView(r, 0);
     }
 
