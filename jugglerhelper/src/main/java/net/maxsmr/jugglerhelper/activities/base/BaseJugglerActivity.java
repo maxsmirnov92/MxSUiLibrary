@@ -9,7 +9,6 @@ import android.support.v4.app.FragmentManager;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 
-import net.maxsmr.commonutils.data.CompareUtils;
 import net.maxsmr.jugglerhelper.fragments.base.BaseJugglerFragment;
 
 import org.slf4j.Logger;
@@ -33,7 +32,7 @@ public class BaseJugglerActivity extends JugglerActivity {
         return isCommitAllowed;
     }
 
-    public boolean isResumed() {
+    public boolean isActivityResumed() {
         return isResumed;
     }
 
