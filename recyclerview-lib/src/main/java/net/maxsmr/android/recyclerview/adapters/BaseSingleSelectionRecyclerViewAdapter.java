@@ -72,7 +72,7 @@ public abstract class BaseSingleSelectionRecyclerViewAdapter<I, VH extends BaseR
         processSelection(holder, item, position);
     }
 
-    private void processSelection(@NonNull VH holder, @Nullable final I item, final int position) {
+    protected void processSelection(@NonNull VH holder, @Nullable final I item, final int position) {
         for (SelectionHelper.SelectMode mode : getSelectionModes(position)) {
             switch (mode) {
                 case CLICK:

@@ -54,6 +54,7 @@ public class AlertDialogFragment extends DialogFragment {
     @NonNull
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
+
         Bundle args = getArguments();
         if (args != null) {
             AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
@@ -90,23 +91,35 @@ public class AlertDialogFragment extends DialogFragment {
                     return eventListener != null && eventListener.onDialogKey(AlertDialogFragment.this, keyCode, event);
                 }
             });
-            return builder.create();
+            builder.setOnDismissListener(new DialogInterface.OnDismissListener() {
+                @Override
+                public void onDismiss(DialogInterface dialog) {
+                    if (eventListener != null) {
+                        eventListener.onDialogDismiss(AlertDialogFragment.this);
+                    }
+                }
+            });
+
+            AlertDialog dialog = null;
+            try {
+                return (dialog = builder.create());
+            } finally {
+                if (dialog != null) {
+                    if (eventListener != null) {
+                        eventListener.onDialogCreated(this, dialog);
+                    }
+                }
+            }
+
+        } else {
+            throw new IllegalStateException("specify fragment arguments");
         }
-        return super.onCreateDialog(savedInstanceState);
     }
 
     @Override
     public void onCancel(DialogInterface dialog) {
         if (eventListener != null) {
             eventListener.onDialogCancel(AlertDialogFragment.this);
-        }
-    }
-
-    @Override
-    public void onDismiss(DialogInterface dialog) {
-        super.onDismiss(dialog);
-        if (eventListener != null) {
-            eventListener.onDialogDismiss(AlertDialogFragment.this);
         }
     }
 
@@ -182,6 +195,8 @@ public class AlertDialogFragment extends DialogFragment {
     }
 
     public interface EventListener {
+
+        void onDialogCreated(AlertDialogFragment fragment, AlertDialog dialog);
 
         void onDialogButtonClick(AlertDialogFragment fragment, int which);
 

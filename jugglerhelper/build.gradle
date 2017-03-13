@@ -4,7 +4,7 @@ apply plugin: 'maven'
 
 def groupId = "net.maxsmr"
 def artifactId = "jugglerhelper"
-def version = "1.0.3.7.1"
+def version = "1.0.3.7.2"
 
 def releaseDir = "${buildDir}/release"
 

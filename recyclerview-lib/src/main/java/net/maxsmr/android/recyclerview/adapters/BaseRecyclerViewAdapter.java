@@ -149,6 +149,10 @@ public abstract class BaseRecyclerViewAdapter<I, VH extends BaseRecyclerViewAdap
         addItem(getItemCount(), item);
     }
 
+    public final void addFirstItem(@Nullable I item) throws IndexOutOfBoundsException{
+        addItem(0, item);
+    }
+
     @CallSuper
     protected void onItemAdded(int to, @Nullable I item) {
         if (mNotifyOnChange) {

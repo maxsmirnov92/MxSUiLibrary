@@ -111,7 +111,7 @@ public abstract class BaseCheckableRecyclerViewAdapter<I, VH extends BaseRecycle
         }
     }
 
-    private void processSelection(@NonNull VH holder, @Nullable I item, int position) {
+    protected void processSelection(@NonNull VH holder, @Nullable I item, int position) {
         mSelectionHelper.wrapSelectable(holder, mSelectionModes); /* mSelectionModes.get(position) */
 
         final boolean isSelected = isItemSelected(position);

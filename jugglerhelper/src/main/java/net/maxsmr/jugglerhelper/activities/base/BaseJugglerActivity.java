@@ -5,7 +5,6 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentManager;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 
@@ -17,12 +16,13 @@ import org.slf4j.LoggerFactory;
 import java.util.List;
 
 import me.ilich.juggler.gui.JugglerActivity;
-import me.ilich.juggler.gui.JugglerFragment;
 
 
 public class BaseJugglerActivity extends JugglerActivity {
 
     private static final Logger logger = LoggerFactory.getLogger(BaseJugglerActivity.class);
+
+    private Bundle savedInstanceState;
 
     private boolean isCommitAllowed = false;
 
@@ -39,12 +39,14 @@ public class BaseJugglerActivity extends JugglerActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        this.savedInstanceState = savedInstanceState;
         isCommitAllowed = true;
     }
 
     @Override
     public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
+        savedInstanceState = outState;
         isCommitAllowed = false;
     }
 
@@ -99,22 +101,6 @@ public class BaseJugglerActivity extends JugglerActivity {
             }
         }
         return super.onKeyDown(keyCode, event);
-    }
-
-
-    @Nullable
-    @SuppressWarnings("unchecked")
-    public <F extends JugglerFragment> F findFragment(Class<F> fragmentClass) {
-        FragmentManager fm = getSupportFragmentManager();
-        List<Fragment> fragments = fm.getFragments();
-        if (fragments != null) {
-            for (Fragment fragment : fragments) {
-                if (fragment != null && !fragment.isDetached() && fragmentClass.isAssignableFrom(fragment.getClass())) {
-                    return (F) fragment;
-                }
-            }
-        }
-        return null;
     }
 
     @Nullable
