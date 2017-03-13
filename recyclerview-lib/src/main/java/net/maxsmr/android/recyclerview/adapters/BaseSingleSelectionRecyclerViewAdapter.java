@@ -66,6 +66,16 @@ public abstract class BaseSingleSelectionRecyclerViewAdapter<I, VH extends BaseR
     }
 
     @Override
+    protected final boolean allowSetClickListener(@Nullable I item, int position) {
+        return false;
+    }
+
+    @Override
+    protected final boolean allowSetLongClickListener(@Nullable I item, int position) {
+        return false;
+    }
+
+    @Override
     @CallSuper
     protected void processItem(@NonNull VH holder, @Nullable I item, int position) {
         super.processItem(holder, item, position);
