@@ -17,8 +17,13 @@ import java.util.Set;
 
 public abstract class BaseSingleSelectionRecyclerViewAdapter<I, VH extends BaseRecyclerViewAdapter.ViewHolder<I>> extends BaseRecyclerViewAdapter<I, VH> {
 
+    private int selection = RecyclerView.NO_POSITION;
+
     @Nullable
     private Drawable defaultDrawable, selectionDrawable;
+
+    @Nullable
+    private OnSelectedChangeListener selectedChangeListener;
 
     public BaseSingleSelectionRecyclerViewAdapter(@NonNull Context context, @LayoutRes int itemLayoutId, @Nullable Collection<I> items) {
         this(context, itemLayoutId, items, null, null);
@@ -65,14 +70,18 @@ public abstract class BaseSingleSelectionRecyclerViewAdapter<I, VH extends BaseR
         return true;
     }
 
-    @Override
-    protected final boolean allowSetClickListener(@Nullable I item, int position) {
-        return false;
-    }
+//    @Override
+//    protected final boolean allowSetClickListener(@Nullable I item, int position) {
+//        return false;
+//    }
+//
+//    @Override
+//    protected final boolean allowSetLongClickListener(@Nullable I item, int position) {
+//        return false;
+//    }
 
-    @Override
-    protected final boolean allowSetLongClickListener(@Nullable I item, int position) {
-        return false;
+    private void prevSelection() {
+
     }
 
     @Override
@@ -152,18 +161,24 @@ public abstract class BaseSingleSelectionRecyclerViewAdapter<I, VH extends BaseR
 
     }
 
-    private int selection = RecyclerView.NO_POSITION;
-
     public boolean isSelected() {
-        return selection != RecyclerView.NO_POSITION;
+        return getSelectedPosition() != RecyclerView.NO_POSITION;
     }
 
     public int getSelectedPosition() {
-        return selection;
+        if (selection >= 0 && selection < getItemCount()) {
+            return selection;
+        }
+        return RecyclerView.NO_POSITION;
     }
 
+    @Nullable
     public I getSelectedItem() {
-        return getItem(selection);
+        int selection = getSelectedPosition();
+        if (selection >= 0 && selection < getItemCount()) {
+            return getItem(selection);
+        }
+        return null;
     }
 
     public boolean isItemPositionSelected(int position) {
@@ -223,6 +238,36 @@ public abstract class BaseSingleSelectionRecyclerViewAdapter<I, VH extends BaseR
         }
     }
 
+    public boolean previousSelection(boolean loop) {
+        boolean changed = false;
+        int selection = getSelectedPosition();
+        if (selection != RecyclerView.NO_POSITION) {
+            if (selection >= 1) {
+                setSelection(--selection);
+                changed = true;
+            } else if (loop) {
+                setSelection(getItemCount() - 1);
+                changed = true;
+            }
+        }
+        return changed;
+    }
+
+    public boolean nextSelection(boolean loop) {
+        boolean changed = false;
+        int selection = getSelectedPosition();
+        if (selection != RecyclerView.NO_POSITION) {
+            if (selection < getItemCount() - 1) {
+                setSelection(++selection);
+                changed = true;
+            } else if (loop) {
+                setSelection(0);
+                changed = true;
+            }
+        }
+        return changed;
+    }
+
     /**
      * called before {@link #notifyItemChanged(int)}}
      */
@@ -243,9 +288,6 @@ public abstract class BaseSingleSelectionRecyclerViewAdapter<I, VH extends BaseR
             selectedChangeListener.onReselect(index, fromUser);
         }
     }
-
-    @Nullable
-    private OnSelectedChangeListener selectedChangeListener;
 
     public void setOnSelectedChangeListener(@Nullable OnSelectedChangeListener selectedChangeListener) {
         this.selectedChangeListener = selectedChangeListener;
