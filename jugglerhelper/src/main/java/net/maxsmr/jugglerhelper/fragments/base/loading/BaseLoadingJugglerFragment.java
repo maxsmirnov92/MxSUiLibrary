@@ -140,9 +140,9 @@ public abstract class BaseLoadingJugglerFragment<I> extends BaseJugglerFragment 
     }
 
 
-    protected void invalidateLoading(@Nullable I item) {
+    protected void invalidateLoading(@Nullable I data) {
         loading(isLoading);
-        afterLoading(item);
+        afterLoading(data);
     }
 
     protected boolean enableSwipeRefresh() {
@@ -157,10 +157,10 @@ public abstract class BaseLoadingJugglerFragment<I> extends BaseJugglerFragment 
     @Nullable
     protected abstract I getInitial();
 
-    protected void afterLoading(I item) {
+    protected void afterLoading(@Nullable I data) {
         logger.debug("afterLoading");
-            if (!isDataEmpty()) {
-                onLoaded(item);
+            if (data != null && !isDataEmpty(data)) {
+                onLoaded(data);
             } else {
                 onEmpty();
             }
@@ -211,6 +211,8 @@ public abstract class BaseLoadingJugglerFragment<I> extends BaseJugglerFragment 
     }
 
     protected abstract boolean isDataEmpty();
+
+    protected abstract boolean isDataEmpty(I data);
 
     protected void processEmpty() {
         boolean isEmpty = isDataEmpty();
@@ -288,7 +290,7 @@ public abstract class BaseLoadingJugglerFragment<I> extends BaseJugglerFragment 
         return getContext().getString(R.string.data_load_failed);
     }
 
-    protected void onLoaded(@Nullable I item) {
+    protected void onLoaded(@NonNull I data) {
         isLoadErrorOccurred = false;
         processEmpty();
     }

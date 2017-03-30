@@ -126,9 +126,12 @@ public class BaseJugglerActivity extends JugglerActivity {
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        for (Fragment f : getSupportFragmentManager().getFragments()) {
-            if (f != null && !f.isDetached()) {
-                f.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        List<Fragment> fragments = getSupportFragmentManager().getFragments();
+        if (fragments != null) {
+            for (Fragment f : fragments) {
+                if (f != null && !f.isDetached()) {
+                    f.onRequestPermissionsResult(requestCode, permissions, grantResults);
+                }
             }
         }
     }

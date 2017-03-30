@@ -26,7 +26,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -97,18 +96,13 @@ public abstract class BaseListLoadingJugglerFragment<I extends Comparable<I>, Ad
         recycler.setVisibility(isLoading? View.GONE : View.VISIBLE);
     }
 
-    @Override
-    protected void afterLoading(@Nullable List<I> items) {
-        logger.debug("afterLoading");
-        if (items != null && !items.isEmpty()) {
-            onLoaded(items);
-        } else {
-            onEmpty();
-        }
-    }
-
     protected boolean isDataEmpty() {
         return adapter.isEmpty();
+    }
+
+    @Override
+    protected boolean isDataEmpty(List<I> data) {
+        return data == null || data.isEmpty();
     }
 
     protected void processEmpty() {
@@ -337,7 +331,7 @@ public abstract class BaseListLoadingJugglerFragment<I extends Comparable<I>, Ad
     }
 
     @CallSuper
-    protected void onLoaded(@Nullable List<I> items) {
+    protected void onLoaded(@NonNull List<I> items) {
         isLoadErrorOccurred = false;
         reloadAdapter(items);
         processEmpty();
