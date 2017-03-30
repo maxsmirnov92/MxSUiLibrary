@@ -10,7 +10,7 @@ def releaseDir = "${buildDir}/release"
 
 android {
     compileSdkVersion 24
-    buildToolsVersion "24.0.3"
+    buildToolsVersion "24.0.2"
 
     sourceCompatibility = 1.7
     targetCompatibility = 1.7
