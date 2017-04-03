@@ -17,6 +17,11 @@ script:
 jdk:
   - oraclejdk8
 
+licenses:
+      - 'android-sdk-preview-license-.+'
+      - 'android-sdk-license-.+'
+      - 'google-gdk-license-.+'
+
 cache:
   directories:
     - $HOME/.gradle
