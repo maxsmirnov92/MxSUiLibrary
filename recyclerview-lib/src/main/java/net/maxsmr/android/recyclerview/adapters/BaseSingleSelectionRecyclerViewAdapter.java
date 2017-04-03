@@ -293,6 +293,59 @@ public abstract class BaseSingleSelectionRecyclerViewAdapter<I, VH extends BaseR
         this.selectedChangeListener = selectedChangeListener;
     }
 
+    @Override
+    protected void onItemAdded(int to, @Nullable I item) {
+        fixSelectionIndexOnAdd(to, 1);
+        super.onItemAdded(to, item);
+    }
+
+    @Override
+    protected void onItemsAdded(int to, @NonNull Collection<I> items) {
+        fixSelectionIndexOnAdd(to, items.size());
+        super.onItemsAdded(to, items);
+    }
+
+    @Override
+    protected void onItemRemoved(int from, @Nullable I item) {
+        fixSelectionIndexOnRemove(from, 1);
+        super.onItemRemoved(from, item);
+    }
+
+    @Override
+    protected void onItemsRangeRemoved(int from, int to, int previousSize) {
+        fixSelectionIndexOnRemove(from, from == to? 1: to - from);
+        super.onItemsRangeRemoved(from, to, previousSize);
+    }
+
+    @Override
+    protected void onItemsSet() {
+        selection = RecyclerView.NO_POSITION;
+        super.onItemsSet();
+    }
+
+    private void fixSelectionIndexOnAdd(int to, int count) {
+        if (count >= 1) {
+            if (selection != RecyclerView.NO_POSITION) {
+                if (selection >= to) {
+                    selection += count;
+                }
+            }
+        }
+    }
+
+    private void fixSelectionIndexOnRemove(int from, int count) {
+        if (count >= 1) {
+            if (selection != RecyclerView.NO_POSITION) {
+                if (selection > from && from + count < selection) {
+                    selection -= count;
+                }
+                else if (selection >= from && selection <= from + count) {
+                    selection = RecyclerView.NO_POSITION;
+                }
+            }
+        }
+    }
+
     public interface OnSelectedChangeListener {
 
         void onSetSelection(int fromIndex, int toIndex, boolean fromUser);

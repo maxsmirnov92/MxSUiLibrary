@@ -3,7 +3,7 @@ apply plugin: 'maven'
 
 def groupId = "net.maxsmr"
 def artifactId = "recyclerview-lib"
-def version = "1.0.2.3.3"
+def version = "1.0.2.3.4"
 
 def releaseDir = "${buildDir}/release"
 
@@ -12,7 +12,7 @@ android {
     buildToolsVersion "24.0.2"
 
     defaultConfig {
-        minSdkVersion 7
+        minSdkVersion 9
         targetSdkVersion 24
         versionCode 1
         versionName version

@@ -17,6 +17,7 @@ import com.bejibx.android.recyclerview.selection.SelectionObserver;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Objects;
@@ -173,28 +174,71 @@ public abstract class BaseCheckableRecyclerViewAdapter<I, VH extends BaseRecycle
     }
 
     @Override
+    protected void onItemAdded(int to, @Nullable I item) {
+        fixSelectionIndexOnAdd(to, 1);
+        super.onItemAdded(to, item);
+    }
+
+    @Override
+    protected void onItemsAdded(int to, @NonNull Collection<I> items) {
+        fixSelectionIndexOnAdd(to, items.size());
+        super.onItemsAdded(to, items);
+    }
+
+    @Override
+    protected void onItemRemoved(int from, @Nullable I item) {
+        fixSelectionIndexOnRemove(from, 1);
+        super.onItemRemoved(from, item);
+    }
+
+    @Override
+    protected void onItemsRangeRemoved(int from, int to, int previousSize) {
+        fixSelectionIndexOnRemove(from, from == to? 1: to - from);
+        super.onItemsRangeRemoved(from, to, previousSize);
+    }
+
+    @Override
     protected void onItemsSet() {
+        clearSelection();
         super.onItemsSet();
-        if (mSelectionHelper != null) {
-            clearSelection();
-        }
     }
 
-    @Override
-    protected void onItemsCleared(int previousSize) {
-        if (mSelectionHelper != null) {
-            clearSelection();
-        }
-    }
-
-    @Override
-    protected void onItemRemoved(int removedPosition, @Nullable I item) {
-        super.onItemRemoved(removedPosition, item);
-        if (mSelectionHelper != null) {
-            if (mSelectionHelper.isItemSelected(removedPosition)) {
-                mSelectionHelper.setItemSelectedByPosition(removedPosition, false, false);
+    private void fixSelectionIndexOnAdd(int to, int count) {
+        Set<Integer> newSet = new LinkedHashSet<>();
+        if (count >= 1) {
+            Iterator<Integer> it = getSelectedItemsPositions().iterator();
+            while (it.hasNext()) {
+                Integer selection = it.next();
+                if (selection != RecyclerView.NO_POSITION) {
+                    if (selection >= to) {
+                        selection += count;
+                    }
+                    newSet.add(selection);
+                }
             }
         }
+        setItemsSelectedByPositions(newSet, true);
+    }
+
+    private void fixSelectionIndexOnRemove(int from, int count) {
+        Set<Integer> newSet = new LinkedHashSet<>();
+        if (count >= 1) {
+            Iterator<Integer> it = getSelectedItemsPositions().iterator();
+            while (it.hasNext()) {
+                Integer selection = it.next();
+                if (selection != RecyclerView.NO_POSITION) {
+                    if (selection > from && from + count < selection) {
+                        selection -= count;
+                    } else if (selection >= from && selection <= from + count) {
+                        selection = RecyclerView.NO_POSITION;
+                    }
+                    if (selection != RecyclerView.NO_POSITION) {
+                        newSet.add(selection);
+                    }
+                }
+            }
+        }
+        setItemsSelectedByPositions(newSet, true);
     }
 
     @NonNull
