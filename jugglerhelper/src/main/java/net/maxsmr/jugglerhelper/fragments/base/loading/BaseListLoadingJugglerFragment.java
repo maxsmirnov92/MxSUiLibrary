@@ -15,7 +15,7 @@ import android.view.View;
 
 import net.maxsmr.android.recyclerview.adapters.BaseRecyclerViewAdapter;
 import net.maxsmr.commonutils.android.gui.GuiUtils;
-import net.maxsmr.commonutils.android.gui.views.RecyclerScrollableController;
+import net.maxsmr.commonutils.android.gui.views.recycler.RecyclerScrollableController;
 import net.maxsmr.commonutils.data.CompareUtils;
 import net.maxsmr.jugglerhelper.R;
 
