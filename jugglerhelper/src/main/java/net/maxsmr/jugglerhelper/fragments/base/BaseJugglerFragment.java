@@ -242,9 +242,12 @@ public abstract class BaseJugglerFragment extends JugglerFragment implements Nes
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         if (isAdded()) {
-            for (Fragment f : getChildFragmentManager().getFragments()) {
-                if (f != null && !f.isDetached()) {
-                    f.onRequestPermissionsResult(requestCode, permissions, grantResults);
+            List<Fragment> childFragments = getChildFragmentManager().getFragments();
+            if (childFragments != null) {
+                for (Fragment f : childFragments) {
+                    if (f != null && !f.isDetached()) {
+                        f.onRequestPermissionsResult(requestCode, permissions, grantResults);
+                    }
                 }
             }
         }

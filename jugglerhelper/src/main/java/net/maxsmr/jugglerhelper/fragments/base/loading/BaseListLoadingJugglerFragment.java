@@ -27,6 +27,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -36,11 +37,30 @@ public abstract class BaseListLoadingJugglerFragment<I extends Comparable<I>, Ad
 
     private static final Logger logger = LoggerFactory.getLogger(BaseListLoadingJugglerFragment.class);
 
+    private final List<RecyclerView.ItemDecoration> registeredDecorations = new LinkedList<>();
+
+    private final List<RecyclerView.OnScrollListener> registeredScrollListeners = new LinkedList<>();
+
     protected ExecutorService service;
 
     protected RecyclerView recycler;
 
     protected Adapter adapter;
+
+    @NonNull
+    protected List<RecyclerView.ItemDecoration> getRegisteredDecorations() {
+        return Collections.unmodifiableList(registeredDecorations);
+    }
+
+    @NonNull
+    protected List<RecyclerView.OnScrollListener> getRegisteredScrollListeners() {
+        return Collections.unmodifiableList(registeredScrollListeners);
+    }
+
+    @Nullable
+    protected RecyclerView.LayoutManager getRegisteredLayoutManager() {
+        return recycler.getLayoutManager();
+    }
 
     /**
      * @return 0 if it's not used or recycler has different layouts
@@ -75,6 +95,48 @@ public abstract class BaseListLoadingJugglerFragment<I extends Comparable<I>, Ad
     }
 
 
+    protected void addItemDecorations() {
+        removeItemDecorations();
+        List<? extends RecyclerView.ItemDecoration> decorations = getItemDecorations();
+        if (decorations != null) {
+            for (RecyclerView.ItemDecoration decoration : decorations) {
+                if (decoration != null) {
+                    recycler.addItemDecoration(decoration);
+                    registeredDecorations.add(decoration);
+                }
+            }
+        }
+    }
+
+    protected void removeItemDecorations() {
+        Iterator<RecyclerView.ItemDecoration> it = registeredDecorations.iterator();
+        while (it.hasNext()) {
+            RecyclerView.ItemDecoration decoration = it.next();
+            recycler.removeItemDecoration(decoration);
+            it.remove();
+        }
+    }
+
+    protected void addScrollListeners() {
+        removeScrollListeners();
+        List<? extends RecyclerView.OnScrollListener> scrollListeners = getScrollListeners();
+        if (scrollListeners != null) {
+            for (RecyclerView.OnScrollListener listener : scrollListeners) {
+                recycler.addOnScrollListener(listener);
+                registeredScrollListeners.add(listener);
+            }
+        }
+    }
+
+    protected void removeScrollListeners() {
+        Iterator<RecyclerView.OnScrollListener> it = registeredScrollListeners.iterator();
+        while (it.hasNext()) {
+            RecyclerView.OnScrollListener listener = it.next();
+            recycler.removeOnScrollListener(listener);
+            it.remove();
+        }
+    }
+
     @NonNull
     protected abstract Adapter initAdapter();
 
@@ -82,11 +144,15 @@ public abstract class BaseListLoadingJugglerFragment<I extends Comparable<I>, Ad
 
     protected abstract boolean allowDuplicateItems();
 
+    protected abstract boolean allowSort();
+
     protected void reloadAdapter(@Nullable List<I> items) {
         logger.debug("reloadAdapter(), items=" + items);
         if (adapter != null) {
             if (!allowDuplicateItems()) {
                 sortAndRemoveDuplicateItemsFromList(items);
+            } else if (allowSort()) {
+                sortItems(items, getSortComparator());
             }
             adapter.setItems(items);
         }
@@ -94,21 +160,16 @@ public abstract class BaseListLoadingJugglerFragment<I extends Comparable<I>, Ad
 
     protected void loading(boolean isLoading) {
         super.loading(isLoading);
-        recycler.setVisibility(isLoading? View.GONE : View.VISIBLE);
-    }
-
-    @Override
-    protected void afterLoading(@Nullable List<I> items) {
-        logger.debug("afterLoading");
-        if (items != null && !items.isEmpty()) {
-            onLoaded(items);
-        } else {
-            onEmpty();
-        }
+        recycler.setVisibility(isLoading ? View.GONE : View.VISIBLE);
     }
 
     protected boolean isDataEmpty() {
         return adapter.isEmpty();
+    }
+
+    @Override
+    protected boolean isDataEmpty(List<I> data) {
+        return data == null || data.isEmpty();
     }
 
     protected void processEmpty() {
@@ -117,7 +178,6 @@ public abstract class BaseListLoadingJugglerFragment<I extends Comparable<I>, Ad
         recycler.setVisibility(hasItems ? View.VISIBLE : View.GONE);
     }
 
-    @CallSuper
     protected void processError() {
         super.processError();
         recycler.setVisibility(View.GONE);
@@ -151,20 +211,8 @@ public abstract class BaseListLoadingJugglerFragment<I extends Comparable<I>, Ad
 
         recycler.setLayoutManager(getRecyclerLayoutManager());
 
-        List<? extends RecyclerView.ItemDecoration> decorations = getItemDecorations();
-        if (decorations != null) {
-            for (RecyclerView.ItemDecoration decoration : decorations) {
-                if (decoration != null) {
-                    recycler.addItemDecoration(decoration);
-                }
-            }
-        }
-
-        List<? extends RecyclerView.OnScrollListener> scrollListeners = getScrollListeners();
-        if (scrollListeners != null) {
-            for (RecyclerView.OnScrollListener listener : scrollListeners)
-                recycler.addOnScrollListener(listener);
-        }
+        addItemDecorations();
+        addScrollListeners();
 
         recycler.setAdapter(adapter);
 
@@ -181,26 +229,15 @@ public abstract class BaseListLoadingJugglerFragment<I extends Comparable<I>, Ad
         adapter.setOnItemsSetListener(null);
         adapter.setOnItemsRemovedListener(null);
 
-        List<? extends RecyclerView.ItemDecoration> decorations = getItemDecorations();
-        if (decorations != null) {
-            for (RecyclerView.ItemDecoration decoration : decorations) {
-                if (decoration != null) {
-                    recycler.removeItemDecoration(decoration);
-                }
-            }
-        }
-
-        List<? extends RecyclerView.OnScrollListener> scrollListeners = getScrollListeners();
-        if (scrollListeners != null) {
-            for (RecyclerView.OnScrollListener listener : scrollListeners)
-                recycler.removeOnScrollListener(listener);
-        }
+        removeItemDecorations();
+        removeScrollListeners();
     }
 
     @Override
     public void onDestroy() {
         super.onDestroy();
         service.shutdown();
+        service = null;
     }
 
     @Nullable
@@ -243,7 +280,9 @@ public abstract class BaseListLoadingJugglerFragment<I extends Comparable<I>, Ad
 
             List<I> filteredItems = new ArrayList<>();
 
-            sortItems(items, getSortComparator());
+            if (allowSort()) {
+                sortItems(items, getSortComparator());
+            }
 
             for (I item : items) {
                 if (item != null) {
@@ -264,7 +303,9 @@ public abstract class BaseListLoadingJugglerFragment<I extends Comparable<I>, Ad
             items.clear();
             items.addAll(filteredItems);
 
-            sortItems(items, getSortComparator());
+            if (allowSort()) {
+                sortItems(items, getSortComparator());
+            }
 
 //            Iterator<I> iterator = items.iterator();
 //
@@ -336,11 +377,9 @@ public abstract class BaseListLoadingJugglerFragment<I extends Comparable<I>, Ad
 
     }
 
-    @CallSuper
-    protected void onLoaded(@Nullable List<I> items) {
-        isLoadErrorOccurred = false;
+    protected void onLoaded(@NonNull List<I> items) {
         reloadAdapter(items);
-        processEmpty();
+        super.onLoaded(items);
     }
 
     protected void postActionOnRecyclerView(@NonNull final Runnable r, final long delay) {
@@ -358,7 +397,7 @@ public abstract class BaseListLoadingJugglerFragment<I extends Comparable<I>, Ad
             }
         };
 
-        if (!service.isShutdown()) {
+        if (service != null && !service.isShutdown()) {
             if (recycler.isComputingLayout()) service.submit(new Runnable() {
                 @Override
                 public void run() {

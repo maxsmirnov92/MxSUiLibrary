@@ -149,6 +149,10 @@ public abstract class BaseRecyclerViewAdapter<I, VH extends BaseRecyclerViewAdap
         addItem(getItemCount(), item);
     }
 
+    public final void addFirstItem(@Nullable I item) throws IndexOutOfBoundsException{
+        addItem(0, item);
+    }
+
     @CallSuper
     protected void onItemAdded(int to, @Nullable I item) {
         if (mNotifyOnChange) {
@@ -258,12 +262,12 @@ public abstract class BaseRecyclerViewAdapter<I, VH extends BaseRecyclerViewAdap
     }
 
     @CallSuper
-    protected void onItemRemoved(int removedPosition, @Nullable I item) {
+    protected void onItemRemoved(int from, @Nullable I item) {
         if (mNotifyOnChange) {
-            notifyItemRemoved(removedPosition);
+            notifyItemRemoved(from);
         }
         if (mItemsRemovedListener != null) {
-            mItemsRemovedListener.onItemRemoved(removedPosition, item);
+            mItemsRemovedListener.onItemRemoved(from, item);
         }
     }
 
@@ -339,6 +343,10 @@ public abstract class BaseRecyclerViewAdapter<I, VH extends BaseRecyclerViewAdap
         return true;
     }
 
+    protected boolean isItemEmpty(@Nullable final I item) {
+        return item == null;
+    }
+
     @SuppressWarnings("unchecked")
     @CallSuper
     protected void processItem(@NonNull VH holder, @Nullable final I item, final int position) {
@@ -347,7 +355,7 @@ public abstract class BaseRecyclerViewAdapter<I, VH extends BaseRecyclerViewAdap
             mProcessingItemListener.onProcessingItem(holder, item, position);
         }
 
-        if (item != null) {
+        if (!isItemEmpty(item)) {
 
             if (allowSetClickListener(item, position)) {
                 holder.itemView.setOnClickListener(new View.OnClickListener() {

@@ -1,15 +1,14 @@
 package net.maxsmr.jugglerhelper.activities.base;
 
 import android.content.Intent;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentManager;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 
-import net.maxsmr.commonutils.data.CompareUtils;
 import net.maxsmr.jugglerhelper.fragments.base.BaseJugglerFragment;
 
 import org.slf4j.Logger;
@@ -18,12 +17,13 @@ import org.slf4j.LoggerFactory;
 import java.util.List;
 
 import me.ilich.juggler.gui.JugglerActivity;
-import me.ilich.juggler.gui.JugglerFragment;
 
 
 public class BaseJugglerActivity extends JugglerActivity {
 
     private static final Logger logger = LoggerFactory.getLogger(BaseJugglerActivity.class);
+
+    private Bundle savedInstanceState;
 
     private boolean isCommitAllowed = false;
 
@@ -33,19 +33,25 @@ public class BaseJugglerActivity extends JugglerActivity {
         return isCommitAllowed;
     }
 
-    public boolean isResumed() {
+    public boolean isActivityResumed() {
         return isResumed;
+    }
+
+    public boolean isActivityDestroyed() {
+        return (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1 && !isDestroyed());
     }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        this.savedInstanceState = savedInstanceState;
         isCommitAllowed = true;
     }
 
     @Override
     public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
+        savedInstanceState = outState;
         isCommitAllowed = false;
     }
 
@@ -102,22 +108,6 @@ public class BaseJugglerActivity extends JugglerActivity {
         return super.onKeyDown(keyCode, event);
     }
 
-
-    @Nullable
-    @SuppressWarnings("unchecked")
-    public <F extends JugglerFragment> F findFragment(Class<F> fragmentClass) {
-        FragmentManager fm = getSupportFragmentManager();
-        List<Fragment> fragments = fm.getFragments();
-        if (fragments != null) {
-            for (Fragment fragment : fragments) {
-                if (fragment != null && !fragment.isDetached() && fragmentClass.isAssignableFrom(fragment.getClass())) {
-                    return (F) fragment;
-                }
-            }
-        }
-        return null;
-    }
-
     @Nullable
     public Fragment findFragmentById(int id) {
         return BaseJugglerFragment.findFragmentById(getSupportFragmentManager(), id);
@@ -136,9 +126,12 @@ public class BaseJugglerActivity extends JugglerActivity {
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        for (Fragment f : getSupportFragmentManager().getFragments()) {
-            if (f != null && !f.isDetached()) {
-                f.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        List<Fragment> fragments = getSupportFragmentManager().getFragments();
+        if (fragments != null) {
+            for (Fragment f : fragments) {
+                if (f != null && !f.isDetached()) {
+                    f.onRequestPermissionsResult(requestCode, permissions, grantResults);
+                }
             }
         }
     }

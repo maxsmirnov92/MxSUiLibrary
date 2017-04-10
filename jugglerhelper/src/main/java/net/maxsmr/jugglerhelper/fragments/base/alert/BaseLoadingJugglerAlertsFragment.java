@@ -6,6 +6,7 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.annotation.StringRes;
 import android.support.v4.app.Fragment;
+import android.support.v7.app.AlertDialog;
 import android.view.KeyEvent;
 
 import net.maxsmr.jugglerhelper.fragments.base.loading.BaseLoadingJugglerFragment;
@@ -103,6 +104,11 @@ public abstract class BaseLoadingJugglerAlertsFragment<I> extends BaseLoadingJug
         if (alertFragment != null && alertFragment instanceof AlertDialogFragment) {
             ((AlertDialogFragment) alertFragment).dismiss();
         }
+    }
+
+    @Override
+    public void onDialogCreated(AlertDialogFragment fragment, AlertDialog dialog) {
+
     }
 
     @Override
