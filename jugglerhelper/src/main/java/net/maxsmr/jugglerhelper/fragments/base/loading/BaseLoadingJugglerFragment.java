@@ -361,12 +361,17 @@ public abstract class BaseLoadingJugglerFragment<I> extends BaseJugglerFragment 
     }
 
     protected WrappedProgressable newWrappedLoadFragmentProgressable(Progressable... innerProgressables) {
-        List<Progressable> progressables = new ArrayList<Progressable>();
+        final List<Progressable> progressables = new ArrayList<>();
         progressables.add(newLoadFragmentProgressable());
         if (innerProgressables != null) {
             progressables.addAll(Arrays.asList(innerProgressables));
         }
-        return new WrappedProgressable(progressables.toArray(new Progressable[progressables.size()]));
+        return new WrappedProgressable(progressables.toArray(new Progressable[progressables.size()])) {
+            @Override
+            protected boolean isAlive() {
+                return isCommitAllowed();
+            }
+        };
     }
 
     private class NetworkBroadcastReceiver extends BroadcastReceiver {
