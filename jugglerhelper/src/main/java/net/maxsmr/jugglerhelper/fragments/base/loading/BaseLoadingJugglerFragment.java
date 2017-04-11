@@ -6,6 +6,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.Bundle;
 import android.support.annotation.CallSuper;
 import android.support.annotation.IdRes;
@@ -27,7 +28,6 @@ import net.maxsmr.commonutils.android.gui.progressable.Progressable;
 import net.maxsmr.commonutils.android.gui.progressable.WrappedProgressable;
 import net.maxsmr.jugglerhelper.R;
 import net.maxsmr.jugglerhelper.fragments.base.BaseJugglerFragment;
-import net.maxsmr.networkutils.NetworkHelper;
 import net.maxsmr.permissionchecker.PermissionUtils;
 
 import org.slf4j.Logger;
@@ -380,8 +380,14 @@ public abstract class BaseLoadingJugglerFragment<I> extends BaseJugglerFragment 
         public void onReceive(Context context, Intent intent) {
             logger.debug("NetworkBroadcastReceiver :: onReceive(), intent=" + intent);
             if (intent != null && ConnectivityManager.CONNECTIVITY_ACTION.equals(intent.getAction())) {
-                onNetworkStatusChanged(NetworkHelper.isOnline(context));
+                onNetworkStatusChanged(isOnline(context));
             }
         }
+    }
+
+    protected static boolean isOnline(@NonNull Context context) {
+        final ConnectivityManager connectivityManager = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+        final NetworkInfo activeNetInfo = connectivityManager.getActiveNetworkInfo();
+        return activeNetInfo != null && activeNetInfo.isConnected() && activeNetInfo.isAvailable();
     }
 }
