@@ -244,7 +244,7 @@ public abstract class BaseCheckableRecyclerViewAdapter<I, VH extends BaseRecycle
     @NonNull
     public List<I> getSelectedItems() {
         List<I> selectedItems = new ArrayList<>();
-        LinkedHashSet<Integer> selectedPositions = getSelectedItemsPositions();
+        Set<Integer> selectedPositions = getSelectedItemsPositions();
         for (Integer pos : selectedPositions) {
             selectedItems.add(getItem(pos));
         }
@@ -252,9 +252,9 @@ public abstract class BaseCheckableRecyclerViewAdapter<I, VH extends BaseRecycle
     }
 
     @NonNull
-    public LinkedHashSet<I> getUnselectedItems() {
-        LinkedHashSet<I> unselectedItems = new LinkedHashSet<>();
-        LinkedHashSet<Integer> unselectedPositions = getUnselectedItemsPositions();
+    public Set<I> getUnselectedItems() {
+        Set<I> unselectedItems = new LinkedHashSet<>();
+        Set<Integer> unselectedPositions = getUnselectedItemsPositions();
         for (Integer pos : unselectedPositions) {
             unselectedItems.add(getItem(pos));
         }
@@ -262,17 +262,17 @@ public abstract class BaseCheckableRecyclerViewAdapter<I, VH extends BaseRecycle
     }
 
     @NonNull
-    public LinkedHashSet<Integer> getSelectedItemsPositions() {
-        if (mSelectionHelper == null) {
-            throw new IllegalStateException(SelectionHelper.class.getSimpleName() + " was not initialized");
-        }
-        return mSelectionHelper.getSelectedItems();
+    public Set<Integer> getSelectedItemsPositions() {
+//        if (mSelectionHelper == null) {
+//            throw new IllegalStateException(SelectionHelper.class.getSimpleName() + " was not initialized");
+//        }
+        return mSelectionHelper != null? mSelectionHelper.getSelectedItems() : Collections.<Integer>emptySet();
     }
 
     @NonNull
-    public LinkedHashSet<Integer> getUnselectedItemsPositions() {
+    public Set<Integer> getUnselectedItemsPositions() {
         LinkedHashSet<Integer> unselectedPositions = new LinkedHashSet<>();
-        LinkedHashSet<Integer> selectedPositions = getSelectedItemsPositions();
+        Set<Integer> selectedPositions = getSelectedItemsPositions();
         for (int pos = 0; pos < getItemCount(); pos++) {
             if (!selectedPositions.contains(pos)) {
                 unselectedPositions.add(pos);
@@ -282,9 +282,9 @@ public abstract class BaseCheckableRecyclerViewAdapter<I, VH extends BaseRecycle
     }
 
     public boolean isItemSelected(int position) {
-        if (mSelectionHelper == null) {
-            throw new IllegalStateException(SelectionHelper.class.getSimpleName() + " was not initialized");
-        }
+//        if (mSelectionHelper == null) {
+//            throw new IllegalStateException(SelectionHelper.class.getSimpleName() + " was not initialized");
+//        }
         rangeCheck(position);
         return mSelectionHelper.isItemSelected(position);
     }
@@ -294,50 +294,50 @@ public abstract class BaseCheckableRecyclerViewAdapter<I, VH extends BaseRecycle
     }
 
     public int getSelectedItemsCount() {
-        if (mSelectionHelper == null) {
-            throw new IllegalStateException(SelectionHelper.class.getSimpleName() + " was not initialized");
-        }
-        return getItemCount() > 0 ? mSelectionHelper.getSelectedItemsCount() : 0;
+//        if (mSelectionHelper == null) {
+//            throw new IllegalStateException(SelectionHelper.class.getSimpleName() + " was not initialized");
+//        }
+        return getItemCount() > 0 ? mSelectionHelper != null? mSelectionHelper.getSelectedItemsCount() : 0 : 0;
     }
 
     public boolean setItemsSelectedByPositions(@Nullable Collection<Integer> positions, boolean isSelected) {
-        if (mSelectionHelper == null) {
-            throw new IllegalStateException(SelectionHelper.class.getSimpleName() + " was not initialized");
-        }
+//        if (mSelectionHelper == null) {
+//            throw new IllegalStateException(SelectionHelper.class.getSimpleName() + " was not initialized");
+//        }
         if (positions != null) {
             for (int pos : positions) {
                 rangeCheck(pos);
             }
         }
-        return mSelectionHelper.setItemsSelectedByPositions(positions, isSelected, false);
+        return mSelectionHelper != null && mSelectionHelper.setItemsSelectedByPositions(positions, isSelected, false);
     }
 
     public boolean setItemSelectedByPosition(int position, boolean isSelected) {
-        if (mSelectionHelper == null) {
-            throw new IllegalStateException(SelectionHelper.class.getSimpleName() + " was not initialized");
-        }
+//        if (mSelectionHelper == null) {
+//            throw new IllegalStateException(SelectionHelper.class.getSimpleName() + " was not initialized");
+//        }
         rangeCheck(position);
-        return mSelectionHelper.setItemSelectedByPosition(position, isSelected, false);
+        return mSelectionHelper != null && mSelectionHelper.setItemSelectedByPosition(position, isSelected, false);
     }
 
     public boolean toggleItemsSelectedByPositions(@Nullable Collection<Integer> positions) {
-        if (mSelectionHelper == null) {
-            throw new IllegalStateException(SelectionHelper.class.getSimpleName() + " was not initialized");
-        }
+//        if (mSelectionHelper == null) {
+//            throw new IllegalStateException(SelectionHelper.class.getSimpleName() + " was not initialized");
+//        }
         if (positions != null) {
             for (int pos : positions) {
                 rangeCheck(pos);
             }
         }
-        return mSelectionHelper.toggleItemsSelectedByPositions(positions, false);
+        return mSelectionHelper != null && mSelectionHelper.toggleItemsSelectedByPositions(positions, false);
     }
 
     public boolean toggleItemSelectedByPosition(int position) {
-        if (mSelectionHelper == null) {
-            throw new IllegalStateException(SelectionHelper.class.getSimpleName() + " was not initialized");
-        }
+//        if (mSelectionHelper == null) {
+//            throw new IllegalStateException(SelectionHelper.class.getSimpleName() + " was not initialized");
+//        }
         rangeCheck(position);
-        return mSelectionHelper.toggleItemSelectedByPosition(position, false);
+        return mSelectionHelper != null && mSelectionHelper.toggleItemSelectedByPosition(position, false);
     }
 
     public boolean setItemsSelected(@Nullable Collection<I> items, boolean isSelected) {
@@ -375,11 +375,13 @@ public abstract class BaseCheckableRecyclerViewAdapter<I, VH extends BaseRecycle
     }
 
     public void clearSelection() {
-        if (mSelectionHelper == null) {
-            throw new IllegalStateException(SelectionHelper.class.getSimpleName() + " was not initialized");
-        }
-        if (mSelectionHelper.getSelectedItemsCount() > 0) {
-            mSelectionHelper.clearSelection(false);
+//        if (mSelectionHelper == null) {
+//            throw new IllegalStateException(SelectionHelper.class.getSimpleName() + " was not initialized");
+//        }
+        if (mSelectionHelper != null) {
+            if (mSelectionHelper.getSelectedItemsCount() > 0) {
+                mSelectionHelper.clearSelection(false);
+            }
         }
     }
 
