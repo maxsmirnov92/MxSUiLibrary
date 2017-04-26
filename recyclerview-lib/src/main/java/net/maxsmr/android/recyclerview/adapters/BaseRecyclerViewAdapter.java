@@ -392,7 +392,7 @@ public abstract class BaseRecyclerViewAdapter<I, VH extends BaseRecyclerViewAdap
         } else {
             
             if (allowFillHolderForItem(holder, item, position)) {
-                holder.displayNoData(position, null);
+                holder.displayNoData(position, item);
             }
         }
     }
