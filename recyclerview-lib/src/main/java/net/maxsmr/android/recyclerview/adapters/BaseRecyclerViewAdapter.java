@@ -343,7 +343,11 @@ public abstract class BaseRecyclerViewAdapter<I, VH extends BaseRecyclerViewAdap
         return true;
     }
 
-    protected boolean isItemEmpty(@Nullable final I item) {
+    protected boolean allowFillHolderForItem(@NonNull VH holder, @Nullable final I item, final int position) {
+        return true;
+    }
+
+    protected boolean isItemEmpty(@Nullable final I item, final int position) {
         return item == null;
     }
 
@@ -355,7 +359,7 @@ public abstract class BaseRecyclerViewAdapter<I, VH extends BaseRecyclerViewAdap
             mProcessingItemListener.onProcessingItem(holder, item, position);
         }
 
-        if (!isItemEmpty(item)) {
+        if (!isItemEmpty(item, position) && item != null) {
 
             if (allowSetClickListener(item, position)) {
                 holder.itemView.setOnClickListener(new View.OnClickListener() {
@@ -381,10 +385,15 @@ public abstract class BaseRecyclerViewAdapter<I, VH extends BaseRecyclerViewAdap
                 });
             }
 
-            holder.displayData(position, item);
+            if (allowFillHolderForItem(holder, item, position)) {
+                holder.displayData(position, item);
+            }
 
         } else {
-            holder.displayNoData(position, null);
+            
+            if (allowFillHolderForItem(holder, item, position)) {
+                holder.displayNoData(position, null);
+            }
         }
     }
 
