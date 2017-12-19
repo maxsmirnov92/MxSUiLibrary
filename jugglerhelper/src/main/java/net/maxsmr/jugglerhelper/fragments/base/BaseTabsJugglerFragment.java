@@ -61,7 +61,7 @@ public abstract class BaseTabsJugglerFragment<PagerAdapter extends CustomFragmen
     }
 
     protected int getInitialTabFragmentIndex() {
-        return getArguments() != null ? getArguments().getInt(ARG_TAB_FRAGMENT_INDEX, -1) : -1;
+        return getArguments() != null ? getArguments().getInt(ARG_TAB_FRAGMENT_INDEX) : (getSavedInstanceState() != null? getSavedInstanceState().getInt(ARG_TAB_FRAGMENT_INDEX) : 0);
     }
 
     @SuppressWarnings("WrongConstant")
@@ -87,26 +87,39 @@ public abstract class BaseTabsJugglerFragment<PagerAdapter extends CustomFragmen
             tabLayout.setTabMode(tabMode);
         }
 
-        reload();
-
         viewPager.addOnPageChangeListener(this);
 
-        int tabFragmentIndex = getInitialTabFragmentIndex();
-        if (tabFragmentIndex >= 0 && tabFragmentIndex < getStatePagerAdapter().getCount()) {
-            if (tabFragmentIndex != viewPager.getCurrentItem()) {
-                viewPager.setCurrentItem(tabFragmentIndex, true);
-            } else {
-                invalidatePageSelected();
-            }
-        } else {
-            invalidatePageSelected();
-        }
+        reload();
+
+        selectAdapterPage(getInitialTabFragmentIndex(), true);
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putInt(ARG_TAB_FRAGMENT_INDEX, viewPager.getCurrentItem());
     }
 
     @Override
     public void onDestroyView() {
         super.onDestroyView();
         viewPager.removeOnPageChangeListener(this);
+    }
+
+    protected void selectAdapterPage(int index, boolean updateIfNotSelected) {
+
+//        int tabFragmentIndex = getInitialTabFragmentIndex();
+
+        boolean selected = false;
+        if (index >= 0 && index < getStatePagerAdapter().getCount()) {
+            if (index != viewPager.getCurrentItem()) {
+                viewPager.setCurrentItem(index, true);
+                selected = true;
+            }
+        }
+        if (!selected && updateIfNotSelected) {
+            invalidatePageSelected();
+        }
     }
 
     protected void invalidatePageSelected() {

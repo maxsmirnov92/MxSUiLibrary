@@ -3,9 +3,10 @@
 buildscript {
     repositories {
         jcenter()
+        google()
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:2.3.1'
+        classpath 'com.android.tools.build:gradle:3.0.1'
 
         // NOTE: Do not place your application dependencies here; they belong
         // in the individual module build.gradle files
@@ -18,20 +19,21 @@ allprojects {
         mavenCentral()
         maven { url 'https://dl.bintray.com/maxsmirnov92/maven' }
         maven { url 'https://dl.bintray.com/dsokolov/maven'}
+        google()
     }
 }
 
 ext {
-    project_version = "1.0"
+    sdkVersion = 27
+    buildToolsVersion_ = "27.0.2"
+    appCompatVersion = buildToolsVersion_
+
+    groupIdName = "net.maxsmr"
+    commonUtilsVersion = "1.0.3.4"
+    recyclerViewLibVersion = "1.0.3.11"
+    jugglerHelperVersion = "1.0.5"
 }
 
 task clean(type: Delete) {
     delete rootProject.buildDir
 }
-
-//task generateBintrayJson {
-//    def template = new File("bintray_template.json").text
-//    File configFileText = new File("bintray.json")
-//    configFileText.createNewFile()
-//    configFileText.write(template.replace('[version]', version))
-//}
