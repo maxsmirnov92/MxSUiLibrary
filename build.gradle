@@ -25,8 +25,15 @@ allprojects {
 
 ext {
     sdkVersion = 27
+
+    minSdkRecyclerViewLibVersion = 14
+    minSdkJugglerHelperVersion = 15
+
     buildToolsVersion_ = "27.0.2"
     appCompatVersion = buildToolsVersion_
+
+    jugglerVersion = "0.1.20"
+    nestableViewPagerVersion = "0.2.0"
 
     groupIdName = "net.maxsmr"
     commonUtilsVersion = "1.0.3.4"
