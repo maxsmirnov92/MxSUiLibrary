@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
-             android:id="@+id/flRecyclerSwipePlaceholderRetryLoading"
-             android:layout_width="match_parent"
-             android:layout_height="wrap_content"
-             android:layout_gravity="center">
+    android:id="@+id/flRecyclerSwipePlaceholderRetryLoading"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_gravity="center">
 
-    <include layout="@layout/recycler_swipe"/>
+    <include layout="@layout/recycler_swipe" />
 
-    <include layout="@layout/placeholder_retry_loading"/>
+    <include layout="@layout/placeholder_retry_loading" />
 
 </FrameLayout>

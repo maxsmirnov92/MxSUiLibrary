@@ -32,13 +32,10 @@ ext {
     buildToolsVersion_ = "27.0.2"
     appCompatVersion = buildToolsVersion_
 
+    commonUtilsVersion = "1.0.4.1"
+
     jugglerVersion = "0.1.20"
     nestableViewPagerVersion = "0.2.0"
-
-    groupIdName = "net.maxsmr"
-    commonUtilsVersion = "1.0.3.4"
-    recyclerViewLibVersion = "1.0.3.11"
-    jugglerHelperVersion = "1.0.5"
 }
 
 task clean(type: Delete) {

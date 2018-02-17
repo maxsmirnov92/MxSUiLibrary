@@ -31,6 +31,9 @@ android {
             keyAlias 'maxsmirnov'
             storeFile file('~/.android/release-key.keystore')
         }
+        debug {
+            storeFile file('~/.android/debug.keystore')
+        }
     }
 
     compileSdkVersion sdkVersion
@@ -43,7 +46,7 @@ android {
         minSdkVersion minSdkRecyclerViewLibVersion
         targetSdkVersion sdkVersion
         versionCode 1
-        versionName recyclerViewLibVersion
+        versionName project.recyclerViewLibVersion
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
 
@@ -84,15 +87,15 @@ artifacts {
 }
 
 dependencies {
-    implementation fileTree(dir: 'libs', include: ['*.jar'])
-    testCompile 'junit:junit:4.12'
+    api fileTree(dir: 'libs', include: ['*.jar'])
+    testImplementations 'junit:junit:4.12'
 
-    implementation "com.android.support:recyclerview-v7:$appCompatVersion"
+    api "com.android.support:recyclerview-v7:$appCompatVersion"
 }
 
 uploadArchives {
     repositories.mavenDeployer {
-        pom.groupId = groupIdName
+        pom.groupId = project.groupIdName
         pom.artifactId = project.archivesBaseName
         pom.version = recyclerViewLibVersion
         repository(url: "file://${localReleaseDest}")
@@ -123,7 +126,7 @@ bintray {
 publishing {
     publications {
         artifactPublication(MavenPublication) {
-            groupId = groupIdName
+            groupId = project.groupIdName
             artifactId = project.archivesBaseName
             version = recyclerViewLibVersion
             artifact "${project.buildDir}/outputs/aar/${archivesBaseName}-release.aar"
@@ -133,8 +136,8 @@ publishing {
                 def dependenciesNode = asNode().appendNode('dependencies')
 
                 //Iterate over the compile dependencies (we don't want the test ones), adding a <dependency> node for each
-                configurations.compile.allDependencies.each {
-                    if (it.group != null) {
+                configurations.api.allDependencies.each {
+                    if (it.group != null && it.name != 'unspecified') {
                         def dependencyNode = dependenciesNode.appendNode('dependency')
                         dependencyNode.appendNode('groupId', it.group)
                         dependencyNode.appendNode('artifactId', it.name)

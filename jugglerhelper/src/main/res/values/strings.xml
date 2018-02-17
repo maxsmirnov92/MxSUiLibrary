@@ -2,7 +2,6 @@
     <string name="app_name">JugglerHelper</string>
     <string name="empty"/>
     <string name="loading">Загрузка…</string>
-    <string name="data_missing">Нет данных</string>
     <string name="data_load_failed">Не удалось загрузить данные</string>
     <string name="button_retry">Повторить попытку</string>
     <string name="dialog_message_permission_denied">App requires permission %s to work properly</string>

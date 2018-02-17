@@ -83,7 +83,7 @@ public class AlertDialogFragment extends DialogFragment {
                 builder.setNeutralButton(args.getString(Args.ARG_BUTTON_NEUTRAL), clickListener);
             }
             if (args.containsKey(Args.ARG_BUTTON_NEGATIVE)) {
-                builder.setNeutralButton(args.getString(Args.ARG_BUTTON_NEGATIVE), clickListener);
+                builder.setNegativeButton(args.getString(Args.ARG_BUTTON_NEGATIVE), clickListener);
             }
             builder.setOnKeyListener(new DialogInterface.OnKeyListener() {
                 @Override
@@ -168,7 +168,6 @@ public class AlertDialogFragment extends DialogFragment {
 
         public AlertDialogFragment build() {
             Bundle args = new Bundle();
-            args.putBoolean(AlertDialogFragment.Args.ARG_CANCELABLE, cancelable);
             if (title != null) {
                 args.putString(AlertDialogFragment.Args.ARG_TITLE, title);
             }
@@ -190,6 +189,7 @@ public class AlertDialogFragment extends DialogFragment {
             if (buttonNegative != null) {
                 args.putString(Args.ARG_BUTTON_NEGATIVE, buttonNegative);
             }
+            args.putBoolean(AlertDialogFragment.Args.ARG_CANCELABLE, cancelable);
             return newInstance(args);
         }
     }

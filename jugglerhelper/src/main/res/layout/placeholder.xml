@@ -5,7 +5,7 @@
     android:layout_height="wrap_content"
     android:layout_gravity="center"
     android:gravity="center"
-    android:text="@string/data_missing"
+    android:text="@string/no_data"
     android:textColor="@color/gray_middle"
     android:textSize="18sp"
     android:textStyle="bold"

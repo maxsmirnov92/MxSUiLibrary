@@ -205,9 +205,6 @@ public abstract class BaseLoadingJugglerFragment<I> extends BaseJugglerFragment 
                 swipeRefreshLayout.setRefreshing(isLoading);
             }
         }
-        if (!isLoading) {
-            processEmpty();
-        }
     }
 
     protected abstract boolean isDataEmpty();
@@ -277,7 +274,7 @@ public abstract class BaseLoadingJugglerFragment<I> extends BaseJugglerFragment 
 
     @Nullable
     protected String getEmptyText() {
-        return getContext().getString(R.string.data_missing);
+        return getContext().getString(R.string.no_data);
     }
 
     @Nullable
@@ -386,8 +383,11 @@ public abstract class BaseLoadingJugglerFragment<I> extends BaseJugglerFragment 
     }
 
     protected static boolean isOnline(@NonNull Context context) {
-        final ConnectivityManager connectivityManager = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
-        final NetworkInfo activeNetInfo = connectivityManager.getActiveNetworkInfo();
-        return activeNetInfo != null && activeNetInfo.isConnected() && activeNetInfo.isAvailable();
+        if (ContextCompat.checkSelfPermission(context, "android.permission.ACCESS_NETWORK_STATE") == PackageManager.PERMISSION_GRANTED) {
+            final ConnectivityManager connectivityManager = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+            final NetworkInfo activeNetInfo = connectivityManager.getActiveNetworkInfo();
+            return activeNetInfo != null && activeNetInfo.isConnected() && activeNetInfo.isAvailable();
+        }
+        return false;
     }
 }

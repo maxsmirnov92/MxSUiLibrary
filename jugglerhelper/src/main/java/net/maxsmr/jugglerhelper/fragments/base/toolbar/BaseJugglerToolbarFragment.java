@@ -11,6 +11,7 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v7.app.ActionBar;
 import android.support.v7.widget.Toolbar;
+import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -75,8 +76,17 @@ public abstract class BaseJugglerToolbarFragment extends JugglerToolbarFragment 
     }
 
     protected void initTitle() {
-        CharSequence title = getActivity().getTitle();
-        setTitle(title);
+        String title = null;
+        State<State.Params> state = (State<State.Params>) getState();
+        if (state != null) {
+            title = state.getTitle(getContext(), state.getParams());
+        } else {
+            CharSequence activityTitle = getActivity().getTitle();
+            title = activityTitle != null ? activityTitle.toString() : null;
+        }
+        if (!TextUtils.isEmpty(title)) {
+            setTitle(title);
+        }
     }
 
     protected void initNavigationMode() {
