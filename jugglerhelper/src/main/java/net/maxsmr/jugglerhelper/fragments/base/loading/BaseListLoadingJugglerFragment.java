@@ -17,10 +17,10 @@ import net.maxsmr.android.recyclerview.adapters.BaseRecyclerViewAdapter;
 import net.maxsmr.commonutils.android.gui.GuiUtils;
 import net.maxsmr.commonutils.android.gui.views.recycler.RecyclerScrollableController;
 import net.maxsmr.commonutils.data.CompareUtils;
+import net.maxsmr.commonutils.logger.BaseLogger;
+import net.maxsmr.commonutils.logger.holder.BaseLoggerHolder;
 import net.maxsmr.jugglerhelper.R;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -34,8 +34,6 @@ import java.util.concurrent.Executors;
 
 public abstract class BaseListLoadingJugglerFragment<I extends Comparable<I>, Adapter extends BaseRecyclerViewAdapter<I, ?>> extends BaseLoadingJugglerFragment<List<I>>
         implements BaseRecyclerViewAdapter.OnItemClickListener<I>, BaseRecyclerViewAdapter.OnItemLongClickListener<I>, BaseRecyclerViewAdapter.OnItemAddedListener<I>, BaseRecyclerViewAdapter.OnItemsSetListener<I>, BaseRecyclerViewAdapter.OnItemsRemovedListener<I>, RecyclerScrollableController.OnLastItemVisibleListener, SwipeRefreshLayout.OnRefreshListener, View.OnClickListener {
-
-    private static final Logger logger = LoggerFactory.getLogger(BaseListLoadingJugglerFragment.class);
 
     private final List<RecyclerView.ItemDecoration> registeredDecorations = new LinkedList<>();
 
@@ -147,7 +145,6 @@ public abstract class BaseListLoadingJugglerFragment<I extends Comparable<I>, Ad
     protected abstract boolean allowSort();
 
     protected void reloadAdapter(@Nullable List<I> items) {
-        logger.debug("reloadAdapter(), items=" + items);
         if (adapter != null) {
             if (!allowDuplicateItems()) {
                 sortAndRemoveDuplicateItemsFromList(items);

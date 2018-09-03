@@ -9,10 +9,9 @@ import android.support.v4.app.Fragment;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 
+import net.maxsmr.commonutils.logger.BaseLogger;
+import net.maxsmr.commonutils.logger.holder.BaseLoggerHolder;
 import net.maxsmr.jugglerhelper.fragments.base.BaseJugglerFragment;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.List;
 
@@ -21,7 +20,7 @@ import me.ilich.juggler.gui.JugglerActivity;
 
 public class BaseJugglerActivity extends JugglerActivity {
 
-    private static final Logger logger = LoggerFactory.getLogger(BaseJugglerActivity.class);
+    private static final BaseLogger logger = BaseLoggerHolder.getInstance().getLogger(BaseJugglerActivity.class);
 
     private Bundle savedInstanceState;
 
@@ -76,7 +75,7 @@ public class BaseJugglerActivity extends JugglerActivity {
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        logger.debug("onActivityResult(), this=" + this + ", requestCode=" + requestCode + ", resultCode=" + resultCode + ", data=" + data);
+        logger.d("onActivityResult(), activity=" + getClass().getSimpleName() + ", requestCode=" + requestCode + ", resultCode=" + resultCode + ", data=" + data);
 
     }
 

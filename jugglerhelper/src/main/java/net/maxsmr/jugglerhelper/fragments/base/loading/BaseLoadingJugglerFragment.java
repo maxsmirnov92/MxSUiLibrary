@@ -1,6 +1,7 @@
 package net.maxsmr.jugglerhelper.fragments.base.loading;
 
 
+import android.annotation.SuppressLint;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -30,16 +31,11 @@ import net.maxsmr.commonutils.android.gui.progressable.WrappedProgressable;
 import net.maxsmr.jugglerhelper.R;
 import net.maxsmr.jugglerhelper.fragments.base.BaseJugglerFragment;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
 public abstract class BaseLoadingJugglerFragment<I> extends BaseJugglerFragment implements View.OnClickListener, SwipeRefreshLayout.OnRefreshListener {
-
-    private static final Logger logger = LoggerFactory.getLogger(BaseLoadingJugglerFragment.class);
 
     protected BroadcastReceiver networkReceiver;
 
@@ -158,7 +154,6 @@ public abstract class BaseLoadingJugglerFragment<I> extends BaseJugglerFragment 
     protected abstract I getInitial();
 
     protected void afterLoading(@Nullable I data) {
-        logger.debug("afterLoading");
             if (data != null && !isDataEmpty(data)) {
                 onLoaded(data);
             } else {
@@ -168,14 +163,12 @@ public abstract class BaseLoadingJugglerFragment<I> extends BaseJugglerFragment 
     }
 
     protected final void onStartLoading() {
-        logger.debug("onStartLoading()");
         if (progressable != null) {
             progressable.onStart();
         }
     }
 
     protected final void onStopLoading() {
-        logger.debug("onStopLoading()");
         if (progressable != null) {
             progressable.onStop();
         }
@@ -375,7 +368,6 @@ public abstract class BaseLoadingJugglerFragment<I> extends BaseJugglerFragment 
 
         @Override
         public void onReceive(Context context, Intent intent) {
-            logger.debug("NetworkBroadcastReceiver :: onReceive(), intent=" + intent);
             if (intent != null && ConnectivityManager.CONNECTIVITY_ACTION.equals(intent.getAction())) {
                 onNetworkStatusChanged(isOnline(context));
             }
@@ -385,7 +377,10 @@ public abstract class BaseLoadingJugglerFragment<I> extends BaseJugglerFragment 
     protected static boolean isOnline(@NonNull Context context) {
         if (ContextCompat.checkSelfPermission(context, "android.permission.ACCESS_NETWORK_STATE") == PackageManager.PERMISSION_GRANTED) {
             final ConnectivityManager connectivityManager = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
-            final NetworkInfo activeNetInfo = connectivityManager.getActiveNetworkInfo();
+            if (connectivityManager == null) {
+                throw new RuntimeException(ConnectivityManager.class.getSimpleName() + " is null");
+            }
+            @SuppressLint("MissingPermission") final NetworkInfo activeNetInfo = connectivityManager.getActiveNetworkInfo();
             return activeNetInfo != null && activeNetInfo.isConnected() && activeNetInfo.isAvailable();
         }
         return false;

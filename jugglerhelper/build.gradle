@@ -3,8 +3,8 @@ buildscript {
         jcenter()
     }
     dependencies {
-        classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.7.3'
-        classpath 'com.github.dcendents:android-maven-gradle-plugin:1.4.1'
+        classpath "com.jfrog.bintray.gradle:gradle-bintray-plugin:$bintrayGradleVersion"
+        classpath "com.github.dcendents:android-maven-gradle-plugin:$mavenGradleVersion"
     }
 }
 
@@ -40,8 +40,8 @@ android {
     compileSdkVersion sdkVersion
     buildToolsVersion buildToolsVersion_
 
-    sourceCompatibility = 1.7
-    targetCompatibility = 1.7
+    sourceCompatibility = sourceCompatibilityVersion
+    targetCompatibility = sourceCompatibilityVersion
 
     defaultConfig {
         minSdkVersion minSdkJugglerHelperVersion
@@ -61,8 +61,8 @@ android {
     }
 
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_1_7
-        targetCompatibility JavaVersion.VERSION_1_7
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
     }
     lintOptions {
         // Don't abort if Lint finds an error, otherwise the Jenkins build
@@ -89,7 +89,6 @@ artifacts {
 
 dependencies {
     api fileTree(dir: 'libs', include: ['*.jar'])
-    testImplementation 'junit:junit:4.12'
 
     api "net.maxsmr:commonutils:$commonUtilsVersion"
     api "net.maxsmr:recyclerview-lib:$recyclerViewLibVersion"
