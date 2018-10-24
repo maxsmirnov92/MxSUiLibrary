@@ -1,4 +1,4 @@
-package net.maxsmr.jugglerhelper.fragments.base;
+package net.maxsmr.jugglerhelper.fragments;
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -23,7 +23,7 @@ import android.view.ViewGroup;
 import net.maxsmr.commonutils.android.gui.GuiUtils;
 import net.maxsmr.commonutils.data.CompareUtils;
 import net.maxsmr.jugglerhelper.R;
-import net.maxsmr.jugglerhelper.fragments.base.toolbar.BaseJugglerToolbarFragment;
+import net.maxsmr.jugglerhelper.fragments.toolbar.BaseJugglerToolbarFragment;
 
 import java.util.List;
 

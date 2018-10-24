@@ -1,4 +1,4 @@
-package net.maxsmr.jugglerhelper.fragments.base;
+package net.maxsmr.jugglerhelper.fragments;
 
 import android.os.Bundle;
 import android.support.annotation.CallSuper;

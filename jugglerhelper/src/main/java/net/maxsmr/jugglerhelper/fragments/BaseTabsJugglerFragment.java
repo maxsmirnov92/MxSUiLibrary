@@ -1,4 +1,4 @@
-package net.maxsmr.jugglerhelper.fragments.base;
+package net.maxsmr.jugglerhelper.fragments;
 
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;

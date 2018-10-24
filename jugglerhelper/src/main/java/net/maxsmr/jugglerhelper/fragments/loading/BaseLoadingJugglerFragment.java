@@ -1,4 +1,4 @@
-package net.maxsmr.jugglerhelper.fragments.base.loading;
+package net.maxsmr.jugglerhelper.fragments.loading;
 
 
 import android.annotation.SuppressLint;
@@ -29,7 +29,7 @@ import net.maxsmr.commonutils.android.gui.progressable.DialogProgressable;
 import net.maxsmr.commonutils.android.gui.progressable.Progressable;
 import net.maxsmr.commonutils.android.gui.progressable.WrappedProgressable;
 import net.maxsmr.jugglerhelper.R;
-import net.maxsmr.jugglerhelper.fragments.base.BaseJugglerFragment;
+import net.maxsmr.jugglerhelper.fragments.BaseJugglerFragment;
 
 import java.util.ArrayList;
 import java.util.Arrays;

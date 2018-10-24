@@ -1,4 +1,4 @@
-package net.maxsmr.jugglerhelper.fragments.base.toolbar;
+package net.maxsmr.jugglerhelper.fragments.toolbar;
 
 import android.graphics.drawable.Drawable;
 import android.support.annotation.CallSuper;

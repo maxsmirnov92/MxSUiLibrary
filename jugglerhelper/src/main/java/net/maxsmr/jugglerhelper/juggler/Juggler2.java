@@ -10,9 +10,9 @@ import android.support.annotation.VisibleForTesting;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 
-import net.maxsmr.jugglerhelper.activities.base.BaseJugglerActivity;
-import net.maxsmr.jugglerhelper.fragments.base.BaseJugglerFragment;
-import net.maxsmr.jugglerhelper.fragments.base.toolbar.BaseJugglerToolbarFragment;
+import net.maxsmr.jugglerhelper.activities.BaseJugglerActivity;
+import net.maxsmr.jugglerhelper.fragments.BaseJugglerFragment;
+import net.maxsmr.jugglerhelper.fragments.toolbar.BaseJugglerToolbarFragment;
 
 import java.util.List;
 

@@ -1,4 +1,4 @@
-package net.maxsmr.jugglerhelper.fragments.base.toolbar;
+package net.maxsmr.jugglerhelper.fragments.toolbar;
 
 import android.os.Bundle;
 import android.support.annotation.LayoutRes;
@@ -7,7 +7,7 @@ import android.support.annotation.NonNull;
 import net.maxsmr.jugglerhelper.R;
 import net.maxsmr.jugglerhelper.navigation.NavigationMode;
 
-import static net.maxsmr.jugglerhelper.fragments.base.toolbar.BaseCustomJugglerToolbarFragment.ARG_TOOLBAR_LAYOUT_ID;
+import static net.maxsmr.jugglerhelper.fragments.toolbar.BaseCustomJugglerToolbarFragment.ARG_TOOLBAR_LAYOUT_ID;
 
 public class StandartToolbarFragment extends BaseJugglerToolbarFragment {
 

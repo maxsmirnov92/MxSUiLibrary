@@ -1,4 +1,4 @@
-package net.maxsmr.jugglerhelper.fragments.base.alert;
+package net.maxsmr.jugglerhelper.fragments.alert;
 
 import android.app.Dialog;
 import android.content.DialogInterface;
@@ -12,6 +12,7 @@ import android.support.v4.app.DialogFragment;
 import android.support.v7.app.AlertDialog;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
+import android.view.View;
 
 public class AlertDialogFragment extends DialogFragment {
 
@@ -30,6 +31,9 @@ public class AlertDialogFragment extends DialogFragment {
     private AlertID alertId = null;
 
     @Nullable
+    protected View customView;
+
+    @Nullable
     public AlertID getAlertId() {
         return alertId;
     }
@@ -40,6 +44,11 @@ public class AlertDialogFragment extends DialogFragment {
 
     public void setEventListener(@Nullable EventListener eventListener) {
         this.eventListener = eventListener;
+    }
+
+    @Nullable
+    public View getCustomView() {
+        return customView;
     }
 
     @CallSuper
@@ -53,13 +62,19 @@ public class AlertDialogFragment extends DialogFragment {
     }
 
     @Override
+    @CallSuper
     public LayoutInflater onGetLayoutInflater(Bundle savedInstanceState) {
         final LayoutInflater inflater = super.onGetLayoutInflater(savedInstanceState);
-        if (args.containsKey(Args.ARG_CANCELABLE)) {
-            setCancelable(args.getBoolean(Args.ARG_CANCELABLE));
+
+        AlertDialog dialog = getDialog();
+
+        if (dialog == null) {
+            throw new IllegalStateException(AlertDialog.class.getSimpleName() + " was not created");
         }
+
+        onDialogCreated(dialog);
         if (eventListener != null) {
-            eventListener.onDialogCreated(this, getDialog());
+            eventListener.onDialogCreated(this, dialog);
         }
         return inflater;
     }
@@ -75,6 +90,11 @@ public class AlertDialogFragment extends DialogFragment {
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
         return createBuilder(args).create();
+    }
+
+    /** here you can setup your views */
+    protected void onDialogCreated(@NonNull AlertDialog dialog) {
+        setCancelable(args.getBoolean(Args.ARG_CANCELABLE, true));
     }
 
     @Override
@@ -96,13 +116,19 @@ public class AlertDialogFragment extends DialogFragment {
     @NonNull
     protected AlertDialog.Builder createBuilder(@NonNull Bundle args) {
         AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
-        builder.setTitle(args.getString(Args.ARG_TITLE))
-                .setMessage(args.getString(Args.ARG_MESSAGE));
+        builder.setTitle(args.getString(Args.ARG_TITLE));
+
         if (args.containsKey(Args.ARG_ICON_RES_ID)) {
             builder.setIcon(args.getInt(Args.ARG_ICON_RES_ID));
         }
-        if (args.containsKey(Args.ARG_CUSTOM_VIEW_RES_ID)) {
-            builder.setView(args.getInt(Args.ARG_CUSTOM_VIEW_RES_ID));
+
+        final int customViewId = args.getInt(Args.ARG_CUSTOM_VIEW_RES_ID);
+
+        if (customViewId != 0) {
+            customView = LayoutInflater.from(getContext()).inflate(customViewId, null);
+            builder.setView(customView);
+        } else {
+            builder.setMessage(args.getString(Args.ARG_MESSAGE));
         }
 
         final DialogInterface.OnClickListener clickListener = (dialog, which) -> {
@@ -132,7 +158,7 @@ public class AlertDialogFragment extends DialogFragment {
         protected int iconResId;
         @LayoutRes
         protected int customViewResId;
-        protected boolean cancelable;
+        protected boolean cancelable = true;
         protected String buttonPositive, buttonNeutral, buttonNegative;
 
         public Builder setTitle(String title) {
@@ -167,13 +193,14 @@ public class AlertDialogFragment extends DialogFragment {
             return this;
         }
 
-        protected Bundle fillArgs() {
+        @NonNull
+        protected Bundle createArgs() {
             Bundle args = new Bundle();
             if (title != null) {
-                args.putString(Args.ARG_TITLE, title);
+                args.putString(AlertDialogFragment.Args.ARG_TITLE, title);
             }
             if (message != null) {
-                args.putString(Args.ARG_MESSAGE, message);
+                args.putString(AlertDialogFragment.Args.ARG_MESSAGE, message);
             }
             if (iconResId != 0) {
                 args.putInt(Args.ARG_ICON_RES_ID, iconResId);
@@ -182,7 +209,7 @@ public class AlertDialogFragment extends DialogFragment {
                 args.putInt(Args.ARG_CUSTOM_VIEW_RES_ID, customViewResId);
             }
             if (buttonPositive != null) {
-                args.putString(Args.ARG_BUTTON_POSITIVE, buttonPositive);
+                args.putString(AlertDialogFragment.Args.ARG_BUTTON_POSITIVE, buttonPositive);
             }
             if (buttonNeutral != null) {
                 args.putString(Args.ARG_BUTTON_NEUTRAL, buttonNeutral);
@@ -190,7 +217,7 @@ public class AlertDialogFragment extends DialogFragment {
             if (buttonNegative != null) {
                 args.putString(Args.ARG_BUTTON_NEGATIVE, buttonNegative);
             }
-            args.putBoolean(Args.ARG_CANCELABLE, cancelable);
+            args.putBoolean(AlertDialogFragment.Args.ARG_CANCELABLE, cancelable);
             return args;
         }
 
@@ -199,7 +226,7 @@ public class AlertDialogFragment extends DialogFragment {
 
     public interface EventListener {
 
-        void onDialogCreated(@NonNull AlertDialogFragment fragment, @Nullable AlertDialog dialog);
+        void onDialogCreated(@NonNull AlertDialogFragment fragment, @NonNull AlertDialog dialog);
 
         void onDialogButtonClick(@NonNull AlertDialogFragment fragment, int which);
 
@@ -232,7 +259,7 @@ public class AlertDialogFragment extends DialogFragment {
 
         @Override
         public AlertDialogFragment build() {
-            return newInstance(fillArgs());
+            return newInstance(createArgs());
         }
     }
 

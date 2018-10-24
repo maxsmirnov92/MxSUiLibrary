@@ -89,7 +89,7 @@ artifacts {
 dependencies {
     api fileTree(dir: 'libs', include: ['*.jar'])
 
-    api "com.android.support:recyclerview-v7:$appCompatVersion"
+    api "com.android.support:recyclerview-v7:$supportLibraryVersion"
 }
 
 uploadArchives {

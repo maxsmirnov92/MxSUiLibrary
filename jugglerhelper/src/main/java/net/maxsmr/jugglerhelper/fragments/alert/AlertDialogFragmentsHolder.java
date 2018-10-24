@@ -1,7 +1,8 @@
-package net.maxsmr.jugglerhelper.fragments.base.alert;
+package net.maxsmr.jugglerhelper.fragments.alert;
 
 import android.support.annotation.MainThread;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.util.Pair;
 import android.support.v7.app.AlertDialog;
@@ -23,13 +24,12 @@ import java.util.Map;
 import java.util.Set;
 import java.util.logging.Logger;
 
+
 /**
  * class for showing/hiding and restoring {@linkplain AlertDialogFragment} linked
- * to specified {@linkplain FragmentManager} alerts;
- * if don't want to lose target fragments to show/hide (which scheduled to show/hide before because of commit not allowed),
- * then store reference to holder in {@linkplain android.arch.lifecycle.ViewModel}
+ * to specified {@linkplain FragmentManager} alerts
  */
-public class AlertDialogFragmentHolder implements AlertDialogFragment.EventListener {
+public class AlertDialogFragmentsHolder implements AlertDialogFragment.EventListener {
 
     protected final BaseLogger logger = BaseLoggerHolder.getInstance().getLogger(getLoggerClass());
 
@@ -42,7 +42,7 @@ public class AlertDialogFragmentHolder implements AlertDialogFragment.EventListe
     /**
      * active alerts, added to specified {@linkplain FragmentManager}
      * note that Set may be not actual (for example, if removing/adding directly to manager in other place)
-     * so invalidate manually by {@linkplain AlertDialogFragmentHolder#hideAlert(String)}
+     * so invalidate manually by {@linkplain AlertDialogFragmentsHolder#hideAlert(String)}
      */
     @NonNull
     protected final Set<AlertDialogFragment> activeAlerts = new LinkedHashSet<>();
@@ -72,7 +72,7 @@ public class AlertDialogFragmentHolder implements AlertDialogFragment.EventListe
 
     private boolean isCommitAllowed = true;
 
-    public AlertDialogFragmentHolder(@NonNull FragmentManager fragmentManager, String... tags) {
+    public AlertDialogFragmentsHolder(@NonNull FragmentManager fragmentManager, String... tags) {
         this.fragmentManager = fragmentManager;
         if (tags != null) {
             this.tags.addAll(Arrays.asList(tags));
@@ -119,25 +119,25 @@ public class AlertDialogFragmentHolder implements AlertDialogFragment.EventListe
      * store rejected by {@linkplain ShowRule#SINGLE} fragments in scheduled for showing when
      * mode will be changed to {@linkplain ShowRule#MULTI}
      */
-    public synchronized boolean isRememberRejectedFragments() {
+    public boolean isRememberRejectedFragments() {
         return rememberRejectedFragments;
     }
 
-    public synchronized void setRememberRejectedFragments(boolean rememberRejectedFragments) {
+    public void setRememberRejectedFragments(boolean rememberRejectedFragments) {
         this.rememberRejectedFragments = rememberRejectedFragments;
         if (rememberRejectedFragments && showRule == ShowRule.MULTI) {
             handleTargetFragmentsToShow();
         }
     }
 
-    public synchronized boolean isCommitAllowed() {
+    public boolean isCommitAllowed() {
         return isCommitAllowed;
     }
 
     /**
      * client code must notify that transactions to {@linkplain FragmentManager} are allowed from now
      */
-    public synchronized void onResumed() {
+    public void onResumed() {
         logger.d("onResumed");
         isCommitAllowed = true;
         handleTargetFragmentsToHide();
@@ -147,13 +147,13 @@ public class AlertDialogFragmentHolder implements AlertDialogFragment.EventListe
     /**
      * client code must notify that transactions to {@linkplain FragmentManager} are restricted from now
      */
-    public synchronized void onSuspended() {
+    public void onSuspended() {
         logger.d("onSuspended");
         isCommitAllowed = false;
     }
 
     @Override
-    public void onDialogCreated(@NonNull AlertDialogFragment fragment, AlertDialog dialog) {
+    public void onDialogCreated(@NonNull AlertDialogFragment fragment, @NonNull AlertDialog dialog) {
         eventsObservable.notifyDialogCreated(fragment, dialog);
     }
 
@@ -191,14 +191,20 @@ public class AlertDialogFragmentHolder implements AlertDialogFragment.EventListe
         return getShowingAlertsCount() > 0;
     }
 
-    public synchronized boolean isAlertShowing(String tag) {
-        return !TextUtils.isEmpty(tag) &&
-                Predicate.Methods.contains(activeAlerts,
-                        element -> element != null && element.isAdded() && tag.equals(element.getTag()));
+    public boolean isAlertShowing(String tag) {
+        return getShowingAlertByTag(tag) != null;
     }
 
-    public synchronized int getShowingAlertsCount() {
+    public int getShowingAlertsCount() {
         return Predicate.Methods.filter(activeAlerts, element -> element != null && element.isAdded()).size();
+    }
+
+    @SuppressWarnings("unchecked")
+    @Nullable
+    public <F extends AlertDialogFragment> F getShowingAlertByTag(String tag) {
+        checkTag(tag);
+        return (F) Predicate.Methods.find(activeAlerts,
+                        element -> element != null && element.isAdded() && tag.equals(element.getTag()));
     }
 
     @MainThread
@@ -213,7 +219,7 @@ public class AlertDialogFragmentHolder implements AlertDialogFragment.EventListe
      * @return true if successfully showed, false - otherwise (also when showing was scheduled)
      */
     @MainThread
-    protected synchronized boolean showAlert(String tag, @NonNull AlertDialogFragment fragment, boolean reshow) {
+    protected boolean showAlert(String tag, @NonNull AlertDialogFragment fragment, boolean reshow) {
         logger.d("showAlert: tag=" + tag + ", reshow=" + reshow);
 
         checkTag(tag);
@@ -263,19 +269,15 @@ public class AlertDialogFragmentHolder implements AlertDialogFragment.EventListe
      */
     @NonNull
     @MainThread
-    protected synchronized Pair<Boolean, AlertDialogFragment> hideAlert(String tag) {
+    protected Pair<Boolean, AlertDialogFragment> hideAlert(String tag) {
         logger.d("hideAlert: tag=" + tag);
 
-        checkTag(tag);
-
-        AlertDialogFragment fragment = Predicate.Methods.find(activeAlerts,
-                element -> element != null && element.isAdded() && tag.equals(element.getTag()));
+        final AlertDialogFragment fragment = getShowingAlertByTag(tag);
 
         boolean result = true;
         boolean isDismissed = fragment == null;
 
         if (fragment != null) {
-            isDismissed = false;
             if (isCommitAllowed()) {
                 try {
                     fragment.dismiss();
@@ -308,7 +310,7 @@ public class AlertDialogFragmentHolder implements AlertDialogFragment.EventListe
         return new Pair<>(result, fragment);
     }
 
-    protected synchronized void restoreDialogsFromFragmentManager() {
+    protected void restoreDialogsFromFragmentManager() {
         for (String tag : tags) {
             if (!TextUtils.isEmpty(tag)) {
                 AlertDialogFragment fragment = (AlertDialogFragment) fragmentManager.findFragmentByTag(tag);
@@ -320,7 +322,7 @@ public class AlertDialogFragmentHolder implements AlertDialogFragment.EventListe
         }
     }
 
-    protected synchronized void handleTargetFragmentsToShow() {
+    protected void handleTargetFragmentsToShow() {
         for (Map.Entry<String, Pair<AlertDialogFragment, Boolean>> e : new LinkedHashMap<>(targetAlertsToShow).entrySet()) {
             Pair<AlertDialogFragment, Boolean> p = e.getValue();
             if (p != null && p.first != null && p.second != null) {
@@ -330,21 +332,21 @@ public class AlertDialogFragmentHolder implements AlertDialogFragment.EventListe
         }
     }
 
-    protected synchronized void handleTargetFragmentsToHide() {
+    protected void handleTargetFragmentsToHide() {
         for (String tag : new LinkedHashSet<>(targetAlertsToHide)) {
             hideAlert(tag);
         }
     }
 
-    protected Class<? extends AlertDialogFragmentHolder> getLoggerClass() {
-        return AlertDialogFragmentHolder.class;
+    protected Class<? extends AlertDialogFragmentsHolder> getLoggerClass() {
+        return getClass();
     }
 
     private void checkTag(String tag) {
         if (TextUtils.isEmpty(tag)) {
             throw new IllegalArgumentException("Tag must be non-empty");
         }
-        if (!tags.contains(tag)) {
+        if (!tags.isEmpty() && !tags.contains(tag)) {
             throw new IllegalArgumentException("Tag '" + tag + "' is not declared in holder");
         }
     }

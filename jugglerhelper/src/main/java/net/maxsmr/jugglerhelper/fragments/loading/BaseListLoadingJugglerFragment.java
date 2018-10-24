@@ -1,4 +1,4 @@
-package net.maxsmr.jugglerhelper.fragments.base.loading;
+package net.maxsmr.jugglerhelper.fragments.loading;
 
 import android.os.Bundle;
 import android.os.Handler;
@@ -17,8 +17,6 @@ import net.maxsmr.android.recyclerview.adapters.BaseRecyclerViewAdapter;
 import net.maxsmr.commonutils.android.gui.GuiUtils;
 import net.maxsmr.commonutils.android.gui.views.recycler.RecyclerScrollableController;
 import net.maxsmr.commonutils.data.CompareUtils;
-import net.maxsmr.commonutils.logger.BaseLogger;
-import net.maxsmr.commonutils.logger.holder.BaseLoggerHolder;
 import net.maxsmr.jugglerhelper.R;
 
 

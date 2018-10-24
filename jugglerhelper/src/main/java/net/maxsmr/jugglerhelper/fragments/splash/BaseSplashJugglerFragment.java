@@ -1,13 +1,12 @@
-package net.maxsmr.jugglerhelper.fragments.base.splash;
+package net.maxsmr.jugglerhelper.fragments.splash;
 
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
-import android.support.annotation.CallSuper;
 import android.support.annotation.Nullable;
 import android.view.View;
 
-import net.maxsmr.jugglerhelper.fragments.base.BaseJugglerFragment;
+import net.maxsmr.jugglerhelper.fragments.BaseJugglerFragment;
 
 
 public abstract class BaseSplashJugglerFragment extends BaseJugglerFragment {
