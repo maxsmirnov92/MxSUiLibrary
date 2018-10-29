@@ -4,8 +4,8 @@ import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.support.annotation.CallSuper;
 import android.support.annotation.LayoutRes;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import android.support.annotation.StringRes;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
@@ -42,7 +42,7 @@ public abstract class BaseJugglerToolbarFragment extends JugglerToolbarFragment 
         return rootView;
     }
 
-    protected void onBindViews(@NonNull View rootView) {
+    protected void onBindViews(@NotNull View rootView) {
 
     }
 
@@ -94,7 +94,7 @@ public abstract class BaseJugglerToolbarFragment extends JugglerToolbarFragment 
     }
 
     @SuppressWarnings("ConstantConditions")
-    @NonNull
+    @NotNull
     protected NavigationMode getNavigationMode() {
         return (NavigationMode) getArguments().getSerializable(ARG_NAVIGATION_MODE);
     }

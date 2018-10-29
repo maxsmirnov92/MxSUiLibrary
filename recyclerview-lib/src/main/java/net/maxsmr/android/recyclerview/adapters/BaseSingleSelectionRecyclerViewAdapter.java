@@ -4,8 +4,8 @@ import android.content.Context;
 import android.graphics.drawable.Drawable;
 import android.support.annotation.CallSuper;
 import android.support.annotation.LayoutRes;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import android.support.v7.widget.RecyclerView;
 import android.view.View;
 import android.widget.Checkable;
@@ -25,7 +25,7 @@ public abstract class BaseSingleSelectionRecyclerViewAdapter<I, VH extends BaseR
     @Nullable
     private OnSelectedChangeListener selectedChangeListener;
 
-    public BaseSingleSelectionRecyclerViewAdapter(@NonNull Context context, @LayoutRes int itemLayoutId, @Nullable Collection<I> items) {
+    public BaseSingleSelectionRecyclerViewAdapter(@NotNull Context context, @LayoutRes int itemLayoutId, @Nullable Collection<I> items) {
         this(context, itemLayoutId, items, null, null);
     }
 
@@ -39,7 +39,7 @@ public abstract class BaseSingleSelectionRecyclerViewAdapter<I, VH extends BaseR
         }
     }
 
-    @NonNull
+    @NotNull
     public abstract Set<SelectionHelper.SelectMode> getSelectionModes(int position);
 
     @Nullable
@@ -86,12 +86,12 @@ public abstract class BaseSingleSelectionRecyclerViewAdapter<I, VH extends BaseR
 
     @Override
     @CallSuper
-    protected void processItem(@NonNull VH holder, @Nullable I item, int position) {
+    protected void processItem(@NotNull VH holder, @Nullable I item, int position) {
         super.processItem(holder, item, position);
         processSelection(holder, item, position);
     }
 
-    protected void processSelection(@NonNull VH holder, @Nullable final I item, final int position) {
+    protected void processSelection(@NotNull VH holder, @Nullable final I item, final int position) {
         for (SelectionHelper.SelectMode mode : getSelectionModes(position)) {
             switch (mode) {
                 case CLICK:
@@ -153,11 +153,11 @@ public abstract class BaseSingleSelectionRecyclerViewAdapter<I, VH extends BaseR
         }
     }
 
-    protected void onProcessItemSelected(@NonNull VH holder) {
+    protected void onProcessItemSelected(@NotNull VH holder) {
 
     }
 
-    protected void onProcessItemNotSelected(@NonNull VH holder) {
+    protected void onProcessItemNotSelected(@NotNull VH holder) {
 
     }
 
@@ -300,7 +300,7 @@ public abstract class BaseSingleSelectionRecyclerViewAdapter<I, VH extends BaseR
     }
 
     @Override
-    protected void onItemsAdded(int to, @NonNull Collection<I> items) {
+    protected void onItemsAdded(int to, @NotNull Collection<I> items) {
         fixSelectionIndexOnAdd(to, items.size());
         super.onItemsAdded(to, items);
     }

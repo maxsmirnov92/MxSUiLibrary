@@ -6,8 +6,8 @@ import android.os.Bundle;
 import android.support.annotation.CallSuper;
 import android.support.annotation.DrawableRes;
 import android.support.annotation.LayoutRes;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import android.support.v4.app.DialogFragment;
 import android.support.v7.app.AlertDialog;
 import android.view.KeyEvent;
@@ -86,14 +86,14 @@ public class AlertDialogFragment extends DialogFragment {
     }
 
     @CallSuper
-    @NonNull
+    @NotNull
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
         return createBuilder(args).create();
     }
 
     /** here you can setup your views */
-    protected void onDialogCreated(@NonNull AlertDialog dialog) {
+    protected void onDialogCreated(@NotNull AlertDialog dialog) {
         setCancelable(args.getBoolean(Args.ARG_CANCELABLE, true));
     }
 
@@ -113,8 +113,8 @@ public class AlertDialogFragment extends DialogFragment {
     }
 
     /** override if want to create own {@linkplain AlertDialog.Builder} */
-    @NonNull
-    protected AlertDialog.Builder createBuilder(@NonNull Bundle args) {
+    @NotNull
+    protected AlertDialog.Builder createBuilder(@NotNull Bundle args) {
         AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
         builder.setTitle(args.getString(Args.ARG_TITLE));
 
@@ -193,7 +193,7 @@ public class AlertDialogFragment extends DialogFragment {
             return this;
         }
 
-        @NonNull
+        @NotNull
         protected Bundle createArgs() {
             Bundle args = new Bundle();
             if (title != null) {
@@ -226,15 +226,15 @@ public class AlertDialogFragment extends DialogFragment {
 
     public interface EventListener {
 
-        void onDialogCreated(@NonNull AlertDialogFragment fragment, @NonNull AlertDialog dialog);
+        void onDialogCreated(@NotNull AlertDialogFragment fragment, @NotNull AlertDialog dialog);
 
-        void onDialogButtonClick(@NonNull AlertDialogFragment fragment, int which);
+        void onDialogButtonClick(@NotNull AlertDialogFragment fragment, int which);
 
-        boolean onDialogKey(@NonNull AlertDialogFragment fragment, int keyCode, KeyEvent event);
+        boolean onDialogKey(@NotNull AlertDialogFragment fragment, int keyCode, KeyEvent event);
 
-        void onDialogCancel(@NonNull AlertDialogFragment fragment);
+        void onDialogCancel(@NotNull AlertDialogFragment fragment);
 
-        void onDialogDismiss(@NonNull AlertDialogFragment fragment);
+        void onDialogDismiss(@NotNull AlertDialogFragment fragment);
     }
 
     public interface AlertID {

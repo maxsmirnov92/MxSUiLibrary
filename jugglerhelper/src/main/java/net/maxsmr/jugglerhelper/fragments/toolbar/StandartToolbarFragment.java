@@ -2,7 +2,7 @@ package net.maxsmr.jugglerhelper.fragments.toolbar;
 
 import android.os.Bundle;
 import android.support.annotation.LayoutRes;
-import android.support.annotation.NonNull;
+import org.jetbrains.annotations.NotNull;
 
 import net.maxsmr.jugglerhelper.R;
 import net.maxsmr.jugglerhelper.navigation.NavigationMode;
@@ -11,7 +11,7 @@ import static net.maxsmr.jugglerhelper.fragments.toolbar.BaseCustomJugglerToolba
 
 public class StandartToolbarFragment extends BaseJugglerToolbarFragment {
 
-    public static StandartToolbarFragment newInstance(@NonNull NavigationMode navigationMode) {
+    public static StandartToolbarFragment newInstance(@NotNull NavigationMode navigationMode) {
         Bundle args = new Bundle();
         args.putSerializable(ARG_NAVIGATION_MODE, navigationMode);
         StandartToolbarFragment fragment = new StandartToolbarFragment();
@@ -19,7 +19,7 @@ public class StandartToolbarFragment extends BaseJugglerToolbarFragment {
         return fragment;
     }
 
-    public static StandartToolbarFragment newInstance(@NonNull NavigationMode navigationMode, @LayoutRes int toolbarLayoutId) {
+    public static StandartToolbarFragment newInstance(@NotNull NavigationMode navigationMode, @LayoutRes int toolbarLayoutId) {
         Bundle args = new Bundle();
         args.putSerializable(ARG_NAVIGATION_MODE, navigationMode);
         args.putInt(ARG_TOOLBAR_LAYOUT_ID, toolbarLayoutId);

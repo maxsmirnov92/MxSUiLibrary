@@ -6,8 +6,8 @@ import android.os.Looper;
 import android.support.annotation.CallSuper;
 import android.support.annotation.IdRes;
 import android.support.annotation.LayoutRes;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -43,12 +43,12 @@ public abstract class BaseListLoadingJugglerFragment<I extends Comparable<I>, Ad
 
     protected Adapter adapter;
 
-    @NonNull
+    @NotNull
     protected List<RecyclerView.ItemDecoration> getRegisteredDecorations() {
         return Collections.unmodifiableList(registeredDecorations);
     }
 
-    @NonNull
+    @NotNull
     protected List<RecyclerView.OnScrollListener> getRegisteredScrollListeners() {
         return Collections.unmodifiableList(registeredScrollListeners);
     }
@@ -70,12 +70,12 @@ public abstract class BaseListLoadingJugglerFragment<I extends Comparable<I>, Ad
     }
 
     @CallSuper
-    protected void onBindViews(@NonNull View rootView) {
+    protected void onBindViews(@NotNull View rootView) {
         super.onBindViews(rootView);
         recycler = GuiUtils.findViewById(rootView, getRecyclerId());
     }
 
-    @NonNull
+    @NotNull
     protected RecyclerView.LayoutManager getRecyclerLayoutManager() {
         return new LinearLayoutManager(getContext(), LinearLayoutManager.VERTICAL, false);
     }
@@ -133,7 +133,7 @@ public abstract class BaseListLoadingJugglerFragment<I extends Comparable<I>, Ad
         }
     }
 
-    @NonNull
+    @NotNull
     protected abstract Adapter initAdapter();
 
     protected abstract boolean allowReloadOnNetworkRestored();
@@ -266,7 +266,7 @@ public abstract class BaseListLoadingJugglerFragment<I extends Comparable<I>, Ad
      * @param items will be modified if contains duplicate items
      * @return removed duplicate items
      */
-    @NonNull
+    @NotNull
     protected List<I> sortAndRemoveDuplicateItemsFromList(@Nullable List<I> items) {
 
         List<I> duplicateItems = new ArrayList<>();
@@ -348,7 +348,7 @@ public abstract class BaseListLoadingJugglerFragment<I extends Comparable<I>, Ad
     }
 
     @Override
-    public void onItemsAdded(int to, @NonNull Collection<I> items) {
+    public void onItemsAdded(int to, @NotNull Collection<I> items) {
     }
 
     @Override
@@ -356,7 +356,7 @@ public abstract class BaseListLoadingJugglerFragment<I extends Comparable<I>, Ad
     }
 
     @Override
-    public void onItemsSet(@NonNull List<I> items) {
+    public void onItemsSet(@NotNull List<I> items) {
     }
 
     @Override
@@ -372,12 +372,12 @@ public abstract class BaseListLoadingJugglerFragment<I extends Comparable<I>, Ad
 
     }
 
-    protected void onLoaded(@NonNull List<I> items) {
+    protected void onLoaded(@NotNull List<I> items) {
         reloadAdapter(items);
         super.onLoaded(items);
     }
 
-    protected void postActionOnRecyclerView(@NonNull final Runnable r, final long delay) {
+    protected void postActionOnRecyclerView(@NotNull final Runnable r, final long delay) {
 
         if (delay < 0) {
             throw new IllegalArgumentException("incorrect delay: " + delay);
@@ -406,7 +406,7 @@ public abstract class BaseListLoadingJugglerFragment<I extends Comparable<I>, Ad
         }
     }
 
-    protected void postActionOnRecyclerView(@NonNull final Runnable r) {
+    protected void postActionOnRecyclerView(@NotNull final Runnable r) {
         postActionOnRecyclerView(r, 0);
     }
 

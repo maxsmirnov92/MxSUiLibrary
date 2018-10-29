@@ -1,8 +1,8 @@
 package net.maxsmr.jugglerhelper.fragments.alert;
 
 import android.support.annotation.MainThread;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.util.Pair;
 import android.support.v7.app.AlertDialog;
@@ -36,7 +36,7 @@ public class AlertDialogFragmentsHolder implements AlertDialogFragment.EventList
     /**
      * tags to use in this holder
      */
-    @NonNull
+    @NotNull
     protected final List<String> tags = new ArrayList<>();
 
     /**
@@ -44,35 +44,35 @@ public class AlertDialogFragmentsHolder implements AlertDialogFragment.EventList
      * note that Set may be not actual (for example, if removing/adding directly to manager in other place)
      * so invalidate manually by {@linkplain AlertDialogFragmentsHolder#hideAlert(String)}
      */
-    @NonNull
+    @NotNull
     protected final Set<AlertDialogFragment> activeAlerts = new LinkedHashSet<>();
 
     /**
      * alerts to show when commits will be allowed
      * remembering tags because instance may not contain target tag
      */
-    @NonNull
+    @NotNull
     protected final Map<String, Pair<AlertDialogFragment, Boolean>> targetAlertsToShow = new LinkedHashMap<>();
 
     /**
      * alerts tags to hide when commits will be allowed
      */
-    @NonNull
+    @NotNull
     protected final Set<String> targetAlertsToHide = new LinkedHashSet<>();
 
-    @NonNull
+    @NotNull
     protected final FragmentManager fragmentManager;
 
     private final AlertEventsObservable eventsObservable = new AlertEventsObservable();
 
-    @NonNull
+    @NotNull
     private ShowRule showRule = ShowRule.MULTI;
 
     private boolean rememberRejectedFragments = true;
 
     private boolean isCommitAllowed = true;
 
-    public AlertDialogFragmentsHolder(@NonNull FragmentManager fragmentManager, String... tags) {
+    public AlertDialogFragmentsHolder(@NotNull FragmentManager fragmentManager, String... tags) {
         this.fragmentManager = fragmentManager;
         if (tags != null) {
             this.tags.addAll(Arrays.asList(tags));
@@ -80,23 +80,23 @@ public class AlertDialogFragmentsHolder implements AlertDialogFragment.EventList
         restoreDialogsFromFragmentManager();
     }
 
-    public void registerEventListener(@NonNull AlertDialogFragment.EventListener listener) {
+    public void registerEventListener(@NotNull AlertDialogFragment.EventListener listener) {
         eventsObservable.registerObserver(listener);
     }
 
-    public void unregisterEventListener(@NonNull AlertDialogFragment.EventListener listener) {
+    public void unregisterEventListener(@NotNull AlertDialogFragment.EventListener listener) {
         eventsObservable.unregisterObserver(listener);
     }
 
     /**
      * allow showing single or multiple {@linkplain AlertDialogFragment} instances at time
      */
-    @NonNull
+    @NotNull
     public ShowRule getShowRule() {
         return showRule;
     }
 
-    public void setShowRule(@NonNull ShowRule showRule) {
+    public void setShowRule(@NotNull ShowRule showRule) {
         this.showRule = showRule;
         if (showRule == ShowRule.SINGLE) {
             List<AlertDialogFragment> copyList = new ArrayList<>(activeAlerts);
@@ -153,27 +153,27 @@ public class AlertDialogFragmentsHolder implements AlertDialogFragment.EventList
     }
 
     @Override
-    public void onDialogCreated(@NonNull AlertDialogFragment fragment, @NonNull AlertDialog dialog) {
+    public void onDialogCreated(@NotNull AlertDialogFragment fragment, @NotNull AlertDialog dialog) {
         eventsObservable.notifyDialogCreated(fragment, dialog);
     }
 
     @Override
-    public void onDialogButtonClick(@NonNull AlertDialogFragment fragment, int which) {
+    public void onDialogButtonClick(@NotNull AlertDialogFragment fragment, int which) {
         eventsObservable.notifyDialogButtonClick(fragment, which);
     }
 
     @Override
-    public boolean onDialogKey(@NonNull AlertDialogFragment fragment, int keyCode, KeyEvent event) {
+    public boolean onDialogKey(@NotNull AlertDialogFragment fragment, int keyCode, KeyEvent event) {
         return eventsObservable.notifyDialogKeyPressed(fragment, keyCode, event);
     }
 
     @Override
-    public void onDialogCancel(@NonNull AlertDialogFragment fragment) {
+    public void onDialogCancel(@NotNull AlertDialogFragment fragment) {
         eventsObservable.notifyDialogCancel(fragment);
     }
 
     @Override
-    public void onDialogDismiss(@NonNull AlertDialogFragment fragment) {
+    public void onDialogDismiss(@NotNull AlertDialogFragment fragment) {
         eventsObservable.notifyDialogDismiss(fragment);
         activeAlerts.remove(fragment);
         targetAlertsToHide.remove(fragment.getTag());
@@ -208,7 +208,7 @@ public class AlertDialogFragmentsHolder implements AlertDialogFragment.EventList
     }
 
     @MainThread
-    protected boolean showAlert(String tag, @NonNull AlertDialogFragment fragment) {
+    protected boolean showAlert(String tag, @NotNull AlertDialogFragment fragment) {
         return showAlert(tag, fragment, true);
     }
 
@@ -219,7 +219,7 @@ public class AlertDialogFragmentsHolder implements AlertDialogFragment.EventList
      * @return true if successfully showed, false - otherwise (also when showing was scheduled)
      */
     @MainThread
-    protected boolean showAlert(String tag, @NonNull AlertDialogFragment fragment, boolean reshow) {
+    protected boolean showAlert(String tag, @NotNull AlertDialogFragment fragment, boolean reshow) {
         logger.d("showAlert: tag=" + tag + ", reshow=" + reshow);
 
         checkTag(tag);
@@ -267,7 +267,7 @@ public class AlertDialogFragmentsHolder implements AlertDialogFragment.EventList
      *   false - otherwise (also when showing was scheduled)
      * - {@linkplain AlertDialogFragment} instance non-null if was added to {@linkplain FragmentManager} before, false otherwise
      */
-    @NonNull
+    @NotNull
     @MainThread
     protected Pair<Boolean, AlertDialogFragment> hideAlert(String tag) {
         logger.d("hideAlert: tag=" + tag);

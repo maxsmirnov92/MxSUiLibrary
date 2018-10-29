@@ -5,8 +5,8 @@ import android.content.Context;
 import android.graphics.drawable.Drawable;
 import android.support.annotation.CallSuper;
 import android.support.annotation.LayoutRes;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import android.support.v7.widget.RecyclerView;
 import android.widget.Checkable;
 
@@ -27,18 +27,18 @@ public abstract class BaseCheckableRecyclerViewAdapter<I, VH extends BaseRecycle
 
     private SelectionHelper mSelectionHelper;
 
-    @NonNull
+    @NotNull
 //    private final Map<Integer, Set<SelectionHelper.SelectMode>> mSelectionModes = new LinkedHashMap<>();
     private final Set<SelectionHelper.SelectMode> mSelectionModes = new LinkedHashSet<>();
 
     @Nullable
     private Drawable defaultDrawable, selectionDrawable;
 
-    public BaseCheckableRecyclerViewAdapter(@NonNull Context context, @LayoutRes int itemLayoutId, @Nullable Collection<I> items) {
+    public BaseCheckableRecyclerViewAdapter(@NotNull Context context, @LayoutRes int itemLayoutId, @Nullable Collection<I> items) {
         this(context, itemLayoutId, items, null, null, true);
     }
 
-    public BaseCheckableRecyclerViewAdapter(@NonNull Context context, @LayoutRes int itemLayoutId, @Nullable Collection<I> items, @Nullable Drawable defaultDrawable, @Nullable Drawable selectionDrawable, boolean selectable) {
+    public BaseCheckableRecyclerViewAdapter(@NotNull Context context, @LayoutRes int itemLayoutId, @Nullable Collection<I> items, @Nullable Drawable defaultDrawable, @Nullable Drawable selectionDrawable, boolean selectable) {
         super(context, itemLayoutId, items);
         initSelectionHelper();
         setSelectable(selectable);
@@ -92,7 +92,7 @@ public abstract class BaseCheckableRecyclerViewAdapter<I, VH extends BaseRecycle
 //    }
 
 
-    @NonNull
+    @NotNull
     public Set<SelectionHelper.SelectMode> getSelectionModes() {
         return new LinkedHashSet<>(mSelectionModes);
     }
@@ -112,7 +112,7 @@ public abstract class BaseCheckableRecyclerViewAdapter<I, VH extends BaseRecycle
         }
     }
 
-    protected void processSelection(@NonNull VH holder, @Nullable I item, int position) {
+    protected void processSelection(@NotNull VH holder, @Nullable I item, int position) {
         mSelectionHelper.wrapSelectable(holder, mSelectionModes); /* mSelectionModes.get(position) */
 
         final boolean isSelected = isItemSelected(position);
@@ -136,7 +136,7 @@ public abstract class BaseCheckableRecyclerViewAdapter<I, VH extends BaseRecycle
 
     @Override
     @CallSuper
-    protected void processItem(@NonNull VH holder, @Nullable I item, int position) {
+    protected void processItem(@NotNull VH holder, @Nullable I item, int position) {
         super.processItem(holder, item, position);
         processSelection(holder, item, position);
     }
@@ -180,7 +180,7 @@ public abstract class BaseCheckableRecyclerViewAdapter<I, VH extends BaseRecycle
     }
 
     @Override
-    protected void onItemsAdded(int to, @NonNull Collection<I> items) {
+    protected void onItemsAdded(int to, @NotNull Collection<I> items) {
         fixSelectionIndexOnAdd(to, items.size());
         super.onItemsAdded(to, items);
     }
@@ -241,7 +241,7 @@ public abstract class BaseCheckableRecyclerViewAdapter<I, VH extends BaseRecycle
         setItemsSelectedByPositions(newSet, true);
     }
 
-    @NonNull
+    @NotNull
     public List<I> getSelectedItems() {
         List<I> selectedItems = new ArrayList<>();
         Set<Integer> selectedPositions = getSelectedItemsPositions();
@@ -251,7 +251,7 @@ public abstract class BaseCheckableRecyclerViewAdapter<I, VH extends BaseRecycle
         return selectedItems;
     }
 
-    @NonNull
+    @NotNull
     public Set<I> getUnselectedItems() {
         Set<I> unselectedItems = new LinkedHashSet<>();
         Set<Integer> unselectedPositions = getUnselectedItemsPositions();
@@ -261,7 +261,7 @@ public abstract class BaseCheckableRecyclerViewAdapter<I, VH extends BaseRecycle
         return unselectedItems;
     }
 
-    @NonNull
+    @NotNull
     public Set<Integer> getSelectedItemsPositions() {
 //        if (mSelectionHelper == null) {
 //            throw new IllegalStateException(SelectionHelper.class.getSimpleName() + " was not initialized");
@@ -269,7 +269,7 @@ public abstract class BaseCheckableRecyclerViewAdapter<I, VH extends BaseRecycle
         return mSelectionHelper != null? mSelectionHelper.getSelectedItems() : Collections.<Integer>emptySet();
     }
 
-    @NonNull
+    @NotNull
     public Set<Integer> getUnselectedItemsPositions() {
         LinkedHashSet<Integer> unselectedPositions = new LinkedHashSet<>();
         Set<Integer> selectedPositions = getSelectedItemsPositions();
@@ -385,11 +385,11 @@ public abstract class BaseCheckableRecyclerViewAdapter<I, VH extends BaseRecycle
         }
     }
 
-    protected void onProcessItemSelected(@NonNull VH holder) {
+    protected void onProcessItemSelected(@NotNull VH holder) {
 
     }
 
-    protected void onProcessItemNotSelected(@NonNull VH holder) {
+    protected void onProcessItemNotSelected(@NotNull VH holder) {
 
     }
 

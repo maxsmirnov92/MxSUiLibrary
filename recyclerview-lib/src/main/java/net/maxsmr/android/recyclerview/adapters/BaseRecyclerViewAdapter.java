@@ -3,8 +3,8 @@ package net.maxsmr.android.recyclerview.adapters;
 import android.content.Context;
 import android.support.annotation.CallSuper;
 import android.support.annotation.LayoutRes;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -19,13 +19,13 @@ import java.util.List;
 
 public abstract class BaseRecyclerViewAdapter<I, VH extends BaseRecyclerViewAdapter.ViewHolder> extends RecyclerView.Adapter<VH> {
 
-    @NonNull
+    @NotNull
     protected final Context mContext;
 
     @LayoutRes
     protected final int mBaseItemLayoutId;
 
-    @NonNull
+    @NotNull
     private final ArrayList<I> mItems = new ArrayList<>();
 
     private OnProcessingItemListener<I, VH> mProcessingItemListener;
@@ -42,7 +42,7 @@ public abstract class BaseRecyclerViewAdapter<I, VH extends BaseRecyclerViewAdap
 
     private boolean mNotifyOnChange = true;
 
-    protected BaseRecyclerViewAdapter(@NonNull Context context, @LayoutRes int baseItemLayoutId, @Nullable Collection<I> items) {
+    protected BaseRecyclerViewAdapter(@NotNull Context context, @LayoutRes int baseItemLayoutId, @Nullable Collection<I> items) {
         this.mContext = context;
         this.mBaseItemLayoutId = baseItemLayoutId;
         this.setItems(items);
@@ -64,7 +64,7 @@ public abstract class BaseRecyclerViewAdapter<I, VH extends BaseRecyclerViewAdap
         }
     }
 
-    @NonNull
+    @NotNull
     public final ArrayList<I> getItems() {
         synchronized (mItems) {
             return new ArrayList<>(mItems);
@@ -91,7 +91,7 @@ public abstract class BaseRecyclerViewAdapter<I, VH extends BaseRecyclerViewAdap
         }
     }
 
-    public void sort(@NonNull Comparator<? super I> comparator) {
+    public void sort(@NotNull Comparator<? super I> comparator) {
         synchronized (mItems) {
             Collections.sort(mItems, comparator);
             if (mNotifyOnChange) {
@@ -182,7 +182,7 @@ public abstract class BaseRecyclerViewAdapter<I, VH extends BaseRecyclerViewAdap
     }
 
     @CallSuper
-    protected void onItemsAdded(int to, @NonNull Collection<I> items) {
+    protected void onItemsAdded(int to, @NotNull Collection<I> items) {
         if (mNotifyOnChange) {
             if (to == 0) {
                 notifyDataSetChanged();
@@ -233,7 +233,7 @@ public abstract class BaseRecyclerViewAdapter<I, VH extends BaseRecyclerViewAdap
         return replaceItem(indexOf(replaceableItem), newItem);
     }
 
-    @NonNull
+    @NotNull
     public final List<I> replaceItemsRange(int from, int to, @Nullable Collection<I> newItems) {
         synchronized (mItems) {
             setNotifyOnChange(false);
@@ -271,7 +271,7 @@ public abstract class BaseRecyclerViewAdapter<I, VH extends BaseRecyclerViewAdap
         }
     }
 
-    @NonNull
+    @NotNull
     public final List<I> removeItemsRange(int from, int to) {
         rangeCheck(from);
         rangeCheck(to);
@@ -343,7 +343,7 @@ public abstract class BaseRecyclerViewAdapter<I, VH extends BaseRecyclerViewAdap
         return true;
     }
 
-    protected boolean allowFillHolderForItem(@NonNull VH holder, @Nullable final I item, final int position) {
+    protected boolean allowFillHolderForItem(@NotNull VH holder, @Nullable final I item, final int position) {
         return true;
     }
 
@@ -353,7 +353,7 @@ public abstract class BaseRecyclerViewAdapter<I, VH extends BaseRecyclerViewAdap
 
     @SuppressWarnings("unchecked")
     @CallSuper
-    protected void processItem(@NonNull VH holder, @Nullable final I item, final int position) {
+    protected void processItem(@NotNull VH holder, @Nullable final I item, final int position) {
 
         if (mProcessingItemListener != null) {
             mProcessingItemListener.onProcessingItem(holder, item, position);
@@ -448,15 +448,15 @@ public abstract class BaseRecyclerViewAdapter<I, VH extends BaseRecyclerViewAdap
 
     public static abstract class ViewHolder<I> extends RecyclerView.ViewHolder {
 
-        @NonNull
+        @NotNull
         protected final Context context;
 
-        public ViewHolder(@NonNull View view) {
+        public ViewHolder(@NotNull View view) {
             super(view);
             this.context = view.getContext();
         }
 
-        protected void displayData(int position, @NonNull final I item) {
+        protected void displayData(int position, @NotNull final I item) {
             itemView.setVisibility(View.VISIBLE);
         }
 
@@ -481,19 +481,19 @@ public abstract class BaseRecyclerViewAdapter<I, VH extends BaseRecyclerViewAdap
     }
 
     public interface OnProcessingItemListener<I, VH extends BaseRecyclerViewAdapter.ViewHolder> {
-        void onProcessingItem(@NonNull VH holder, @Nullable I item, int position);
+        void onProcessingItem(@NotNull VH holder, @Nullable I item, int position);
     }
 
     public interface OnItemAddedListener<I> {
         void onItemAdded(int to, @Nullable I item);
 
-        void onItemsAdded(int to, @NonNull Collection<I> items);
+        void onItemsAdded(int to, @NotNull Collection<I> items);
     }
 
     public interface OnItemsSetListener<I> {
         void onItemSet(int to, I item);
 
-        void onItemsSet(@NonNull List<I> items);
+        void onItemsSet(@NotNull List<I> items);
     }
 
     public interface OnItemsRemovedListener<I> {

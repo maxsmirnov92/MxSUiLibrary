@@ -5,8 +5,8 @@ import android.os.Bundle;
 import android.support.annotation.CallSuper;
 import android.support.annotation.ColorInt;
 import android.support.annotation.LayoutRes;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
@@ -78,7 +78,7 @@ public abstract class BaseJugglerFragment extends JugglerFragment implements Nes
 
 
     @SuppressWarnings("unchecked")
-    @NonNull
+    @NotNull
     protected <T extends JugglerActivity> T getBaseActivity() {
         FragmentActivity activity = getActivity();
 
@@ -131,7 +131,7 @@ public abstract class BaseJugglerFragment extends JugglerFragment implements Nes
         return rootView;
     }
 
-    protected abstract void onBindViews(@NonNull View rootView);
+    protected abstract void onBindViews(@NotNull View rootView);
 
     protected Menu getMenu() {
         return menu;
@@ -239,7 +239,7 @@ public abstract class BaseJugglerFragment extends JugglerFragment implements Nes
     }
 
     @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+    public void onRequestPermissionsResult(int requestCode, @NotNull String[] permissions, @NotNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         if (isAdded()) {
             List<Fragment> childFragments = getChildFragmentManager().getFragments();

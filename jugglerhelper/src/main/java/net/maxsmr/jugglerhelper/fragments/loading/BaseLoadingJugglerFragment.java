@@ -12,8 +12,8 @@ import android.net.NetworkInfo;
 import android.os.Bundle;
 import android.support.annotation.CallSuper;
 import android.support.annotation.IdRes;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.text.TextUtils;
@@ -91,7 +91,7 @@ public abstract class BaseLoadingJugglerFragment<I> extends BaseJugglerFragment 
     }
 
     @CallSuper
-    protected void onBindViews(@NonNull View rootView) {
+    protected void onBindViews(@NotNull View rootView) {
         swipeRefreshLayout = GuiUtils.findViewById(rootView, getSwipeRefreshLayoutId());
         placeholder = GuiUtils.findViewById(rootView, getEmptyTextId());
         loadingLayout = GuiUtils.findViewById(rootView, getLoadingLayoutId());
@@ -280,7 +280,7 @@ public abstract class BaseLoadingJugglerFragment<I> extends BaseJugglerFragment 
         return getContext().getString(R.string.data_load_failed);
     }
 
-    protected void onLoaded(@NonNull I data) {
+    protected void onLoaded(@NotNull I data) {
         isLoadErrorOccurred = false;
         processEmpty();
     }
@@ -374,7 +374,7 @@ public abstract class BaseLoadingJugglerFragment<I> extends BaseJugglerFragment 
         }
     }
 
-    protected static boolean isOnline(@NonNull Context context) {
+    protected static boolean isOnline(@NotNull Context context) {
         if (ContextCompat.checkSelfPermission(context, "android.permission.ACCESS_NETWORK_STATE") == PackageManager.PERMISSION_GRANTED) {
             final ConnectivityManager connectivityManager = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
             if (connectivityManager == null) {

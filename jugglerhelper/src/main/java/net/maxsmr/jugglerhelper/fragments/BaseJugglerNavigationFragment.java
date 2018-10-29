@@ -3,8 +3,8 @@ package net.maxsmr.jugglerhelper.fragments;
 import android.os.Bundle;
 import android.support.annotation.CallSuper;
 import android.support.annotation.LayoutRes;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.view.LayoutInflater;
@@ -43,7 +43,7 @@ public abstract class BaseJugglerNavigationFragment extends JugglerNavigationFra
         return rootView;
     }
 
-    protected abstract void onBindViews(@NonNull View rootView);
+    protected abstract void onBindViews(@NotNull View rootView);
 
     @Nullable
     protected String getBaseFontAlias() {

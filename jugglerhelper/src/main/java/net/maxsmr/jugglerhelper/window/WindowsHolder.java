@@ -2,8 +2,8 @@ package net.maxsmr.jugglerhelper.window;
 
 import android.content.Context;
 import android.support.annotation.MainThread;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import android.support.v4.util.Pair;
 import android.text.TextUtils;
 import android.view.View;
@@ -27,14 +27,14 @@ public class WindowsHolder {
 
     private final WindowManager windowManager;
 
-    @NonNull
+    @NotNull
     private final ViewFactory viewFactory;
 
 
     /**
      * tags to use in this helper
      */
-    @NonNull
+    @NotNull
     private final Set<String> tags = new LinkedHashSet<>();
 
     /**
@@ -42,14 +42,14 @@ public class WindowsHolder {
      * note that Set may be not actual (for example, if removing/adding directly to manager in other place)
      * so invalidate manually by [AlertDialogFragmentsHolder.hideAlert]
      */
-    @NonNull
+    @NotNull
     private final Set<View> activeViews = new LinkedHashSet<>();
 
     @Nullable
     private ViewGroup.LayoutParams defaultLayoutParams;
 
 
-    public WindowsHolder(@NonNull Context context, @NonNull ViewFactory viewFactory, @Nullable Collection<String> tags) {
+    public WindowsHolder(@NotNull Context context, @NotNull ViewFactory viewFactory, @Nullable Collection<String> tags) {
         windowManager = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
         this.viewFactory = viewFactory;
         if (windowManager == null) {
@@ -147,7 +147,7 @@ public class WindowsHolder {
      * - {@linkplain View} instance non-null if was added to [WindowManager] before, false otherwise
      */
     @MainThread
-    @NonNull
+    @NotNull
     protected Pair<Boolean, View> removeView(String tag) {
         logger.d("removeView: tag=" + tag);
 

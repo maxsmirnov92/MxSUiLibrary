@@ -1,10 +1,11 @@
 package com.bejibx.android.recyclerview.selection;
 
 import android.database.Observable;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 import android.support.v7.widget.RecyclerView;
 import android.view.View;
+
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.lang.ref.WeakReference;
 import java.util.Collection;
@@ -34,27 +35,27 @@ public final class SelectionHelper {
         }
     }
 
-    public <H extends RecyclerView.ViewHolder> H wrapSelectable(@NonNull H holder, @NonNull Set<SelectMode> selectModes) {
+    public <H extends RecyclerView.ViewHolder> H wrapSelectable(@NotNull H holder, @NotNull Set<SelectMode> selectModes) {
         bindWrapper(new ViewHolderMultiSelectionWrapper(holder, selectModes));
         return holder;
     }
 
-    public <H extends RecyclerView.ViewHolder> H wrapClickable(@NonNull H holder) {
+    public <H extends RecyclerView.ViewHolder> H wrapClickable(@NotNull H holder) {
         bindWrapper(new ViewHolderClickWrapper(holder));
         return holder;
     }
 
-    public <H extends RecyclerView.ViewHolder> void recycleHolder(@NonNull H holder) {
+    public <H extends RecyclerView.ViewHolder> void recycleHolder(@NotNull H holder) {
         mTracker.recycleWrapper(holder.getAdapterPosition());
     }
 
-    private <W extends SelectionHelper.ViewHolderWrapper> void bindWrapper(@NonNull W wrapper) {
+    private <W extends SelectionHelper.ViewHolderWrapper> void bindWrapper(@NotNull W wrapper) {
         RecyclerView.ViewHolder holder = wrapper.getHolder();
         if (holder != null)
             mTracker.bindWrapper(wrapper, holder.getAdapterPosition());
     }
 
-    public boolean setItemSelectedByHolder(@NonNull RecyclerView.ViewHolder holder, boolean isSelected, boolean fromUser) {
+    public boolean setItemSelectedByHolder(@NotNull RecyclerView.ViewHolder holder, boolean isSelected, boolean fromUser) {
         return setItemSelectedByPosition(holder.getAdapterPosition(), isSelected, fromUser);
     }
 
@@ -71,7 +72,7 @@ public final class SelectionHelper {
         return success;
     }
 
-    public boolean toggleItemSelectedByHolder(@NonNull RecyclerView.ViewHolder holder, boolean fromUser) {
+    public boolean toggleItemSelectedByHolder(@NotNull RecyclerView.ViewHolder holder, boolean fromUser) {
         return setItemSelectedByHolder(holder, !isItemSelected(holder), fromUser);
     }
 
@@ -162,19 +163,19 @@ public final class SelectionHelper {
         return mSelectedItems.size();
     }
 
-    public final void registerHolderClickObserver(@NonNull HolderClickObserver observer) {
+    public final void registerHolderClickObserver(@NotNull HolderClickObserver observer) {
         mHolderClickObservable.registerObserver(observer);
     }
 
-    public final void unregisterSelectionObserver(@NonNull SelectionObserver observer) {
+    public final void unregisterSelectionObserver(@NotNull SelectionObserver observer) {
         mSelectionObservable.unregisterObserver(observer);
     }
 
-    public final void registerSelectionObserver(@NonNull SelectionObserver observer) {
+    public final void registerSelectionObserver(@NotNull SelectionObserver observer) {
         mSelectionObservable.registerObserver(observer);
     }
 
-    public final void unregisterHolderClickObserver(@NonNull HolderClickObserver observer) {
+    public final void unregisterHolderClickObserver(@NotNull HolderClickObserver observer) {
         mHolderClickObservable.unregisterObserver(observer);
     }
 
@@ -238,7 +239,7 @@ public final class SelectionHelper {
 
         @Nullable Set<SelectMode> selectModes;
 
-        @NonNull
+        @NotNull
         public Set<SelectMode> getSelectModes() {
             return selectModes != null? new HashSet<>(selectModes) : new HashSet<SelectMode>();
         }

@@ -4,8 +4,8 @@ import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.support.annotation.CallSuper;
 import android.support.annotation.IdRes;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import android.support.design.widget.TabLayout;
 import android.support.v4.app.Fragment;
 import android.support.v4.util.Pair;
@@ -26,7 +26,7 @@ public abstract class BaseTabsJugglerFragment<PagerAdapter extends CustomFragmen
 
     public static final String ARG_TAB_FRAGMENT_INDEX = BaseTabsJugglerFragment.class.getSimpleName() + ".ARG_TAB_FRAGMENT_INDEX";
 
-    @NonNull
+    @NotNull
     protected abstract PagerAdapter initStatePagerAdapter();
 
     @SuppressWarnings("unchecked")
@@ -56,7 +56,7 @@ public abstract class BaseTabsJugglerFragment<PagerAdapter extends CustomFragmen
 
     @Override
     @CallSuper
-    protected void onBindViews(@NonNull View rootView) {
+    protected void onBindViews(@NotNull View rootView) {
         tabLayout = GuiUtils.findViewById(rootView, getTabLayoutId());
         viewPager = GuiUtils.findViewById(rootView, getPagerId());
     }
@@ -275,7 +275,7 @@ public abstract class BaseTabsJugglerFragment<PagerAdapter extends CustomFragmen
 
     }
 
-    public static <F extends Fragment> Pair<Integer, F> findFragmentByClass(@NonNull Class<F> fragmentClass, CustomFragmentStatePagerAdapter pagerAdapter) {
+    public static <F extends Fragment> Pair<Integer, F> findFragmentByClass(@NotNull Class<F> fragmentClass, CustomFragmentStatePagerAdapter pagerAdapter) {
         Pair<Integer, F> result = null;
         for (int index = 0; index < pagerAdapter.getCount(); index++) {
             Fragment fragment = pagerAdapter.getFragmentInstance(index);

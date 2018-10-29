@@ -1,9 +1,10 @@
 package com.bejibx.android.recyclerview.selection;
 
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 import android.support.v7.widget.RecyclerView;
 import android.util.SparseArray;
+
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -65,7 +66,7 @@ public class HolderWrapperTracker {
         return wrapper;
     }
 
-    @NonNull
+    @NotNull
     public List<SelectionHelper.ViewHolderWrapper> getTrackedWrappers() {
         List<SelectionHelper.ViewHolderWrapper> wrappers = new ArrayList<>();
 

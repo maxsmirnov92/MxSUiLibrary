@@ -4,8 +4,8 @@ import android.graphics.drawable.Drawable;
 import android.support.annotation.CallSuper;
 import android.support.annotation.IdRes;
 import android.support.annotation.LayoutRes;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import android.support.v7.widget.Toolbar;
 import android.text.TextUtils;
 import android.view.View;
@@ -37,7 +37,7 @@ public abstract class BaseCustomJugglerToolbarFragment extends BaseJugglerToolba
 
     @Override
     @CallSuper
-    protected void onBindViews(@NonNull View rootView) {
+    protected void onBindViews(@NotNull View rootView) {
         toolbarContainer = (ViewGroup) rootView.findViewById(getToolbarContainerId());
     }
 
