@@ -5,8 +5,6 @@ import android.os.Bundle;
 import android.support.annotation.CallSuper;
 import android.support.annotation.ColorInt;
 import android.support.annotation.LayoutRes;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
@@ -25,6 +23,9 @@ import net.maxsmr.commonutils.data.CompareUtils;
 import net.maxsmr.jugglerhelper.R;
 import net.maxsmr.jugglerhelper.fragments.toolbar.BaseJugglerToolbarFragment;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import java.util.List;
 
 import me.ilich.juggler.gui.JugglerActivity;
@@ -41,7 +42,7 @@ public abstract class BaseJugglerFragment extends JugglerFragment implements Nes
 
     private boolean isCommitAllowed = false;
 
-    public  boolean isCommitAllowed() {
+    public boolean isCommitAllowed() {
         return isAdded() && isCommitAllowed;
     }
 
@@ -76,7 +77,6 @@ public abstract class BaseJugglerFragment extends JugglerFragment implements Nes
     }
 
 
-
     @SuppressWarnings("unchecked")
     @NotNull
     protected <T extends JugglerActivity> T getBaseActivity() {
@@ -107,7 +107,6 @@ public abstract class BaseJugglerFragment extends JugglerFragment implements Nes
     }
 
 
-
     @Nullable
     public Bundle getSavedInstanceState() {
         return savedInstanceState;
@@ -123,7 +122,7 @@ public abstract class BaseJugglerFragment extends JugglerFragment implements Nes
         setHasOptionsMenu(false);
     }
 
-    @Nullable
+    @NotNull
     @Override
     public final View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View rootView = inflater.inflate(getContentLayoutId(), container, false);
@@ -169,11 +168,10 @@ public abstract class BaseJugglerFragment extends JugglerFragment implements Nes
     @CallSuper
     public void onTouchEvent(MotionEvent event) {
         List<Fragment> childFragments = getChildFragmentManager().getFragments();
-        if (childFragments != null) {
-            for (Fragment f : childFragments) {
-                if (f instanceof BaseJugglerFragment && !f.isDetached()) {
-                    ((BaseJugglerFragment) f).onTouchEvent(event);
-                }
+
+        for (Fragment f : childFragments) {
+            if (f instanceof BaseJugglerFragment && !f.isDetached()) {
+                ((BaseJugglerFragment) f).onTouchEvent(event);
             }
         }
     }
@@ -181,23 +179,19 @@ public abstract class BaseJugglerFragment extends JugglerFragment implements Nes
     @CallSuper
     public void onKeyDown(int keyCode, KeyEvent e) {
         List<Fragment> childFragments = getChildFragmentManager().getFragments();
-        if (childFragments != null) {
-            for (Fragment f : childFragments) {
-                if (f instanceof BaseJugglerFragment && !f.isDetached()) {
-                    ((BaseJugglerFragment) f).onKeyDown(keyCode, e);
-                }
+        for (Fragment f : childFragments) {
+            if (f instanceof BaseJugglerFragment && !f.isDetached()) {
+                ((BaseJugglerFragment) f).onKeyDown(keyCode, e);
             }
         }
     }
 
     public boolean onBackPressed() {
         List<Fragment> childFragments = getChildFragmentManager().getFragments();
-        if (childFragments != null) {
-            for (Fragment f : childFragments) {
-                if (f instanceof BaseJugglerFragment && !f.isDetached()) {
-                    if (((BaseJugglerFragment) f).onBackPressed()) {
-                        return true;
-                    }
+        for (Fragment f : childFragments) {
+            if (f instanceof BaseJugglerFragment && !f.isDetached()) {
+                if (((BaseJugglerFragment) f).onBackPressed()) {
+                    return true;
                 }
             }
         }
@@ -208,11 +202,9 @@ public abstract class BaseJugglerFragment extends JugglerFragment implements Nes
     @CallSuper
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         List<Fragment> childFragments = getChildFragmentManager().getFragments();
-        if (childFragments != null) {
-            for (Fragment f : childFragments) {
-                if (f != null && !f.isDetached())
-                    f.onActivityResult(requestCode, resultCode, data);
-            }
+        for (Fragment f : childFragments) {
+            if (f != null && !f.isDetached())
+                f.onActivityResult(requestCode, resultCode, data);
         }
     }
 
@@ -221,13 +213,11 @@ public abstract class BaseJugglerFragment extends JugglerFragment implements Nes
     public void onStateActivated(JugglerActivity activity, State<?> state) {
         FragmentManager fm = getChildFragmentManager();
         List<Fragment> fragments = fm.getFragments();
-        if (fragments != null) {
-            for (Fragment fragment : fragments) {
-                if (fragment instanceof BaseJugglerFragment) {
-                    ((BaseJugglerFragment) fragment).onStateActivated(activity, state);
-                } else if (fragment instanceof BaseJugglerToolbarFragment) {
-                    ((BaseJugglerToolbarFragment) fragment).onStateActivated(activity, state);
-                }
+        for (Fragment fragment : fragments) {
+            if (fragment instanceof BaseJugglerFragment) {
+                ((BaseJugglerFragment) fragment).onStateActivated(activity, state);
+            } else if (fragment instanceof BaseJugglerToolbarFragment) {
+                ((BaseJugglerToolbarFragment) fragment).onStateActivated(activity, state);
             }
         }
     }
@@ -243,11 +233,9 @@ public abstract class BaseJugglerFragment extends JugglerFragment implements Nes
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         if (isAdded()) {
             List<Fragment> childFragments = getChildFragmentManager().getFragments();
-            if (childFragments != null) {
-                for (Fragment f : childFragments) {
-                    if (f != null && !f.isDetached()) {
-                        f.onRequestPermissionsResult(requestCode, permissions, grantResults);
-                    }
+            for (Fragment f : childFragments) {
+                if (f != null && !f.isDetached()) {
+                    f.onRequestPermissionsResult(requestCode, permissions, grantResults);
                 }
             }
         }
@@ -257,11 +245,9 @@ public abstract class BaseJugglerFragment extends JugglerFragment implements Nes
     public static Fragment findFragmentById(FragmentManager fm, int id) {
         if (fm != null) {
             List<Fragment> fragments = fm.getFragments();
-            if (fragments != null) {
-                for (Fragment fragment : fragments) {
-                    if (fragment != null && !fragment.isDetached() && fragment.getId() == id) {
-                        return fragment;
-                    }
+            for (Fragment fragment : fragments) {
+                if (fragment != null && !fragment.isDetached() && fragment.getId() == id) {
+                    return fragment;
                 }
             }
         }
@@ -272,11 +258,9 @@ public abstract class BaseJugglerFragment extends JugglerFragment implements Nes
     public static Fragment findFragmentByTag(FragmentManager fm, String tag) {
         if (fm != null) {
             List<Fragment> fragments = fm.getFragments();
-            if (fragments != null) {
-                for (Fragment fragment : fragments) {
-                    if (fragment != null && !fragment.isDetached() && CompareUtils.stringsEqual(fragment.getTag(), tag, false)) {
-                        return fragment;
-                    }
+            for (Fragment fragment : fragments) {
+                if (fragment != null && !fragment.isDetached() && CompareUtils.stringsEqual(fragment.getTag(), tag, false)) {
+                    return fragment;
                 }
             }
         }
@@ -285,9 +269,9 @@ public abstract class BaseJugglerFragment extends JugglerFragment implements Nes
 
     @Nullable
     @SuppressWarnings("unchecked")
-    public static  <F extends Fragment> F findFragmentByClass(FragmentManager fm, Class<F> fragmentClass) {
-        List<Fragment> fragments = fm.getFragments();
-        if (fragments != null) {
+    public static <F extends Fragment> F findFragmentByClass(FragmentManager fm, Class<F> fragmentClass) {
+        if (fm != null) {
+            List<Fragment> fragments = fm.getFragments();
             for (Fragment fragment : fragments) {
                 if (fragment != null && !fragment.isDetached() && fragmentClass.isAssignableFrom(fragment.getClass())) {
                     return (F) fragment;

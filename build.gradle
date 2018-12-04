@@ -37,7 +37,9 @@ ext {
     bintrayGradleVersion = "1.7.3"
     mavenGradleVersion = "1.4.1"
 
-    commonUtilsVersion = "1.0.5.3"
+    commonUtilsVersion = "1.0.5.7"
+
+    jetbrainsAnnotationsVersion = '13.0'
 
     jugglerVersion = "0.1.20"
     nestableViewPagerVersion = "0.2.0"

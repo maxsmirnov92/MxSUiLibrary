@@ -12,8 +12,6 @@ import android.net.NetworkInfo;
 import android.os.Bundle;
 import android.support.annotation.CallSuper;
 import android.support.annotation.IdRes;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.text.TextUtils;
@@ -31,6 +29,9 @@ import net.maxsmr.commonutils.android.gui.progressable.WrappedProgressable;
 import net.maxsmr.jugglerhelper.R;
 import net.maxsmr.jugglerhelper.fragments.BaseJugglerFragment;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -39,7 +40,6 @@ public abstract class BaseLoadingJugglerFragment<I> extends BaseJugglerFragment 
 
     protected BroadcastReceiver networkReceiver;
 
-    protected boolean isLoadErrorOccurred = false;
     protected boolean isLoading = false;
 
     @Nullable
@@ -154,12 +154,15 @@ public abstract class BaseLoadingJugglerFragment<I> extends BaseJugglerFragment 
     protected abstract I getInitial();
 
     protected void afterLoading(@Nullable I data) {
+        if (!isLoadErrorOccurred()) {
             if (data != null && !isDataEmpty(data)) {
                 onLoaded(data);
             } else {
                 onEmpty();
             }
-
+        } else {
+            processError();
+        }
     }
 
     protected final void onStartLoading() {
@@ -202,7 +205,7 @@ public abstract class BaseLoadingJugglerFragment<I> extends BaseJugglerFragment 
 
     protected abstract boolean isDataEmpty();
 
-    protected abstract boolean isDataEmpty(I data);
+    protected abstract boolean isDataEmpty(@Nullable I data);
 
     protected void processEmpty() {
         boolean isEmpty = isDataEmpty();
@@ -220,7 +223,6 @@ public abstract class BaseLoadingJugglerFragment<I> extends BaseJugglerFragment 
 
     @CallSuper
     protected void processError() {
-        isLoadErrorOccurred = true;
         if (placeholder != null) {
             placeholder.setVisibility(View.VISIBLE);
             placeholder.setText(getErrorText());
@@ -280,13 +282,18 @@ public abstract class BaseLoadingJugglerFragment<I> extends BaseJugglerFragment 
         return getContext().getString(R.string.data_load_failed);
     }
 
+    protected abstract boolean isLoadErrorOccurred();
+
     protected void onLoaded(@NotNull I data) {
-        isLoadErrorOccurred = false;
-        processEmpty();
+        if (!isLoadErrorOccurred()) {
+            processEmpty();
+        }
     }
 
     protected void onEmpty() {
-        processEmpty();
+        if (!isLoadErrorOccurred()) {
+            processEmpty();
+        }
     }
 
 
@@ -304,7 +311,7 @@ public abstract class BaseLoadingJugglerFragment<I> extends BaseJugglerFragment 
 
     @CallSuper
     protected void onNetworkStatusChanged(boolean isOnline) {
-        if (isOnline && isLoadErrorOccurred && allowReloadOnNetworkRestored()) {
+        if (isOnline && isLoadErrorOccurred() && allowReloadOnNetworkRestored()) {
             onRefresh();
         }
     }

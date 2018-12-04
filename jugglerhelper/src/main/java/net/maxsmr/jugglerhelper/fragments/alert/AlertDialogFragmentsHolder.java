@@ -1,8 +1,6 @@
 package net.maxsmr.jugglerhelper.fragments.alert;
 
 import android.support.annotation.MainThread;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.util.Pair;
 import android.support.v7.app.AlertDialog;
@@ -14,6 +12,9 @@ import net.maxsmr.commonutils.data.Predicate;
 import net.maxsmr.commonutils.logger.BaseLogger;
 import net.maxsmr.commonutils.logger.holder.BaseLoggerHolder;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
@@ -22,13 +23,13 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.logging.Logger;
 
 
 /**
  * class for showing/hiding and restoring {@linkplain AlertDialogFragment} linked
  * to specified {@linkplain FragmentManager} alerts
  */
+@MainThread
 public class AlertDialogFragmentsHolder implements AlertDialogFragment.EventListener {
 
     protected final BaseLogger logger = BaseLoggerHolder.getInstance().getLogger(getLoggerClass());

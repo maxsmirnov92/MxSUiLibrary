@@ -2,8 +2,6 @@ package net.maxsmr.jugglerhelper.window;
 
 import android.content.Context;
 import android.support.annotation.MainThread;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import android.support.v4.util.Pair;
 import android.text.TextUtils;
 import android.view.View;
@@ -15,12 +13,19 @@ import net.maxsmr.commonutils.data.Predicate;
 import net.maxsmr.commonutils.logger.BaseLogger;
 import net.maxsmr.commonutils.logger.holder.BaseLoggerHolder;
 
-import java.util.*;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.LinkedHashSet;
+import java.util.Set;
 
 /**
  * Class for holding added/removed [View] to/from [WindowManager]
  * Top view is first added
  */
+@MainThread
 public class WindowsHolder {
 
     private final BaseLogger logger = BaseLoggerHolder.getInstance().getLogger(getLoggerClass());
