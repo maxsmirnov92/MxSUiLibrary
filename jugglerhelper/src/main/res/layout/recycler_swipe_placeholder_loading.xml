@@ -3,7 +3,6 @@
     android:id="@+id/flRecyclerSwipePlaceholderLoading"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_centerInParent="true"
     android:layout_gravity="center">
 
     <include layout="@layout/recycler_swipe" />

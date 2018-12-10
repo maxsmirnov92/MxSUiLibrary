@@ -17,11 +17,11 @@ import org.jetbrains.annotations.Nullable;
 import java.util.List;
 
 import me.ilich.juggler.gui.JugglerActivity;
+import me.ilich.juggler.states.State;
 
 
 public class BaseJugglerActivity extends JugglerActivity {
 
-    private static final BaseLogger logger = BaseLoggerHolder.getInstance().getLogger(BaseJugglerActivity.class);
 
     private Bundle savedInstanceState;
 
@@ -74,13 +74,6 @@ public class BaseJugglerActivity extends JugglerActivity {
     }
 
     @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        logger.d("onActivityResult(), activity=" + getClass().getSimpleName() + ", requestCode=" + requestCode + ", resultCode=" + resultCode + ", data=" + data);
-
-    }
-
-    @Override
     public boolean onTouchEvent(MotionEvent event) {
 //        logger.debug("onTouchEvent(), event=" + event);
         List<Fragment> fragments = getSupportFragmentManager().getFragments();
@@ -130,4 +123,14 @@ public class BaseJugglerActivity extends JugglerActivity {
         }
     }
 
+    @Nullable
+    public State getActivityState() {
+        final State<?> state;
+        if (getIntent().hasExtra(EXTRA_STATE)) {
+            state = (State<?>) getIntent().getSerializableExtra(EXTRA_STATE);
+        } else {
+            state = createState();
+        }
+        return state;
+    }
 }

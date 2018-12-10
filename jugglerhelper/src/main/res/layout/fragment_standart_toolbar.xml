@@ -8,6 +8,6 @@
     android:foregroundGravity="center"
     android:orientation="vertical"
     app:title="title"
-    app:titleTextColor="@android:color/black">
+    app:titleTextColor="@color/textColorPrimary">
 
 </android.support.v7.widget.Toolbar>

@@ -323,14 +323,14 @@ public abstract class BaseLoadingJugglerFragment<I> extends BaseJugglerFragment 
                 throw new IllegalStateException("fragment is not attached");
             }
             if (loadingLayout != null) {
-                GuiUtils.setProgressBarColor(ContextCompat.getColor(getContext(), R.color.progress_primary), (ProgressBar) loadingLayout.findViewById(R.id.pbLoading));
+                GuiUtils.setProgressBarColor(ContextCompat.getColor(getContext(), R.color.progressPrimary), (ProgressBar) loadingLayout.findViewById(R.id.pbLoading));
             }
             if (swipeRefreshLayout != null) {
 //                swipeRefreshLayout.setProgressBackgroundColorSchemeResource(R.color.progressBarColor);
                 swipeRefreshLayout.setColorSchemeResources(
-                        R.color.progress_start,
-                        R.color.progress_primary,
-                        R.color.progress_end);
+                        R.color.progressStart,
+                        R.color.progressPrimary,
+                        R.color.progressEnd);
             }
         }
 

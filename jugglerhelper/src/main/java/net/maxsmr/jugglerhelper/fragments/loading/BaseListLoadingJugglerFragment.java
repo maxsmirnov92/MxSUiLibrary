@@ -58,12 +58,6 @@ public abstract class BaseListLoadingJugglerFragment<I extends Comparable<I>, Ad
         return recycler.getLayoutManager();
     }
 
-    /**
-     * @return 0 if it's not used or recycler has different layouts
-     */
-    @LayoutRes
-    protected abstract int getBaseItemLayoutId();
-
     @IdRes
     protected int getRecyclerId() {
         return R.id.recycler;
@@ -135,8 +129,6 @@ public abstract class BaseListLoadingJugglerFragment<I extends Comparable<I>, Ad
 
     @NotNull
     protected abstract Adapter initAdapter();
-
-    protected abstract boolean allowReloadOnNetworkRestored();
 
     protected abstract boolean allowDuplicateItems();
 

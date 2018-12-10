@@ -14,16 +14,16 @@ import net.maxsmr.android.recyclerview.adapters.BaseRecyclerViewAdapter;
 
 import java.util.Collection;
 
-public class SimpleStringAdapter extends BaseRecyclerViewAdapter<String, SimpleStringAdapter.ViewHolder> {
+public class SampleStringAdapter extends BaseRecyclerViewAdapter<String, SimpleStringAdapter.ViewHolder> {
 
     @IdRes
     protected final int viewResId;
 
-    public SimpleStringAdapter(@NotNull Context context, @LayoutRes int baseItemLayoutId, int viewResId) {
+    public SampleStringAdapter(@NotNull Context context, @LayoutRes int baseItemLayoutId, int viewResId) {
         this(context, baseItemLayoutId, viewResId, null);
     }
 
-    public SimpleStringAdapter(@NotNull Context context, @LayoutRes int baseItemLayoutId, int viewResId, @Nullable Collection<String> items) {
+    public SampleStringAdapter(@NotNull Context context, @LayoutRes int baseItemLayoutId, int viewResId, @Nullable Collection<String> items) {
         super(context, baseItemLayoutId, items);
         this.viewResId = viewResId;
     }

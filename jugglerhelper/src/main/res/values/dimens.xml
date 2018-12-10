@@ -5,6 +5,9 @@
     <dimen name="activity_horizontal_margin">16dp</dimen>
     <dimen name="activity_vertical_margin">16dp</dimen>
 
+    <dimen name="elevation_recycler">2dp</dimen>
+    <dimen name="elevation_tabs">2dp</dimen>
+
     <dimen name="button_height">56dp</dimen>
 
     <dimen name="space_4">4dp</dimen>

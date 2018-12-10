@@ -1,43 +1,90 @@
 package net.maxsmr.jugglerhelper.fragments.toolbar;
 
 import android.os.Bundle;
+import android.support.annotation.IdRes;
 import android.support.annotation.LayoutRes;
 import org.jetbrains.annotations.NotNull;
 
 import net.maxsmr.jugglerhelper.R;
 import net.maxsmr.jugglerhelper.navigation.NavigationMode;
 
-import static net.maxsmr.jugglerhelper.fragments.toolbar.BaseCustomJugglerToolbarFragment.ARG_TOOLBAR_LAYOUT_ID;
+public class StandartToolbarFragment extends BaseCustomJugglerToolbarFragment {
 
-public class StandartToolbarFragment extends BaseJugglerToolbarFragment {
+    public static final String ARG_NAVIGATION_MODE = StandartToolbarFragment.class.getSimpleName() + ".ARG_NAVIGATION_MODE";
+    public static final String ARG_TOOLBAR_LAYOUT_ID = StandartToolbarFragment.class.getSimpleName() + ".ARG_TOOLBAR_LAYOUT_ID";
+    public static final String ARG_TOOLBAR_CONTAINER_ID = StandartToolbarFragment.class.getSimpleName() + ".ARG_TOOLBAR_CONTAINER_ID";
+    public static final String ARG_TOOLBAR_ID = StandartToolbarFragment.class.getSimpleName() + ".ARG_TOOLBAR_ID";
+    public static final String ARG_TOOLBAR_TITLE_ID = StandartToolbarFragment.class.getSimpleName() + ".ARG_TOOLBAR_TITLE_ID";
+    public static final String ARG_TOOLBAR_LOGO_ID = StandartToolbarFragment.class.getSimpleName() + ".ARG_TOOLBAR_LOGO_ID";
 
     public static StandartToolbarFragment newInstance(@NotNull NavigationMode navigationMode) {
-        Bundle args = new Bundle();
-        args.putSerializable(ARG_NAVIGATION_MODE, navigationMode);
-        StandartToolbarFragment fragment = new StandartToolbarFragment();
-        fragment.setArguments(args);
-        return fragment;
+        return newInstance(navigationMode, 0, 0 , 0, 0, 0);
     }
 
-    public static StandartToolbarFragment newInstance(@NotNull NavigationMode navigationMode, @LayoutRes int toolbarLayoutId) {
+    public static StandartToolbarFragment newInstance(@NotNull NavigationMode navigationMode,
+                                                      @LayoutRes int toolbarLayoutId,
+                                                      @IdRes int toolbarContainerId, @IdRes int toolbarId, @IdRes int toolbarTitleId, @IdRes int toolbarLogoId) {
         Bundle args = new Bundle();
         args.putSerializable(ARG_NAVIGATION_MODE, navigationMode);
         args.putInt(ARG_TOOLBAR_LAYOUT_ID, toolbarLayoutId);
+        args.putInt(ARG_TOOLBAR_CONTAINER_ID, toolbarContainerId);
+        args.putInt(ARG_TOOLBAR_ID, toolbarId);
+        args.putInt(ARG_TOOLBAR_TITLE_ID, toolbarTitleId);
+        args.putInt(ARG_TOOLBAR_LOGO_ID, toolbarLogoId);
         StandartToolbarFragment fragment = new StandartToolbarFragment();
         fragment.setArguments(args);
         return fragment;
     }
 
-    @SuppressWarnings("ResourceType")
+    @NotNull
     @Override
-    protected int getLayoutId() {
-        int toolbarId = getArguments() != null? getArguments().getInt(ARG_TOOLBAR_LAYOUT_ID) : 0;
-        return toolbarId != 0? toolbarId : R.layout.fragment_standart_toolbar;
+    protected NavigationMode getNavigationMode() {
+        final Bundle args = getArguments();
+        NavigationMode mode = null;
+        if (args != null) {
+            mode = (NavigationMode) getArguments().getSerializable(ARG_NAVIGATION_MODE);
+        }
+        if (mode == null) {
+            mode = NavigationMode.NONE;
+        }
+        return mode;
     }
 
+    @LayoutRes
+    @Override
+    protected int getLayoutId() {
+        final Bundle args = getArguments();
+        int id = args != null? args.getInt(ARG_TOOLBAR_LAYOUT_ID) : 0;
+        return id != 0? id : R.layout.fragment_standart_toolbar;
+    }
+
+    @IdRes
+    @Override
+    protected int getToolbarContainerId() {
+        final Bundle args = getArguments();
+        return args != null? args.getInt(ARG_TOOLBAR_CONTAINER_ID) : 0;
+    }
+
+    @IdRes
     @Override
     protected int getToolbarId() {
-        return R.id.toolbar;
+        final Bundle args = getArguments();
+        int id = args != null? args.getInt(ARG_TOOLBAR_ID) : 0;
+        return id != 0? id : R.id.toolbar;
+    }
+
+    @IdRes
+    @Override
+    protected int getToolbarTitleId() {
+        final Bundle args = getArguments();
+        return args != null? args.getInt(ARG_TOOLBAR_TITLE_ID) : 0;
+    }
+
+    @IdRes
+    @Override
+    protected int getToolbarLogoId() {
+        final Bundle args = getArguments();
+        return args != null? args.getInt(ARG_TOOLBAR_LOGO_ID) : 0;
     }
 
 }

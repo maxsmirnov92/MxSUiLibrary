@@ -35,7 +35,7 @@ public abstract class BaseJugglerNavigationFragment extends JugglerNavigationFra
         setHasOptionsMenu(false);
     }
 
-    @Nullable
+    @NotNull
     @Override
     public final View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View rootView = inflater.inflate(getLayoutId(), container, false);
@@ -43,11 +43,8 @@ public abstract class BaseJugglerNavigationFragment extends JugglerNavigationFra
         return rootView;
     }
 
-    protected abstract void onBindViews(@NotNull View rootView);
+    protected void onBindViews(@NotNull View rootView) {
 
-    @Nullable
-    protected String getBaseFontAlias() {
-        return null;
     }
 
     @Override
@@ -72,40 +69,46 @@ public abstract class BaseJugglerNavigationFragment extends JugglerNavigationFra
         return changeDrawerState(true) || super.onUpPressed();
     }
 
-    protected final boolean changeDrawerState(boolean open) {
+    protected int getDrawerGravity() {
+        return GravityCompat.START;
+    }
 
-        if (getActivity() == null) {
-            throw new RuntimeException("not attached to activity");
+    @NotNull
+    @Override
+    public DrawerLayout getDrawerLayout() {
+        DrawerLayout drawerLayout = super.getDrawerLayout();
+        if (drawerLayout == null) {
+            throw new RuntimeException(DrawerLayout.class.getSimpleName() + " is not initialized");
         }
+        return drawerLayout;
+    }
 
-        DrawerLayout drawer = GuiUtils.findViewById(getActivity().getWindow().getDecorView(), getDrawerLayoutId());
+    public boolean isDrawerOpen() {
+        final DrawerLayout drawerLayout = getDrawerLayout();
+        return drawerLayout.isDrawerOpen(getDrawerGravity());
+    }
 
-        if (drawer == null) {
-            throw new RuntimeException("drawer not found");
-        }
-
-        if (!open && drawer.isDrawerOpen(GravityCompat.START)) {
-            drawer.closeDrawer(GravityCompat.START);
+    public boolean changeDrawerState(boolean open) {
+        final int drawerGravity = getDrawerGravity();
+        final DrawerLayout drawerLayout = getDrawerLayout();
+        if (!open && drawerLayout.isDrawerOpen(drawerGravity)) {
+            drawerLayout.closeDrawer(drawerGravity);
             return true;
-        } else if (open && !drawer.isDrawerOpen(GravityCompat.START)) {
-            drawer.openDrawer(GravityCompat.START);
+        } else if (open && !drawerLayout.isDrawerOpen(drawerGravity)) {
+            drawerLayout.openDrawer(drawerGravity);
             return true;
         }
 
         return false;
     }
 
-    protected final void revertDrawerState() {
-        DrawerLayout drawer = GuiUtils.findViewById(getActivity().getWindow().getDecorView(), getDrawerLayoutId());
-
-        if (drawer == null) {
-            throw new RuntimeException("drawer not found");
-        }
-
-        if (drawer.isDrawerOpen(GravityCompat.START)) {
-            drawer.closeDrawer(GravityCompat.START);
+    public void revertDrawerState() {
+        final int drawerGravity = getDrawerGravity();
+        final DrawerLayout drawerLayout = getDrawerLayout();
+        if (drawerLayout.isDrawerOpen(drawerGravity)) {
+            drawerLayout.closeDrawer(drawerGravity);
         } else {
-            drawer.openDrawer(GravityCompat.START);
+            drawerLayout.openDrawer(drawerGravity);
         }
     }
 

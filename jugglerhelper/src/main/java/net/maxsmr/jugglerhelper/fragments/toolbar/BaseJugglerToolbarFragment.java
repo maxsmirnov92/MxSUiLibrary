@@ -1,11 +1,14 @@
 package net.maxsmr.jugglerhelper.fragments.toolbar;
 
+import android.app.Activity;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.support.annotation.CallSuper;
 import android.support.annotation.LayoutRes;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
 import android.support.annotation.StringRes;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
@@ -29,12 +32,10 @@ import me.ilich.juggler.states.State;
 
 public abstract class BaseJugglerToolbarFragment extends JugglerToolbarFragment {
 
-    public static final String ARG_NAVIGATION_MODE = BaseJugglerToolbarFragment.class.getSimpleName() + ".ARG_NAVIGATION_MODE";
-
     @LayoutRes
     protected abstract int getLayoutId();
 
-    @Nullable
+    @NotNull
     @Override
     public final View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View rootView = inflater.inflate(getLayoutId(), container, false);
@@ -43,7 +44,6 @@ public abstract class BaseJugglerToolbarFragment extends JugglerToolbarFragment 
     }
 
     protected void onBindViews(@NotNull View rootView) {
-
     }
 
     protected void initToolbar() {
@@ -68,7 +68,7 @@ public abstract class BaseJugglerToolbarFragment extends JugglerToolbarFragment 
 
         ActionBar actionBar = getJugglerActivity().getSupportActionBar();
         if (actionBar != null) {
-            actionBar.setTitle(R.string.empty);
+            actionBar.setTitle("");
             actionBar.setDisplayShowTitleEnabled(true);
             actionBar.setDisplayHomeAsUpEnabled(true);
             actionBar.show();
@@ -76,17 +76,7 @@ public abstract class BaseJugglerToolbarFragment extends JugglerToolbarFragment 
     }
 
     protected void initTitle() {
-        String title = null;
-        State<State.Params> state = (State<State.Params>) getState();
-        if (state != null) {
-            title = state.getTitle(getContext(), state.getParams());
-        } else {
-            CharSequence activityTitle = getActivity().getTitle();
-            title = activityTitle != null ? activityTitle.toString() : null;
-        }
-        if (!TextUtils.isEmpty(title)) {
-            setTitle(title);
-        }
+        setTitle(getTitle());
     }
 
     protected void initNavigationMode() {
@@ -95,9 +85,7 @@ public abstract class BaseJugglerToolbarFragment extends JugglerToolbarFragment 
 
     @SuppressWarnings("ConstantConditions")
     @NotNull
-    protected NavigationMode getNavigationMode() {
-        return (NavigationMode) getArguments().getSerializable(ARG_NAVIGATION_MODE);
-    }
+    protected abstract NavigationMode getNavigationMode();
 
     @Override
     public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
@@ -163,9 +151,19 @@ public abstract class BaseJugglerToolbarFragment extends JugglerToolbarFragment 
     }
 
     @Nullable
-    protected final CharSequence getTitle() {
-        ActionBar actionBar = getJugglerActivity().getSupportActionBar();
-        return actionBar != null ? actionBar.getTitle() : null;
+    public String getTitle() {
+        String title = null;
+        @SuppressWarnings("unchecked") State<State.Params> state = (State<State.Params>) getState();
+        if (state != null) {
+            title = state.getTitle(getContext(), state.getParams());
+        } else {
+            Activity activity = getActivity();
+            if (activity != null) {
+                CharSequence activityTitle = activity.getTitle();
+                title = activityTitle != null ? activityTitle.toString() : null;
+            }
+        }
+        return title;
     }
 
     public void setTitle(CharSequence text) {

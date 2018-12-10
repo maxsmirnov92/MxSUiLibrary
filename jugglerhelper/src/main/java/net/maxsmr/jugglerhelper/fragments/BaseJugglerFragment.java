@@ -93,12 +93,12 @@ public abstract class BaseJugglerFragment extends JugglerFragment implements Nes
 
     @ColorInt
     protected int getStatusBarColor() {
-        return ContextCompat.getColor(getContext(), R.color.colorPrimaryDark);
+        return ContextCompat.getColor(getContext(), R.color.colorStatusBar);
     }
 
     @ColorInt
     protected int getNavigationBarColor() {
-        return ContextCompat.getColor(getContext(), R.color.navigationBarColor);
+        return ContextCompat.getColor(getContext(), R.color.colorNavigationBar);
     }
 
     @Nullable
@@ -130,7 +130,9 @@ public abstract class BaseJugglerFragment extends JugglerFragment implements Nes
         return rootView;
     }
 
-    protected abstract void onBindViews(@NotNull View rootView);
+    protected void onBindViews(@NotNull View rootView) {
+
+    }
 
     protected Menu getMenu() {
         return menu;
@@ -186,6 +188,7 @@ public abstract class BaseJugglerFragment extends JugglerFragment implements Nes
         }
     }
 
+    @Override
     public boolean onBackPressed() {
         List<Fragment> childFragments = getChildFragmentManager().getFragments();
         for (Fragment f : childFragments) {

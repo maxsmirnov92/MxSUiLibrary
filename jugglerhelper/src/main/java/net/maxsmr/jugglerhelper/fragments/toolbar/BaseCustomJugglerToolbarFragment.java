@@ -15,17 +15,6 @@ import android.widget.TextView;
 
 public abstract class BaseCustomJugglerToolbarFragment extends BaseJugglerToolbarFragment {
 
-    public static final String ARG_TOOLBAR_LAYOUT_ID = BaseCustomJugglerToolbarFragment.class.getSimpleName() + ".ARG_TOOLBAR_LAYOUT_ID";
-
-    protected ViewGroup toolbarContainer;
-
-    @SuppressWarnings("ResourceType")
-    @Override
-    @LayoutRes
-    protected int getLayoutId() {
-        return getArguments() != null? getArguments().getInt(ARG_TOOLBAR_LAYOUT_ID) : 0;
-    }
-
     @IdRes
     protected abstract int getToolbarContainerId();
 
@@ -36,25 +25,18 @@ public abstract class BaseCustomJugglerToolbarFragment extends BaseJugglerToolba
     protected abstract int getToolbarLogoId();
 
     @Override
-    @CallSuper
-    protected void onBindViews(@NotNull View rootView) {
-        toolbarContainer = (ViewGroup) rootView.findViewById(getToolbarContainerId());
-    }
-
-    @Override
     public void setTitle(@Nullable CharSequence title) {
-        if (getJugglerActivity().getSupportActionBar() != null) {
-            getJugglerActivity().getSupportActionBar().setTitle(null);
+        View rootView = getView();
+        if (rootView == null) {
+            throw new IllegalStateException(getClass().getSimpleName() + " is not attached to activity");
         }
-        Toolbar toolbar = getToolbar();
-        if (toolbar == null) {
-            throw new RuntimeException("toolbar was not initialized");
-        }
-        toolbar.setTitle(null);
-        TextView titleView = (TextView) toolbar.findViewById(getToolbarTitleId());
+        TextView titleView = rootView.findViewById(getToolbarTitleId());
         if (titleView != null) {
+            super.setTitle("");
             titleView.setText(title);
             titleView.setVisibility(TextUtils.isEmpty(title) ? View.GONE : View.VISIBLE);
+        } else {
+            super.setTitle(title);
         }
     }
 
