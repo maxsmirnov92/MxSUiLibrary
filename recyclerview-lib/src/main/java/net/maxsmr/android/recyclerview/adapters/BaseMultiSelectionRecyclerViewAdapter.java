@@ -23,31 +23,26 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
-public abstract class BaseCheckableRecyclerViewAdapter<I, VH extends BaseRecyclerViewAdapter.ViewHolder> extends BaseRecyclerViewAdapter<I, VH> implements HolderClickObserver, SelectionObserver {
+public abstract class BaseMultiSelectionRecyclerViewAdapter<I, VH
+        extends BaseRecyclerViewAdapter.ViewHolder> extends BaseRecyclerViewAdapter<I, VH> implements HolderClickObserver, SelectionObserver {
 
     private SelectionHelper mSelectionHelper;
 
     @NotNull
-//    private final Map<Integer, Set<SelectionHelper.SelectMode>> mSelectionModes = new LinkedHashMap<>();
     private final Set<SelectionHelper.SelectMode> mSelectionModes = new LinkedHashSet<>();
 
-    @Nullable
-    private Drawable defaultDrawable, selectionDrawable;
-
-    public BaseCheckableRecyclerViewAdapter(@NotNull Context context, @LayoutRes int itemLayoutId, @Nullable Collection<I> items) {
-        this(context, itemLayoutId, items, null, null, true);
+    public BaseMultiSelectionRecyclerViewAdapter(@NotNull Context context) {
+        this(context, 0, null);
     }
 
-    public BaseCheckableRecyclerViewAdapter(@NotNull Context context, @LayoutRes int itemLayoutId, @Nullable Collection<I> items, @Nullable Drawable defaultDrawable, @Nullable Drawable selectionDrawable, boolean selectable) {
+    public BaseMultiSelectionRecyclerViewAdapter(@NotNull Context context, @LayoutRes int itemLayoutId, @Nullable Collection<I> items) {
+        this(context, itemLayoutId, items, true);
+    }
+
+    public BaseMultiSelectionRecyclerViewAdapter(@NotNull Context context, @LayoutRes int itemLayoutId, @Nullable Collection<I> items, boolean selectable) {
         super(context, itemLayoutId, items);
         initSelectionHelper();
         setSelectable(selectable);
-        if (defaultDrawable != null) {
-            setDefaultDrawable(defaultDrawable);
-        }
-        if (selectionDrawable != null) {
-            setSelectionDrawable(selectionDrawable);
-        }
     }
 
     private void initSelectionHelper() {
@@ -58,10 +53,6 @@ public abstract class BaseCheckableRecyclerViewAdapter<I, VH extends BaseRecycle
         }
     }
 
-    //    protected final SelectionHelper getSelectionHelper() {
-//        return mSelectionHelper;
-//    }
-
     public boolean isSelectable() {
         return mSelectionHelper.isSelectable();
     }
@@ -69,28 +60,6 @@ public abstract class BaseCheckableRecyclerViewAdapter<I, VH extends BaseRecycle
     public void setSelectable(boolean toggle) {
         mSelectionHelper.setSelectable(toggle);
     }
-
-//    private void checkSelectionModes(@Nullable Map<Integer, Set<SelectionHelper.SelectMode>> selectionModes) {
-//        if (selectionModes != null) {
-//            for (int pos : selectionModes.keySet()) {
-//                rangeCheck(pos);
-//            }
-//        }
-//    }
-
-//    @SuppressLint("NewApi")
-//    public void setSelectionModes(@Nullable Map<Integer, Set<SelectionHelper.SelectMode>> selectionModes) {
-//        checkSelectionModes(selectionModes);
-//        synchronized (mSelectionModes) {
-//            if (!Objects.equals(selectionModes, mSelectionModes)) {
-//                mSelectionModes.clear();
-//                if (selectionModes != null) {
-//                    mSelectionModes.putAll(selectionModes);
-//                }
-//            }
-//        }
-//    }
-
 
     @NotNull
     public Set<SelectionHelper.SelectMode> getSelectionModes() {
@@ -142,35 +111,13 @@ public abstract class BaseCheckableRecyclerViewAdapter<I, VH extends BaseRecycle
     }
 
     @Override
-    protected final boolean allowSetClickListener(@Nullable I item, int position) {
-        return false;
+    protected boolean allowSetClickListener(@Nullable I item, int position) {
+        return !mSelectionModes.contains(SelectionHelper.SelectMode.CLICK);
     }
 
     @Override
-    protected final boolean allowSetLongClickListener(@Nullable I item, int position) {
-        return false;
-    }
-
-    @Nullable
-    public Drawable getDefaultDrawable() {
-        return defaultDrawable;
-    }
-
-    public void setDefaultDrawable(@Nullable Drawable defaultDrawable) {
-        this.defaultDrawable = defaultDrawable;
-        if (isNotifyOnChange())
-            notifyDataSetChanged();
-    }
-
-    @Nullable
-    public Drawable getSelectionDrawable() {
-        return selectionDrawable;
-    }
-
-    public void setSelectionDrawable(@Nullable Drawable selectionDrawable) {
-        this.selectionDrawable = selectionDrawable;
-        if (isNotifyOnChange())
-            notifyDataSetChanged();
+    protected boolean allowSetLongClickListener(@Nullable I item, int position) {
+        return !mSelectionModes.contains(SelectionHelper.SelectMode.LONG_CLICK);
     }
 
     @Override
@@ -395,7 +342,7 @@ public abstract class BaseCheckableRecyclerViewAdapter<I, VH extends BaseRecycle
 
     @SuppressWarnings("unchecked")
     @Override
-    public final void onSelectedChanged(RecyclerView.ViewHolder holder, boolean isSelected, boolean fromUser) {
+    public void onSelectedChanged(RecyclerView.ViewHolder holder, boolean isSelected, boolean fromUser) {
         if (itemSelectedChangeListener != null) {
             itemSelectedChangeListener.onItemSelectedChange(holder.getAdapterPosition(), isSelected);
         }

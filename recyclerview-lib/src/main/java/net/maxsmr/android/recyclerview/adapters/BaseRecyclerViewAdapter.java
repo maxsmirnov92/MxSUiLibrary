@@ -42,6 +42,10 @@ public abstract class BaseRecyclerViewAdapter<I, VH extends BaseRecyclerViewAdap
 
     private boolean mNotifyOnChange = true;
 
+    protected BaseRecyclerViewAdapter(@NotNull Context context) {
+        this(context, 0, null);
+    }
+
     protected BaseRecyclerViewAdapter(@NotNull Context context, @LayoutRes int baseItemLayoutId, @Nullable Collection<I> items) {
         this.mContext = context;
         this.mBaseItemLayoutId = baseItemLayoutId;
@@ -362,26 +366,20 @@ public abstract class BaseRecyclerViewAdapter<I, VH extends BaseRecyclerViewAdap
         if (!isItemEmpty(item, position) && item != null) {
 
             if (allowSetClickListener(item, position)) {
-                holder.itemView.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        if (mItemClickListener != null) {
-                            mItemClickListener.onItemClick(position, item);
-                        }
+                holder.itemView.setOnClickListener(v -> {
+                    if (mItemClickListener != null) {
+                        mItemClickListener.onItemClick(position, item);
                     }
                 });
             }
 
             if (allowSetLongClickListener(item, position)) {
-                holder.itemView.setOnLongClickListener(new View.OnLongClickListener() {
-                    @Override
-                    public boolean onLongClick(View v) {
-                        boolean consumed = false;
-                        if (mItemLongClickListener != null) {
-                            consumed = mItemLongClickListener.onItemLongClick(position, item);
-                        }
-                        return consumed;
+                holder.itemView.setOnLongClickListener(v -> {
+                    boolean consumed = false;
+                    if (mItemLongClickListener != null) {
+                        consumed = mItemLongClickListener.onItemLongClick(position, item);
                     }
+                    return consumed;
                 });
             }
 
