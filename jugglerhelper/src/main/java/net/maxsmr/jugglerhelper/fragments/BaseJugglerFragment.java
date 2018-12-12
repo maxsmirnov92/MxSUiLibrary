@@ -1,6 +1,8 @@
 package net.maxsmr.jugglerhelper.fragments;
 
 import android.content.Intent;
+import android.graphics.drawable.ColorDrawable;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.support.annotation.CallSuper;
 import android.support.annotation.ColorInt;
@@ -17,6 +19,7 @@ import android.view.MenuInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.Window;
 
 import net.maxsmr.commonutils.android.gui.GuiUtils;
 import net.maxsmr.commonutils.data.CompareUtils;
@@ -91,13 +94,21 @@ public abstract class BaseJugglerFragment extends JugglerFragment implements Nes
         return (T) activity;
     }
 
+    @SuppressWarnings("ConstantConditions")
+    @Nullable
+    protected Drawable getWindowBackground() {
+        return null;
+    }
+
+    @SuppressWarnings("ConstantConditions")
     @ColorInt
-    protected int getStatusBarColor() {
+    protected Integer getStatusBarColor() {
         return ContextCompat.getColor(getContext(), R.color.colorStatusBar);
     }
 
+    @SuppressWarnings("ConstantConditions")
     @ColorInt
-    protected int getNavigationBarColor() {
+    protected Integer getNavigationBarColor() {
         return ContextCompat.getColor(getContext(), R.color.colorNavigationBar);
     }
 
@@ -148,11 +159,23 @@ public abstract class BaseJugglerFragment extends JugglerFragment implements Nes
         isCommitAllowed = true;
     }
 
+    @SuppressWarnings("ConstantConditions")
     @Override
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
-        GuiUtils.setStatusBarColor(getActivity().getWindow(), getStatusBarColor());
-        GuiUtils.setNavigationBarColor(getActivity().getWindow(), getNavigationBarColor());
+        final Window window = getActivity().getWindow();
+        Integer statusBarColor = getStatusBarColor();
+        if (statusBarColor != null) {
+            GuiUtils.setStatusBarColor(window, statusBarColor);
+        }
+        Integer navigationBarColor = getNavigationBarColor();
+        if (navigationBarColor != null) {
+            GuiUtils.setNavigationBarColor(window, navigationBarColor);
+        }
+        Drawable windowBackground = getWindowBackground();
+        if (windowBackground != null) {
+            window.setBackgroundDrawable(windowBackground);
+        }
     }
 
     @Override

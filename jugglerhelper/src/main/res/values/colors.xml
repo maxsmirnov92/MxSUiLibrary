@@ -7,12 +7,13 @@
     <color name="gray_dark">#ff333333</color>
     <color name="gray_half_transparent">#66585858</color>
 
-    <color name="colorAccent">#484E70</color>
+    <color name="colorAccent">#81CAF4</color>
     <color name="colorPrimary">@color/colorAccent</color>
     <color name="colorPrimaryDark">#484E70</color>
     <color name="colorControlNormal">@color/gray</color>
     <color name="colorControlActivated">@android:color/white</color>
 
+    <color name="colorWindowBackground">@color/colorAccent</color>
     <color name="colorStatusBar">@color/colorPrimaryDark</color>
     <color name="colorNavigationBar">@color/colorStatusBar</color>
 
@@ -26,8 +27,8 @@
     <color name="textColorNormal">@color/textColorPrimary</color>
     <color name="textColorPressed">@color/textColorNormal</color>
 
-    <color name="progressStart">#fcf132</color>
-    <color name="progressPrimary">@color/colorControlActivated</color>
-    <color name="progressEnd">#fc8f19</color>
+    <color name="colorProgressBarStart">#fcf132</color>
+    <color name="colorProgressBarPrimary">@color/colorPrimary</color>
+    <color name="colorProgressBarEnd">#fc8f19</color>
 
 </resources>

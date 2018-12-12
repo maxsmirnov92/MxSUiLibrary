@@ -3,8 +3,10 @@ package net.maxsmr.android.recyclerview.adapters;
 import android.content.Context;
 import android.support.annotation.CallSuper;
 import android.support.annotation.LayoutRes;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -153,7 +155,7 @@ public abstract class BaseRecyclerViewAdapter<I, VH extends BaseRecyclerViewAdap
         addItem(getItemCount(), item);
     }
 
-    public final void addFirstItem(@Nullable I item) throws IndexOutOfBoundsException{
+    public final void addFirstItem(@Nullable I item) throws IndexOutOfBoundsException {
         addItem(0, item);
     }
 
@@ -325,6 +327,11 @@ public abstract class BaseRecyclerViewAdapter<I, VH extends BaseRecyclerViewAdap
                 .inflate(getLayoutIdForViewType(viewType), parent, false);
     }
 
+    @Nullable
+    protected View getClickableView(@NotNull VH holder) {
+        return holder.itemView;
+    }
+
     @LayoutRes
     protected int getLayoutIdForViewType(int viewType) {
         return mBaseItemLayoutId;
@@ -365,22 +372,25 @@ public abstract class BaseRecyclerViewAdapter<I, VH extends BaseRecyclerViewAdap
 
         if (!isItemEmpty(item, position) && item != null) {
 
-            if (allowSetClickListener(item, position)) {
-                holder.itemView.setOnClickListener(v -> {
-                    if (mItemClickListener != null) {
-                        mItemClickListener.onItemClick(position, item);
-                    }
-                });
-            }
+            View clickableView = getClickableView(holder);
 
-            if (allowSetLongClickListener(item, position)) {
-                holder.itemView.setOnLongClickListener(v -> {
-                    boolean consumed = false;
-                    if (mItemLongClickListener != null) {
-                        consumed = mItemLongClickListener.onItemLongClick(position, item);
-                    }
-                    return consumed;
-                });
+            if (clickableView != null) {
+                if (allowSetClickListener(item, position)) {
+                    clickableView.setOnClickListener(v -> {
+                        if (mItemClickListener != null) {
+                            mItemClickListener.onItemClick(position, item);
+                        }
+                    });
+                }
+                if (allowSetLongClickListener(item, position)) {
+                    clickableView.setOnLongClickListener(v -> {
+                        boolean consumed = false;
+                        if (mItemLongClickListener != null) {
+                            consumed = mItemLongClickListener.onItemLongClick(position, item);
+                        }
+                        return consumed;
+                    });
+                }
             }
 
             if (allowFillHolderForItem(holder, item, position)) {
@@ -388,7 +398,7 @@ public abstract class BaseRecyclerViewAdapter<I, VH extends BaseRecyclerViewAdap
             }
 
         } else {
-            
+
             if (allowFillHolderForItem(holder, item, position)) {
                 holder.displayNoData(position, item);
             }

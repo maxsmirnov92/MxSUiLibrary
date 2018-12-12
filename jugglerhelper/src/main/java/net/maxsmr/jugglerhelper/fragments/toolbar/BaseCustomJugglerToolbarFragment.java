@@ -13,10 +13,9 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-public abstract class BaseCustomJugglerToolbarFragment extends BaseJugglerToolbarFragment {
+import net.maxsmr.jugglerhelper.R;
 
-    @IdRes
-    protected abstract int getToolbarContainerId();
+public abstract class BaseCustomJugglerToolbarFragment extends BaseJugglerToolbarFragment {
 
     @IdRes
     protected abstract int getToolbarTitleId();
@@ -32,7 +31,7 @@ public abstract class BaseCustomJugglerToolbarFragment extends BaseJugglerToolba
         }
         TextView titleView = rootView.findViewById(getToolbarTitleId());
         if (titleView != null) {
-            super.setTitle("");
+            super.setTitle(getString(R.string.empty));
             titleView.setText(title);
             titleView.setVisibility(TextUtils.isEmpty(title) ? View.GONE : View.VISIBLE);
         } else {
@@ -42,15 +41,17 @@ public abstract class BaseCustomJugglerToolbarFragment extends BaseJugglerToolba
 
     @Override
     public void setLogo(@Nullable Drawable logo) {
-        Toolbar toolbar = getToolbar();
-        if (toolbar == null) {
-            throw new RuntimeException("toolbar was not initialized");
+        View rootView = getView();
+        if (rootView == null) {
+            throw new IllegalStateException(getClass().getSimpleName() + " is not attached to activity");
         }
-        toolbar.setLogo(null);
-        ImageView logoView = (ImageView) toolbar.findViewById(getToolbarLogoId());
+        ImageView logoView = rootView.findViewById(getToolbarLogoId());
         if (logoView != null) {
+            super.setLogo(null);
             logoView.setImageDrawable(logo);
             logoView.setVisibility(logo == null ? View.GONE : View.VISIBLE);
+        } else {
+            super.setLogo(logo);
         }
     }
 }

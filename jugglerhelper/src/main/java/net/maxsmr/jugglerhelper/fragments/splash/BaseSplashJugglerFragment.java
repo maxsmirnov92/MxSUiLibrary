@@ -14,12 +14,9 @@ public abstract class BaseSplashJugglerFragment extends BaseJugglerFragment {
     private static final String ARG_EXPIRED_TIME = BaseSplashJugglerFragment.class.getName() + ".ARG_EXPIRED_TIME";
 
     private final Handler navigateHandler = new Handler(Looper.getMainLooper());
-    private final Runnable navigateRunnable = new Runnable() {
-        @Override
-        public void run() {
-            if (isAdded()) {
-                onSplashTimeout();
-            }
+    private final Runnable navigateRunnable = () -> {
+        if (isAdded()) {
+            onSplashTimeout();
         }
     };
 
@@ -49,12 +46,9 @@ public abstract class BaseSplashJugglerFragment extends BaseJugglerFragment {
                 throw new RuntimeException("root view was not inflated");
             }
 
-            rootView.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    navigateHandler.removeCallbacks(navigateRunnable);
-                    onSplashTimeout();
-                }
+            rootView.setOnClickListener(v -> {
+                navigateHandler.removeCallbacks(navigateRunnable);
+                onSplashTimeout();
             });
         }
     }

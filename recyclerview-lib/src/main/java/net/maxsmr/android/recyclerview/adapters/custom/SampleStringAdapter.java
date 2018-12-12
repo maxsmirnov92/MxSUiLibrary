@@ -14,7 +14,7 @@ import net.maxsmr.android.recyclerview.adapters.BaseRecyclerViewAdapter;
 
 import java.util.Collection;
 
-public class SampleStringAdapter extends BaseRecyclerViewAdapter<String, SimpleStringAdapter.ViewHolder> {
+public class SampleStringAdapter extends BaseRecyclerViewAdapter<String, SampleStringAdapter.ViewHolder> {
 
     @IdRes
     protected final int viewResId;

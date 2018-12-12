@@ -59,12 +59,7 @@ public abstract class BaseJugglerToolbarFragment extends JugglerToolbarFragment 
             throw new IllegalStateException("toolbar was not found");
         }
 
-        toolbar.setNavigationOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                getJugglerActivity().onSupportNavigateUp();
-            }
-        });
+        toolbar.setNavigationOnClickListener(v -> getJugglerActivity().onSupportNavigateUp());
 
         ActionBar actionBar = getJugglerActivity().getSupportActionBar();
         if (actionBar != null) {
@@ -79,19 +74,21 @@ public abstract class BaseJugglerToolbarFragment extends JugglerToolbarFragment 
         setTitle(getTitle());
     }
 
+    // setting logo by layout is not working properly
+    protected void initLogo() {
+        setLogo(getLogo());
+    }
+
     protected void initNavigationMode() {
         setMode(getNavigationMode(), getUpIcon());
     }
-
-    @SuppressWarnings("ConstantConditions")
-    @NotNull
-    protected abstract NavigationMode getNavigationMode();
 
     @Override
     public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         initToolbar();
         initTitle();
+        initLogo();
         initNavigationMode();
     }
 
@@ -177,9 +174,12 @@ public abstract class BaseJugglerToolbarFragment extends JugglerToolbarFragment 
         }
     }
 
-    protected void setTitle(@StringRes int textRestId) {
+    public void setTitle(@StringRes int textRestId) {
         setTitle(getString(textRestId));
     }
+
+    @Nullable
+    protected abstract Drawable getLogo();
 
     public void setLogo(Drawable icon) {
         Toolbar toolbar = getToolbar();
@@ -189,18 +189,19 @@ public abstract class BaseJugglerToolbarFragment extends JugglerToolbarFragment 
         toolbar.setLogo(icon);
     }
 
+    @NotNull
+    protected abstract NavigationMode getNavigationMode();
+
     @CallSuper
     public void onStateActivated(JugglerActivity activity, State<?> state) {
         initTitle();
         FragmentManager fm = getChildFragmentManager();
         List<Fragment> fragments = fm.getFragments();
-        if (fragments != null) {
-            for (Fragment fragment : fragments) {
-                if (fragment instanceof BaseJugglerFragment) {
-                    ((BaseJugglerFragment) fragment).onStateActivated(activity, state);
-                } else if (fragment instanceof BaseJugglerToolbarFragment) {
-                    ((BaseJugglerToolbarFragment) fragment).onStateActivated(activity, state);
-                }
+        for (Fragment fragment : fragments) {
+            if (fragment instanceof BaseJugglerFragment) {
+                ((BaseJugglerFragment) fragment).onStateActivated(activity, state);
+            } else if (fragment instanceof BaseJugglerToolbarFragment) {
+                ((BaseJugglerToolbarFragment) fragment).onStateActivated(activity, state);
             }
         }
     }

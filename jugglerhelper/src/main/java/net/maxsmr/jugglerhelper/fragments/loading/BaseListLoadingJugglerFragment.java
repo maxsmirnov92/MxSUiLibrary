@@ -5,7 +5,7 @@ import android.os.Handler;
 import android.os.Looper;
 import android.support.annotation.CallSuper;
 import android.support.annotation.IdRes;
-import android.support.annotation.LayoutRes;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import android.support.v4.widget.SwipeRefreshLayout;
@@ -30,10 +30,11 @@ import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-public abstract class BaseListLoadingJugglerFragment<I extends Comparable<I>, Adapter extends BaseRecyclerViewAdapter<I, ?>> extends BaseLoadingJugglerFragment<List<I>>
+public abstract class BaseListLoadingJugglerFragment<I extends Comparable<I>, Adapter extends BaseRecyclerViewAdapter<I, ?>>
+        extends BaseLoadingJugglerFragment<List<I>>
         implements BaseRecyclerViewAdapter.OnItemClickListener<I>, BaseRecyclerViewAdapter.OnItemLongClickListener<I>, BaseRecyclerViewAdapter.OnItemAddedListener<I>, BaseRecyclerViewAdapter.OnItemsSetListener<I>, BaseRecyclerViewAdapter.OnItemsRemovedListener<I>, RecyclerScrollableController.OnLastItemVisibleListener, SwipeRefreshLayout.OnRefreshListener, View.OnClickListener {
 
-    private final List<RecyclerView.ItemDecoration> registeredDecorations = new LinkedList<>();
+    private final List<RecyclerView.ItemDecoration> registeredItemDecorations = new LinkedList<>();
 
     private final List<RecyclerView.OnScrollListener> registeredScrollListeners = new LinkedList<>();
 
@@ -44,8 +45,8 @@ public abstract class BaseListLoadingJugglerFragment<I extends Comparable<I>, Ad
     protected Adapter adapter;
 
     @NotNull
-    protected List<RecyclerView.ItemDecoration> getRegisteredDecorations() {
-        return Collections.unmodifiableList(registeredDecorations);
+    protected List<RecyclerView.ItemDecoration> getRegisteredItemDecorations() {
+        return Collections.unmodifiableList(registeredItemDecorations);
     }
 
     @NotNull
@@ -92,14 +93,14 @@ public abstract class BaseListLoadingJugglerFragment<I extends Comparable<I>, Ad
             for (RecyclerView.ItemDecoration decoration : decorations) {
                 if (decoration != null) {
                     recycler.addItemDecoration(decoration);
-                    registeredDecorations.add(decoration);
+                    registeredItemDecorations.add(decoration);
                 }
             }
         }
     }
 
     protected void removeItemDecorations() {
-        Iterator<RecyclerView.ItemDecoration> it = registeredDecorations.iterator();
+        Iterator<RecyclerView.ItemDecoration> it = registeredItemDecorations.iterator();
         while (it.hasNext()) {
             RecyclerView.ItemDecoration decoration = it.next();
             recycler.removeItemDecoration(decoration);
