@@ -4,6 +4,8 @@ import android.content.Intent;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.support.annotation.CallSuper;
 import android.support.annotation.ColorInt;
 import android.support.annotation.LayoutRes;
@@ -37,6 +39,9 @@ import me.ilich.juggler.states.State;
 import me.ilich.nestableviewpager.NestablePagerItem;
 
 public abstract class BaseJugglerFragment extends JugglerFragment implements NestablePagerItem {
+
+    @NotNull
+    protected final Handler mainHandler = new Handler(Looper.getMainLooper());
 
     @Nullable
     private Bundle savedInstanceState;

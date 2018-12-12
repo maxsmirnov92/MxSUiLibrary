@@ -8,6 +8,7 @@ import android.support.annotation.IdRes;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -27,12 +28,16 @@ import java.util.Comparator;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 public abstract class BaseListLoadingJugglerFragment<I extends Comparable<I>, Adapter extends BaseRecyclerViewAdapter<I, ?>>
         extends BaseLoadingJugglerFragment<List<I>>
-        implements BaseRecyclerViewAdapter.OnItemClickListener<I>, BaseRecyclerViewAdapter.OnItemLongClickListener<I>, BaseRecyclerViewAdapter.OnItemAddedListener<I>, BaseRecyclerViewAdapter.OnItemsSetListener<I>, BaseRecyclerViewAdapter.OnItemsRemovedListener<I>, RecyclerScrollableController.OnLastItemVisibleListener, SwipeRefreshLayout.OnRefreshListener, View.OnClickListener {
+        implements BaseRecyclerViewAdapter.ItemsEventsListener<I>, RecyclerScrollableController.OnLastItemVisibleListener, SwipeRefreshLayout.OnRefreshListener, View.OnClickListener {
 
     private final List<RecyclerView.ItemDecoration> registeredItemDecorations = new LinkedList<>();
 
@@ -138,8 +143,9 @@ public abstract class BaseListLoadingJugglerFragment<I extends Comparable<I>, Ad
     protected void reloadAdapter(@Nullable List<I> items) {
         if (adapter != null) {
             if (!allowDuplicateItems()) {
-                sortAndRemoveDuplicateItemsFromList(items);
-            } else if (allowSort()) {
+                removeDuplicateItemsFromList(items);
+            }
+            if (allowSort()) {
                 sortItems(items, getSortComparator());
             }
             adapter.setItems(items);
@@ -191,11 +197,7 @@ public abstract class BaseListLoadingJugglerFragment<I extends Comparable<I>, Ad
         }
 
         adapter = initAdapter();
-        adapter.setOnItemClickListener(this);
-        adapter.setOnItemLongClickListener(this);
-        adapter.setOnItemAddedListener(this);
-        adapter.setOnItemsSetListener(this);
-        adapter.setOnItemsRemovedListener(this);
+        adapter.registerItemsEventsListener(this);
 
         recycler.setLayoutManager(getRecyclerLayoutManager());
 
@@ -210,13 +212,7 @@ public abstract class BaseListLoadingJugglerFragment<I extends Comparable<I>, Ad
     @Override
     public void onDestroyView() {
         super.onDestroyView();
-
-        adapter.setOnItemClickListener(null);
-        adapter.setOnItemLongClickListener(null);
-        adapter.setOnItemAddedListener(null);
-        adapter.setOnItemsSetListener(null);
-        adapter.setOnItemsRemovedListener(null);
-
+        adapter.unregisterItemsEventsListener(this);
         removeItemDecorations();
         removeScrollListeners();
     }
@@ -260,17 +256,13 @@ public abstract class BaseListLoadingJugglerFragment<I extends Comparable<I>, Ad
      * @return removed duplicate items
      */
     @NotNull
-    protected List<I> sortAndRemoveDuplicateItemsFromList(@Nullable List<I> items) {
+    protected List<I> removeDuplicateItemsFromList(@Nullable List<I> items) {
 
         List<I> duplicateItems = new ArrayList<>();
 
         if (items != null) {
 
             List<I> filteredItems = new ArrayList<>();
-
-            if (allowSort()) {
-                sortItems(items, getSortComparator());
-            }
 
             for (I item : items) {
                 if (item != null) {
@@ -290,37 +282,6 @@ public abstract class BaseListLoadingJugglerFragment<I extends Comparable<I>, Ad
 
             items.clear();
             items.addAll(filteredItems);
-
-            if (allowSort()) {
-                sortItems(items, getSortComparator());
-            }
-
-//            Iterator<I> iterator = items.iterator();
-//
-//            int index = -1;
-//
-//            while (iterator.hasNext()) {
-//
-//                I item = iterator.next();
-//                index++;
-//
-//                boolean isDuplicate = false;
-//
-//                    for (int i = index + 1; i < items.size(); i++) {
-//                        I compareItem = items.get(i);
-//                        if (isDuplicateItems(compareItem, item)) {
-//                            isDuplicate = true;
-//                            break;
-//                        }
-//                    }
-//
-//                if (isDuplicate || item == null) {
-//                    logger.debug("removing duplicate item: " + item + "...");
-//                    iterator.remove();
-//                    index--;
-//                    duplicateItems.add(item);
-//                }
-//            }
         }
 
         return duplicateItems;
@@ -328,7 +289,6 @@ public abstract class BaseListLoadingJugglerFragment<I extends Comparable<I>, Ad
 
     @Override
     public void onItemClick(int position, I item) {
-
     }
 
     @Override
@@ -362,7 +322,6 @@ public abstract class BaseListLoadingJugglerFragment<I extends Comparable<I>, Ad
 
     @Override
     public void onLastItemVisible() {
-
     }
 
     protected void onLoaded(@NotNull List<I> items) {
@@ -376,28 +335,30 @@ public abstract class BaseListLoadingJugglerFragment<I extends Comparable<I>, Ad
             throw new IllegalArgumentException("incorrect delay: " + delay);
         }
 
-        final Runnable wrappedRunnable = new Runnable() {
-            @Override
-            public void run() {
-                if (isAdded()) {
-                    r.run();
-                }
+        final Runnable wrappedRunnable = () -> {
+            if (isAdded()) {
+                r.run();
             }
         };
 
         if (service != null && !service.isShutdown()) {
-            if (recycler.isComputingLayout()) service.submit(new Runnable() {
-                @Override
-                public void run() {
+            if (recycler.isComputingLayout()) {
+                Future<?> task = service.submit(() -> {
+                    //noinspection StatementWithEmptyBody
                     while (recycler.isComputingLayout()) ;
-                    new Handler(Looper.getMainLooper()).postDelayed(wrappedRunnable, delay);
+                    mainHandler.postDelayed(wrappedRunnable, delay);
+                });
+                try {
+                    task.get(5, TimeUnit.SECONDS);
+                } catch (Exception e) {
+                    e.printStackTrace();
                 }
-            });
-            else {
-                new Handler(Looper.getMainLooper()).postDelayed(wrappedRunnable, delay);
+            } else {
+                mainHandler.postDelayed(r, delay);
             }
         }
-    }
+
+}
 
     protected void postActionOnRecyclerView(@NotNull final Runnable r) {
         postActionOnRecyclerView(r, 0);

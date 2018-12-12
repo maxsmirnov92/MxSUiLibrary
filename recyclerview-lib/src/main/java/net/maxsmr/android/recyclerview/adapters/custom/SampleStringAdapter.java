@@ -6,6 +6,8 @@ import android.support.annotation.IdRes;
 import android.support.annotation.LayoutRes;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import android.support.annotation.NonNull;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
@@ -28,8 +30,9 @@ public class SampleStringAdapter extends BaseRecyclerViewAdapter<String, SampleS
         this.viewResId = viewResId;
     }
 
+    @NonNull
     @Override
-    public final ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+    public final ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         return new ViewHolder(onInflateView(parent, viewType), viewResId);
     }
 
@@ -46,14 +49,15 @@ public class SampleStringAdapter extends BaseRecyclerViewAdapter<String, SampleS
         }
 
         @Override
-        protected void displayData(int position, @NotNull String item) {
-            super.displayData(position, item);
+        protected void displayData(int position, @NotNull String item, int count) {
+            super.displayData(position, item, count);
             textView.setText(item);
             textView.setVisibility(View.VISIBLE);
         }
 
         @Override
-        protected void displayNoData(int position, @Nullable String item) {
+        protected void displayEmptyData(int position, @Nullable String item, int count) {
+            super.displayEmptyData(position, item, count);
             textView.setVisibility(View.GONE);
         }
     }

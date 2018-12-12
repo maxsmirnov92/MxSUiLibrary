@@ -23,16 +23,39 @@ public final class SelectionHelper {
 
     private boolean mIsSelectable = false;
 
+    private boolean mAllowTogglingSelection = true;
+
     public boolean isSelectable() {
         return mIsSelectable;
-
     }
-    public void setSelectable(boolean isSelectable) {
+
+    /**
+     * @return true if changed
+     */
+    public boolean setSelectable(boolean isSelectable) {
         if (mIsSelectable != isSelectable) {
             mIsSelectable = isSelectable;
             if (!isSelectable) clearSelection(false);
             mSelectionObservable.notifySelectableChanged(isSelectable);
+            return true;
         }
+        return false;
+    }
+
+    public boolean isTogglingSelectionAllowed() {
+        return mAllowTogglingSelection;
+    }
+
+    /**
+     * @return true if changed
+     */
+    public boolean setAllowTogglingSelection(boolean isAllowTogglingSelection) {
+        if (this.mAllowTogglingSelection != isAllowTogglingSelection) {
+            this.mAllowTogglingSelection = isAllowTogglingSelection;
+            mSelectionObservable.notifyAllowTogglingSelectionChanged(isAllowTogglingSelection);
+            return true;
+        }
+        return false;
     }
 
     public <H extends RecyclerView.ViewHolder> H wrapSelectable(@NotNull H holder, @NotNull Set<SelectMode> selectModes) {
@@ -96,10 +119,15 @@ public final class SelectionHelper {
             } else {
                 mSelectedItems.remove(position);
             }
-            if (isSelected ^ isAlreadySelected) {
-                ViewHolderWrapper wrapper = mTracker.getWrapper(position);
-                if (wrapper != null) {
-                    mSelectionObservable.notifySelectionChanged(wrapper.getHolder(), isSelected, fromUser);
+            ViewHolderWrapper wrapper = mTracker.getWrapper(position);
+            if (wrapper != null) {
+                RecyclerView.ViewHolder holder = wrapper.getHolder();
+                if (holder != null) {
+                    if (isSelected ^ isAlreadySelected) {
+                        mSelectionObservable.notifySelectionChanged(holder, isSelected, fromUser);
+                    } else if (isSelected) {
+                        mSelectionObservable.notifyReselected(holder, fromUser);
+                    }
                 }
             }
             return true;
@@ -163,26 +191,26 @@ public final class SelectionHelper {
         return mSelectedItems.size();
     }
 
-    public final void registerHolderClickObserver(@NotNull HolderClickObserver observer) {
+    public final void registerHolderClickObserver(@NotNull HolderClickListener observer) {
         mHolderClickObservable.registerObserver(observer);
     }
 
-    public final void unregisterSelectionObserver(@NotNull SelectionObserver observer) {
+    public final void unregisterSelectionObserver(@NotNull SelectionListener observer) {
         mSelectionObservable.unregisterObserver(observer);
     }
 
-    public final void registerSelectionObserver(@NotNull SelectionObserver observer) {
+    public final void registerSelectionObserver(@NotNull SelectionListener observer) {
         mSelectionObservable.registerObserver(observer);
     }
 
-    public final void unregisterHolderClickObserver(@NotNull HolderClickObserver observer) {
+    public final void unregisterHolderClickObserver(@NotNull HolderClickListener observer) {
         mHolderClickObservable.unregisterObserver(observer);
     }
 
-    private class HolderClickObservable extends Observable<HolderClickObserver> {
+    private class HolderClickObservable extends Observable<HolderClickListener> {
         public final void notifyOnHolderClick(RecyclerView.ViewHolder holder) {
             synchronized (mObservers) {
-                for (HolderClickObserver observer : mObservers) {
+                for (HolderClickListener observer : mObservers) {
                     observer.onHolderClick(holder);
                 }
             }
@@ -191,7 +219,7 @@ public final class SelectionHelper {
         public final boolean notifyOnHolderLongClick(RecyclerView.ViewHolder holder) {
             boolean isConsumed = false;
             synchronized (mObservers) {
-                for (HolderClickObserver observer : mObservers) {
+                for (HolderClickListener observer : mObservers) {
                     isConsumed = isConsumed || observer.onHolderLongClick(holder);
                 }
             }
@@ -199,19 +227,36 @@ public final class SelectionHelper {
         }
     }
 
-    private class SelectionObservable extends Observable<SelectionObserver> {
-        private void notifySelectionChanged(RecyclerView.ViewHolder holder, boolean isSelected, boolean fromUser) {
+    private class SelectionObservable extends Observable<SelectionListener> {
+
+        private void notifySelectionChanged(@NotNull RecyclerView.ViewHolder holder, boolean isSelected, boolean fromUser) {
             synchronized (mObservers) {
-                for (SelectionObserver observer : mObservers) {
+                for (SelectionListener observer : mObservers) {
                     observer.onSelectedChanged(holder, isSelected, fromUser);
+                }
+            }
+        }
+
+        private void notifyReselected(@NotNull RecyclerView.ViewHolder holder, boolean fromUser) {
+            synchronized (mObservers) {
+                for (SelectionListener observer : mObservers) {
+                    observer.onReselected(holder, fromUser);
                 }
             }
         }
 
         private void notifySelectableChanged(boolean isSelectable) {
             synchronized (mObservers) {
-                for (SelectionObserver observer : mObservers) {
+                for (SelectionListener observer : mObservers) {
                     observer.onSelectableChanged(isSelectable);
+                }
+            }
+        }
+
+        private void notifyAllowTogglingSelectionChanged(boolean isAllowed) {
+            synchronized (mObservers) {
+                for (SelectionListener observer : mObservers) {
+                    observer.onAllowTogglingSelectionChanged(isAllowed);
                 }
             }
         }
@@ -237,17 +282,18 @@ public final class SelectionHelper {
     class ViewHolderMultiSelectionWrapper extends ViewHolderWrapper
             implements View.OnLongClickListener {
 
-        @Nullable Set<SelectMode> selectModes;
+        @Nullable
+        Set<SelectMode> mSelectModes;
 
         @NotNull
         public Set<SelectMode> getSelectModes() {
-            return selectModes != null? new HashSet<>(selectModes) : new HashSet<SelectMode>();
+            return mSelectModes != null ? new HashSet<>(mSelectModes) : new HashSet<>();
         }
 
         private ViewHolderMultiSelectionWrapper(RecyclerView.ViewHolder holder, @Nullable Set<SelectMode> selectModes) {
             super(holder);
 
-            this.selectModes = selectModes;
+            this.mSelectModes = selectModes;
 
             View itemView = holder.itemView;
 
@@ -275,7 +321,12 @@ public final class SelectionHelper {
             RecyclerView.ViewHolder holder = mWrappedHolderRef.get();
             if (holder != null) {
                 if (isSelectable()) {
-                    toggleItemSelectedByHolder(holder, true);
+                    if (isTogglingSelectionAllowed() || !isItemSelected(holder)) {
+                        toggleItemSelectedByHolder(holder, true);
+                    } else {
+                        // current state is selected, triggering reselect
+                        setItemSelectedByHolder(holder, true, true);
+                    }
                 } else {
                     mHolderClickObservable.notifyOnHolderClick(holder);
                 }
@@ -287,7 +338,12 @@ public final class SelectionHelper {
             RecyclerView.ViewHolder holder = mWrappedHolderRef.get();
             if (holder != null) {
                 if (isSelectable()) {
-                    toggleItemSelectedByHolder(holder, true);
+                    if (isTogglingSelectionAllowed() || !isItemSelected(holder)) {
+                        toggleItemSelectedByHolder(holder, true);
+                    } else {
+                        // current state is selected, triggering reselect
+                        setItemSelectedByHolder(holder, true, true);
+                    }
                     return true;
                 } else {
                     return mHolderClickObservable.notifyOnHolderLongClick(holder);
@@ -315,9 +371,7 @@ public final class SelectionHelper {
         }
     }
 
-    @Override
-    protected void finalize() throws Throwable {
-        super.finalize();
+    public void clear() {
         mTracker.clear();
         mSelectedItems.clear();
     }

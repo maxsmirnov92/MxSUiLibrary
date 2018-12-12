@@ -1,11 +1,14 @@
 package net.maxsmr.android.recyclerview.adapters;
 
 import android.content.Context;
+import android.database.Observable;
 import android.graphics.drawable.Drawable;
 import android.support.annotation.CallSuper;
 import android.support.annotation.LayoutRes;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
 import android.support.v7.widget.RecyclerView;
 import android.view.View;
 import android.widget.Checkable;
@@ -13,17 +16,23 @@ import android.widget.Checkable;
 import com.bejibx.android.recyclerview.selection.SelectionHelper;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Set;
 
+@SuppressWarnings({"WeakerAccess", "unused"})
 public abstract class BaseSingleSelectionRecyclerViewAdapter<I, VH extends BaseRecyclerViewAdapter.ViewHolder<I>> extends BaseRecyclerViewAdapter<I, VH> {
 
-    private int selection = RecyclerView.NO_POSITION;
+    @NotNull
+    protected final ItemSelectedObservable mItemSelectedObservable = new ItemSelectedObservable();
+
+    private int mSelection = RecyclerView.NO_POSITION;
+
+    private boolean mIsSelectable = false;
+
+    private boolean mAllowTogglingSelection = true;
 
     @Nullable
-    private Drawable defaultDrawable, selectionDrawable;
-
-    @Nullable
-    private OnSelectedChangeListener selectedChangeListener;
+    private SelectionHelper.SelectMode mSelectMode = null;
 
     public BaseSingleSelectionRecyclerViewAdapter(@NotNull Context context, @LayoutRes int itemLayoutId, @Nullable Collection<I> items) {
         this(context, itemLayoutId, items, null, null);
@@ -31,57 +40,57 @@ public abstract class BaseSingleSelectionRecyclerViewAdapter<I, VH extends BaseR
 
     public BaseSingleSelectionRecyclerViewAdapter(Context context, @LayoutRes int itemLayoutId, @Nullable Collection<I> items, Drawable defaultDrawable, Drawable selectionDrawable) {
         super(context, itemLayoutId, items);
-        if (defaultDrawable != null) {
-            setDefaultDrawable(defaultDrawable);
-        }
-        if (selectionDrawable != null) {
-            setSelectionDrawable(selectionDrawable);
-        }
     }
 
+    public void registerItemSelectedChangeListener(@NotNull OnItemSelectedChangeListener listener) {
+        mItemSelectedObservable.registerObserver(listener);
+    }
+
+    public void unregisterItemSelectedChangeListener(@NotNull OnItemSelectedChangeListener listener) {
+        mItemSelectedObservable.unregisterObserver(listener);
+    }
+
+    public boolean isIsSelectable() {
+        return mIsSelectable;
+    }
+
+    public boolean setIsSelectable(boolean isSelectable) {
+        if (this.mIsSelectable != isSelectable) {
+            this.mIsSelectable = isSelectable;
+            if (!isSelectable) resetSelection();
+            return true;
+        }
+        return false;
+    }
+
+    public boolean allowTogglingSelection() {
+        return mAllowTogglingSelection;
+    }
+
+    public void setAllowTogglingSelection(boolean toggle) {
+        mAllowTogglingSelection = toggle;
+    }
+
+    // override if need various for each position
     @NotNull
-    public abstract Set<SelectionHelper.SelectMode> getSelectionModes(int position);
-
-    @Nullable
-    public Drawable getDefaultDrawable() {
-        return defaultDrawable;
+    public Set<SelectionHelper.SelectMode> getSelectModes(int position) {
+        if (mSelectMode == null) {
+            return Collections.emptySet();
+        } else {
+            return Collections.singleton(mSelectMode);
+        }
     }
 
-    @CallSuper
-    public void setDefaultDrawable(@Nullable Drawable defaultDrawable) {
-        this.defaultDrawable = defaultDrawable;
-        if (isNotifyOnChange())
-            notifyDataSetChanged();
+    public void setSelectMode(@Nullable SelectionHelper.SelectMode selectMode) {
+        mSelectMode = selectMode;
     }
 
     @Nullable
-    public Drawable getSelectionDrawable() {
-        return selectionDrawable;
-    }
-
-    @CallSuper
-    public void setSelectionDrawable(@Nullable Drawable selectionDrawable) {
-        this.selectionDrawable = selectionDrawable;
-        if (isNotifyOnChange())
-            notifyDataSetChanged();
-    }
-
-    protected boolean allowTogglingSelection() {
-        return true;
-    }
-
-//    @Override
-//    protected final boolean allowSetClickListener(@Nullable I item, int position) {
-//        return false;
-//    }
-//
-//    @Override
-//    protected final boolean allowSetLongClickListener(@Nullable I item, int position) {
-//        return false;
-//    }
-
-    private void prevSelection() {
-
+    protected Checkable getCheckableView(@NotNull VH holder) {
+        if (holder.itemView instanceof Checkable) {
+            return (Checkable) holder.itemView;
+        }
+        return null;
     }
 
     @Override
@@ -92,61 +101,54 @@ public abstract class BaseSingleSelectionRecyclerViewAdapter<I, VH extends BaseR
     }
 
     protected void processSelection(@NotNull VH holder, @Nullable final I item, final int position) {
-        for (SelectionHelper.SelectMode mode : getSelectionModes(position)) {
+        for (SelectionHelper.SelectMode mode : getSelectModes(position)) {
             switch (mode) {
                 case CLICK:
                     holder.itemView.setClickable(true);
-                    holder.itemView.setOnClickListener(new View.OnClickListener() {
-                        @Override
-                        public void onClick(View v) {
-                            if (position == selection) {
-                                if (allowTogglingSelection()) {
-                                    toggleSelection(position, true);
-                                } else {
-                                    onReselect(position, true);
-                                }
+                    holder.itemView.setOnClickListener(v -> {
+                        if (position == mSelection) {
+                            if (allowTogglingSelection() || mSelection != position) {
+                                toggleSelection(position, true);
                             } else {
+                                // current state is selected, triggering reselect
                                 setSelection(position, true);
                             }
-                            if (allowSetClickListener(item, position)) {
-                                if (mItemClickListener != null) {
-                                    mItemClickListener.onItemClick(position, item);
-                                }
-                            }
+                        } else {
+                            setSelection(position, true);
+                        }
+                        if (allowSetClickListener(item, position)) {
+                            mItemsEventsObservable.notifyItemClick(position, item);
                         }
                     });
                     break;
 
                 case LONG_CLICK:
                     holder.itemView.setLongClickable(true);
-                    holder.itemView.setOnLongClickListener(new View.OnLongClickListener() {
-                        @Override
-                        public boolean onLongClick(View v) {
-                            if (position == selection) {
-                                if (allowTogglingSelection()) {
-                                    toggleSelection(position, true);
-                                } else {
-                                    onReselect(position, true);
-                                }
+                    holder.itemView.setOnLongClickListener(v -> {
+                        if (position == mSelection) {
+                            if (allowTogglingSelection() || mSelection != position) {
+                                toggleSelection(position, true);
                             } else {
+                                // current state is selected, triggering reselect
                                 setSelection(position, true);
                             }
-                            if (allowSetLongClickListener(item, position)) {
-                                if (mItemLongClickListener != null) {
-                                    mItemLongClickListener.onItemLongClick(position, item);
-                                }
-                            }
-                            return true;
+                        } else {
+                            setSelection(position, true);
                         }
+                        if (allowSetLongClickListener(item, position)) {
+                             return mItemsEventsObservable.notifyItemLongClick(position, item);
+                        }
+                        return true;
                     });
                     break;
             }
         }
-        boolean isItemSelected = isItemPositionSelected(position);
-        if (holder.itemView instanceof Checkable) {
-            ((Checkable) holder.itemView).setChecked(isItemSelected);
+        boolean isSelected = isItemPositionSelected(position);
+        Checkable checkableView = getCheckableView(holder);
+        if (checkableView != null) {
+            checkableView.setChecked(isSelected);
         }
-        if (isItemSelected) {
+        if (isSelected) {
             onProcessItemSelected(holder);
         } else {
             onProcessItemNotSelected(holder);
@@ -166,10 +168,10 @@ public abstract class BaseSingleSelectionRecyclerViewAdapter<I, VH extends BaseR
     }
 
     public int getSelectedPosition() {
-        if (selection >= 0 && selection < getItemCount()) {
-            return selection;
+        if (mSelection >= 0 && mSelection < getItemCount()) {
+            return mSelection;
         }
-        return RecyclerView.NO_POSITION;
+        return (mSelection = RecyclerView.NO_POSITION);
     }
 
     @Nullable
@@ -183,7 +185,7 @@ public abstract class BaseSingleSelectionRecyclerViewAdapter<I, VH extends BaseR
 
     public boolean isItemPositionSelected(int position) {
         rangeCheck(position);
-        return selection != RecyclerView.NO_POSITION && selection == position;
+        return mSelection != RecyclerView.NO_POSITION && mSelection == position;
     }
 
     public boolean isItemSelected(I item) {
@@ -200,12 +202,18 @@ public abstract class BaseSingleSelectionRecyclerViewAdapter<I, VH extends BaseR
 
     protected void setSelection(int selection, boolean fromUser) {
         rangeCheck(selection);
-        if (this.selection != selection) {
-            int previousSelection = this.selection;
-            this.selection = selection;
-            onSelectionChanged(previousSelection, this.selection, fromUser);
-            if (isNotifyOnChange()) {
-                notifyItemChanged(previousSelection);
+        int previousSelection = mSelection;
+        mSelection = selection;
+        onSelectionChanged(previousSelection, mSelection, fromUser);
+        if (isNotifyOnChange()) {
+            boolean isNewSelection = true;
+            if (previousSelection >= 0 && previousSelection < getItemCount()) {
+                isNewSelection = mSelection != previousSelection;
+                if (isNewSelection) {
+                    notifyItemChanged(previousSelection);
+                }
+            }
+            if (isNewSelection) {
                 notifyItemChanged(selection);
             }
         }
@@ -217,11 +225,16 @@ public abstract class BaseSingleSelectionRecyclerViewAdapter<I, VH extends BaseR
 
     private void resetSelection(boolean fromUser) {
         if (isSelected()) {
-            int previousSelection = this.selection;
-            this.selection = RecyclerView.NO_POSITION;
-            onSelectionChanged(previousSelection, this.selection, fromUser);
+            int previousSelection = mSelection;
+            mSelection = RecyclerView.NO_POSITION;
+            if (previousSelection < 0 || previousSelection >= getItemCount()) {
+                previousSelection = RecyclerView.NO_POSITION;
+            }
+            onSelectionChanged(previousSelection, mSelection, fromUser);
             if (isNotifyOnChange()) {
-                notifyItemChanged(previousSelection);
+                if (previousSelection != RecyclerView.NO_POSITION) {
+                    notifyItemChanged(previousSelection);
+                }
             }
         }
     }
@@ -231,7 +244,8 @@ public abstract class BaseSingleSelectionRecyclerViewAdapter<I, VH extends BaseR
     }
 
     private void toggleSelection(int selection, boolean fromUser) {
-        if (isSelected()) {
+        rangeCheck(selection);
+        if (mSelection == selection) {
             resetSelection(fromUser);
         } else {
             setSelection(selection, fromUser);
@@ -273,85 +287,126 @@ public abstract class BaseSingleSelectionRecyclerViewAdapter<I, VH extends BaseR
      */
     @CallSuper
     protected void onSelectionChanged(int from, int to, boolean fromUser) {
-        if (selectedChangeListener != null) {
-            if (selection != RecyclerView.NO_POSITION) {
-                selectedChangeListener.onSetSelection(from, to, fromUser);
+        if (to != RecyclerView.NO_POSITION) {
+            if (from != to) {
+                mItemSelectedObservable.notifyItemSetSelection(from, to, fromUser);
             } else {
-                selectedChangeListener.onResetSelection(from, fromUser);
+                mItemSelectedObservable.notifyItemReselect(to, fromUser);
             }
+        } else {
+            mItemSelectedObservable.notifyItemResetSelection(from, fromUser);
         }
-    }
-
-    @CallSuper
-    protected void onReselect(int index, boolean fromUser) {
-        if (selectedChangeListener != null) {
-            selectedChangeListener.onReselect(index, fromUser);
-        }
-    }
-
-    public void setOnSelectedChangeListener(@Nullable OnSelectedChangeListener selectedChangeListener) {
-        this.selectedChangeListener = selectedChangeListener;
     }
 
     @Override
     protected void onItemAdded(int to, @Nullable I item) {
-        fixSelectionIndexOnAdd(to, 1);
+        invalidateSelectionIndexOnAdd(to, 1);
         super.onItemAdded(to, item);
     }
 
     @Override
     protected void onItemsAdded(int to, @NotNull Collection<I> items) {
-        fixSelectionIndexOnAdd(to, items.size());
+        invalidateSelectionIndexOnAdd(to, items.size());
         super.onItemsAdded(to, items);
     }
 
     @Override
     protected void onItemRemoved(int from, @Nullable I item) {
-        fixSelectionIndexOnRemove(from, 1);
+        invalidateSelectionIndexOnRemove(from, 1);
         super.onItemRemoved(from, item);
     }
 
     @Override
     protected void onItemsRangeRemoved(int from, int to, int previousSize) {
-        fixSelectionIndexOnRemove(from, from == to? 1: to - from);
+        invalidateSelectionIndexOnRemove(from, from == to ? 1 : to - from);
         super.onItemsRangeRemoved(from, to, previousSize);
     }
 
     @Override
     protected void onItemsSet() {
-        selection = RecyclerView.NO_POSITION;
+        mSelection = RecyclerView.NO_POSITION;
         super.onItemsSet();
     }
 
-    private void fixSelectionIndexOnAdd(int to, int count) {
+    @Override
+    public void release() {
+        super.release();
+        mItemSelectedObservable.unregisterAll();
+    }
+
+    protected void invalidateSelectionIndexOnAdd(int to, int count) {
         if (count >= 1) {
-            if (selection != RecyclerView.NO_POSITION) {
-                if (selection >= to) {
-                    selection += count;
+            int previousSelection = RecyclerView.NO_POSITION;
+            if (mSelection != RecyclerView.NO_POSITION) {
+                if (mSelection >= to) {
+                    previousSelection = mSelection;
+                    mSelection += count;
+                }
+            }
+            final int currentCount = getItemCount();
+            if (previousSelection >= 0 && previousSelection < currentCount) {
+                notifyItemChanged(previousSelection);
+            }
+            if (mSelection != previousSelection && mSelection >= 0 && mSelection < currentCount) {
+                notifyItemChanged(mSelection);
+            }
+        }
+    }
+
+    protected void invalidateSelectionIndexOnRemove(int from, int count) {
+        if (count >= 1) {
+            int previousSelection = RecyclerView.NO_POSITION;
+            if (mSelection != RecyclerView.NO_POSITION) {
+                if (mSelection >= from && mSelection < from + count) {
+                    previousSelection = mSelection;
+                } else if (mSelection >= from + count) {
+                    previousSelection = mSelection;
+                    mSelection -= count;
+                }
+            }
+            final int currentCount = getItemCount();
+            if (previousSelection >= 0 && previousSelection < currentCount) {
+                notifyItemChanged(previousSelection);
+            }
+            if (mSelection != previousSelection && mSelection >= 0 && mSelection < currentCount) {
+                notifyItemChanged(mSelection);
+            }
+        }
+    }
+
+    protected static class ItemSelectedObservable extends Observable<OnItemSelectedChangeListener> {
+
+        protected void notifyItemSetSelection(int fromIndex, int toIndex, boolean fromUser) {
+            synchronized (mObservers) {
+                for (OnItemSelectedChangeListener l : mObservers) {
+                    l.onItemSetSelection(fromIndex, toIndex, fromUser);
+                }
+            }
+        }
+
+        protected void notifyItemResetSelection(int index, boolean fromUser) {
+            synchronized (mObservers) {
+                for (OnItemSelectedChangeListener l : mObservers) {
+                    l.onItemResetSelection(index, fromUser);
+                }
+            }
+        }
+
+        protected void notifyItemReselect(int index, boolean fromUser) {
+            synchronized (mObservers) {
+                for (OnItemSelectedChangeListener l : mObservers) {
+                    l.onItemReselect(index, fromUser);
                 }
             }
         }
     }
 
-    private void fixSelectionIndexOnRemove(int from, int count) {
-        if (count >= 1) {
-            if (selection != RecyclerView.NO_POSITION) {
-                if (selection > from && from + count < selection) {
-                    selection -= count;
-                }
-                else if (selection >= from && selection <= from + count) {
-                    selection = RecyclerView.NO_POSITION;
-                }
-            }
-        }
-    }
+    public interface OnItemSelectedChangeListener {
 
-    public interface OnSelectedChangeListener {
+        void onItemSetSelection(int fromIndex, int toIndex, boolean fromUser);
 
-        void onSetSelection(int fromIndex, int toIndex, boolean fromUser);
+        void onItemResetSelection(int index, boolean fromUser);
 
-        void onResetSelection(int onIndex, boolean fromUser);
-
-        void onReselect(int index, boolean fromUser);
+        void onItemReselect(int index, boolean fromUser);
     }
 }

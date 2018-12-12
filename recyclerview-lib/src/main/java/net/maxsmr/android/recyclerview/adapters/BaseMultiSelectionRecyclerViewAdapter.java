@@ -2,17 +2,20 @@ package net.maxsmr.android.recyclerview.adapters;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
-import android.graphics.drawable.Drawable;
+import android.database.Observable;
 import android.support.annotation.CallSuper;
 import android.support.annotation.LayoutRes;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import android.support.annotation.NonNull;
 import android.support.v7.widget.RecyclerView;
 import android.widget.Checkable;
 
-import com.bejibx.android.recyclerview.selection.HolderClickObserver;
+import com.bejibx.android.recyclerview.selection.HolderClickListener;
 import com.bejibx.android.recyclerview.selection.SelectionHelper;
-import com.bejibx.android.recyclerview.selection.SelectionObserver;
+import com.bejibx.android.recyclerview.selection.SelectionListener;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -23,13 +26,17 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
+@SuppressWarnings({"WeakerAccess", "unused"})
 public abstract class BaseMultiSelectionRecyclerViewAdapter<I, VH
-        extends BaseRecyclerViewAdapter.ViewHolder> extends BaseRecyclerViewAdapter<I, VH> implements HolderClickObserver, SelectionObserver {
+        extends BaseRecyclerViewAdapter.ViewHolder> extends BaseRecyclerViewAdapter<I, VH> implements HolderClickListener, SelectionListener {
+
+    @NotNull
+    protected final ItemSelectedObservable mItemSelectedObservable = new ItemSelectedObservable();
 
     private SelectionHelper mSelectionHelper;
 
     @NotNull
-    private final Set<SelectionHelper.SelectMode> mSelectionModes = new LinkedHashSet<>();
+    private final Set<SelectionHelper.SelectMode> mSelectModes = new LinkedHashSet<>();
 
     public BaseMultiSelectionRecyclerViewAdapter(@NotNull Context context) {
         this(context, 0, null);
@@ -45,7 +52,7 @@ public abstract class BaseMultiSelectionRecyclerViewAdapter<I, VH
         setSelectable(selectable);
     }
 
-    private void initSelectionHelper() {
+    protected void initSelectionHelper() {
         if (mSelectionHelper == null) {
             mSelectionHelper = new SelectionHelper();
             mSelectionHelper.registerSelectionObserver(this);
@@ -53,27 +60,59 @@ public abstract class BaseMultiSelectionRecyclerViewAdapter<I, VH
         }
     }
 
+    protected void releaseSelectionHelper() {
+        if (mSelectionHelper != null) {
+            mSelectionHelper.clear();
+            mSelectionHelper.unregisterSelectionObserver(this);
+            mSelectionHelper.unregisterHolderClickObserver(this);
+            mSelectionHelper = null;
+        }
+    }
+
+    public void registerItemSelectedChangeListener(@NotNull OnItemSelectedChangeListener listener) {
+        mItemSelectedObservable.registerObserver(listener);
+    }
+
+    public void unregisterItemSelectedChangeListener(@NotNull OnItemSelectedChangeListener listener) {
+        mItemSelectedObservable.unregisterObserver(listener);
+    }
+
     public boolean isSelectable() {
+        initSelectionHelper();
         return mSelectionHelper.isSelectable();
     }
 
     public void setSelectable(boolean toggle) {
+        initSelectionHelper();
         mSelectionHelper.setSelectable(toggle);
+    }
+
+
+    public boolean isTogglingSelectionAllowed() {
+        initSelectionHelper();
+        return mSelectionHelper.isTogglingSelectionAllowed();
+    }
+
+    public void setAllowTogglingSelection(boolean toggle) {
+        initSelectionHelper();
+        mSelectionHelper.setAllowTogglingSelection(toggle);
     }
 
     @NotNull
     public Set<SelectionHelper.SelectMode> getSelectionModes() {
-        return new LinkedHashSet<>(mSelectionModes);
+        return new LinkedHashSet<>(mSelectModes);
     }
 
     @SuppressLint("NewApi")
     public void setSelectionModes(@Nullable Set<SelectionHelper.SelectMode> selectionModes) {
-        synchronized (mSelectionModes) {
-            if (!Objects.equals(selectionModes, mSelectionModes)) {
-                mSelectionModes.clear();
+        synchronized (mSelectModes) {
+            if (!Objects.equals(selectionModes, mSelectModes)) {
+                mSelectModes.clear();
                 if (selectionModes != null) {
-                    mSelectionModes.addAll(selectionModes);
+                    mSelectModes.addAll(selectionModes);
                 }
+                mItemSelectedObservable.notifySelectModesChanged(getSelectionModes());
+                // notify required here
                 if (isNotifyOnChange()) {
                     notifyDataSetChanged();
                 }
@@ -82,12 +121,12 @@ public abstract class BaseMultiSelectionRecyclerViewAdapter<I, VH
     }
 
     protected void processSelection(@NotNull VH holder, @Nullable I item, int position) {
-        mSelectionHelper.wrapSelectable(holder, mSelectionModes); /* mSelectionModes.get(position) */
+        mSelectionHelper.wrapSelectable(holder, mSelectModes); /* mSelectModes.get(position) */
 
-        final boolean isSelected = isItemSelected(position);
-
-        if ((holder.itemView instanceof Checkable)) {
-            ((Checkable) holder.itemView).setChecked(isSelected);
+        final boolean isSelected = isItemPositionSelected(position);
+        Checkable checkableView = getCheckableView(holder);
+        if (checkableView != null) {
+            checkableView.setChecked(isSelected);
         }
 
         if (isSelected) {
@@ -98,10 +137,19 @@ public abstract class BaseMultiSelectionRecyclerViewAdapter<I, VH
     }
 
     @Override
-    public void onViewRecycled(VH holder) {
+    public void onViewRecycled(@NonNull VH holder) {
         super.onViewRecycled(holder);
         mSelectionHelper.recycleHolder(holder);
     }
+
+    @Nullable
+    protected Checkable getCheckableView(@NotNull VH holder) {
+        if (holder.itemView instanceof Checkable) {
+            return (Checkable) holder.itemView;
+        }
+        return null;
+    }
+
 
     @Override
     @CallSuper
@@ -112,35 +160,35 @@ public abstract class BaseMultiSelectionRecyclerViewAdapter<I, VH
 
     @Override
     protected boolean allowSetClickListener(@Nullable I item, int position) {
-        return !mSelectionModes.contains(SelectionHelper.SelectMode.CLICK);
+        return !mSelectModes.contains(SelectionHelper.SelectMode.CLICK);
     }
 
     @Override
     protected boolean allowSetLongClickListener(@Nullable I item, int position) {
-        return !mSelectionModes.contains(SelectionHelper.SelectMode.LONG_CLICK);
+        return !mSelectModes.contains(SelectionHelper.SelectMode.LONG_CLICK);
     }
 
     @Override
     protected void onItemAdded(int to, @Nullable I item) {
-        fixSelectionIndexOnAdd(to, 1);
+        invalidateSelectionIndexOnAdd(to, 1);
         super.onItemAdded(to, item);
     }
 
     @Override
     protected void onItemsAdded(int to, @NotNull Collection<I> items) {
-        fixSelectionIndexOnAdd(to, items.size());
+        invalidateSelectionIndexOnAdd(to, items.size());
         super.onItemsAdded(to, items);
     }
 
     @Override
     protected void onItemRemoved(int from, @Nullable I item) {
-        fixSelectionIndexOnRemove(from, 1);
+        invalidateSelectionIndexOnRemove(from, 1);
         super.onItemRemoved(from, item);
     }
 
     @Override
     protected void onItemsRangeRemoved(int from, int to, int previousSize) {
-        fixSelectionIndexOnRemove(from, from == to? 1: to - from);
+        invalidateSelectionIndexOnRemove(from, from == to ? 1 : to - from);
         super.onItemsRangeRemoved(from, to, previousSize);
     }
 
@@ -148,44 +196,6 @@ public abstract class BaseMultiSelectionRecyclerViewAdapter<I, VH
     protected void onItemsSet() {
         clearSelection();
         super.onItemsSet();
-    }
-
-    private void fixSelectionIndexOnAdd(int to, int count) {
-        Set<Integer> newSet = new LinkedHashSet<>();
-        if (count >= 1) {
-            Iterator<Integer> it = getSelectedItemsPositions().iterator();
-            while (it.hasNext()) {
-                Integer selection = it.next();
-                if (selection != RecyclerView.NO_POSITION) {
-                    if (selection >= to) {
-                        selection += count;
-                    }
-                    newSet.add(selection);
-                }
-            }
-        }
-        setItemsSelectedByPositions(newSet, true);
-    }
-
-    private void fixSelectionIndexOnRemove(int from, int count) {
-        Set<Integer> newSet = new LinkedHashSet<>();
-        if (count >= 1) {
-            Iterator<Integer> it = getSelectedItemsPositions().iterator();
-            while (it.hasNext()) {
-                Integer selection = it.next();
-                if (selection != RecyclerView.NO_POSITION) {
-                    if (selection > from && from + count < selection) {
-                        selection -= count;
-                    } else if (selection >= from && selection <= from + count) {
-                        selection = RecyclerView.NO_POSITION;
-                    }
-                    if (selection != RecyclerView.NO_POSITION) {
-                        newSet.add(selection);
-                    }
-                }
-            }
-        }
-        setItemsSelectedByPositions(newSet, true);
     }
 
     @NotNull
@@ -210,10 +220,8 @@ public abstract class BaseMultiSelectionRecyclerViewAdapter<I, VH
 
     @NotNull
     public Set<Integer> getSelectedItemsPositions() {
-//        if (mSelectionHelper == null) {
-//            throw new IllegalStateException(SelectionHelper.class.getSimpleName() + " was not initialized");
-//        }
-        return mSelectionHelper != null? mSelectionHelper.getSelectedItems() : Collections.<Integer>emptySet();
+        initSelectionHelper();
+        return mSelectionHelper != null ? mSelectionHelper.getSelectedItems() : Collections.emptySet();
     }
 
     @NotNull
@@ -228,49 +236,45 @@ public abstract class BaseMultiSelectionRecyclerViewAdapter<I, VH
         return unselectedPositions;
     }
 
-    public boolean isItemSelected(int position) {
-//        if (mSelectionHelper == null) {
-//            throw new IllegalStateException(SelectionHelper.class.getSimpleName() + " was not initialized");
-//        }
+    public boolean isItemPositionSelected(int position) {
+        initSelectionHelper();
         rangeCheck(position);
         return mSelectionHelper.isItemSelected(position);
     }
 
     public boolean isItemSelected(I item) {
-        return isItemSelected(indexOf(item));
+        return isItemPositionSelected(indexOf(item));
     }
 
     public int getSelectedItemsCount() {
-//        if (mSelectionHelper == null) {
-//            throw new IllegalStateException(SelectionHelper.class.getSimpleName() + " was not initialized");
-//        }
-        return getItemCount() > 0 ? mSelectionHelper != null? mSelectionHelper.getSelectedItemsCount() : 0 : 0;
+        initSelectionHelper();
+        return getItemCount() > 0 ? mSelectionHelper != null ? mSelectionHelper.getSelectedItemsCount() : 0 : 0;
     }
 
     public boolean setItemsSelectedByPositions(@Nullable Collection<Integer> positions, boolean isSelected) {
-//        if (mSelectionHelper == null) {
-//            throw new IllegalStateException(SelectionHelper.class.getSimpleName() + " was not initialized");
-//        }
+        return setItemsSelectedByPositions(positions, isSelected, true);
+    }
+
+    private boolean setItemsSelectedByPositions(@Nullable Collection<Integer> positions, boolean isSelected, boolean needRangeCheck) {
+        initSelectionHelper();
         if (positions != null) {
             for (int pos : positions) {
-                rangeCheck(pos);
+                if (needRangeCheck || isSelected) {
+                    rangeCheck(pos);
+                }
             }
         }
         return mSelectionHelper != null && mSelectionHelper.setItemsSelectedByPositions(positions, isSelected, false);
     }
 
     public boolean setItemSelectedByPosition(int position, boolean isSelected) {
-//        if (mSelectionHelper == null) {
-//            throw new IllegalStateException(SelectionHelper.class.getSimpleName() + " was not initialized");
-//        }
+        initSelectionHelper();
         rangeCheck(position);
         return mSelectionHelper != null && mSelectionHelper.setItemSelectedByPosition(position, isSelected, false);
     }
 
     public boolean toggleItemsSelectedByPositions(@Nullable Collection<Integer> positions) {
-//        if (mSelectionHelper == null) {
-//            throw new IllegalStateException(SelectionHelper.class.getSimpleName() + " was not initialized");
-//        }
+        initSelectionHelper();
         if (positions != null) {
             for (int pos : positions) {
                 rangeCheck(pos);
@@ -322,9 +326,7 @@ public abstract class BaseMultiSelectionRecyclerViewAdapter<I, VH
     }
 
     public void clearSelection() {
-//        if (mSelectionHelper == null) {
-//            throw new IllegalStateException(SelectionHelper.class.getSimpleName() + " was not initialized");
-//        }
+        initSelectionHelper();
         if (mSelectionHelper != null) {
             if (mSelectionHelper.getSelectedItemsCount() > 0) {
                 mSelectionHelper.clearSelection(false);
@@ -342,17 +344,37 @@ public abstract class BaseMultiSelectionRecyclerViewAdapter<I, VH
 
     @SuppressWarnings("unchecked")
     @Override
+    @CallSuper
     public void onSelectedChanged(RecyclerView.ViewHolder holder, boolean isSelected, boolean fromUser) {
-        if (itemSelectedChangeListener != null) {
-            itemSelectedChangeListener.onItemSelectedChange(holder.getAdapterPosition(), isSelected);
+        final int position = holder.getAdapterPosition();
+        if (position >= 0 && position < getItemCount()) {
+            mItemSelectedObservable.notifyItemSelected(position, isSelected, fromUser);
+            if (isNotifyOnChange())
+                notifyItemChanged(position);
         }
-        if (isNotifyOnChange())
-            notifyItemChanged(holder.getAdapterPosition());
     }
 
     @Override
-    public void onSelectableChanged(boolean isSelectable) {
+    @CallSuper
+    public void onReselected(RecyclerView.ViewHolder holder, boolean fromUser) {
+        final int position = holder.getAdapterPosition();
+        if (position >= 0 && position < getItemCount()) {
+            mItemSelectedObservable.notifyItemReselected(position, fromUser);
+        }
+    }
 
+    @Override
+    @CallSuper
+    public void onSelectableChanged(boolean isSelectable) {
+        // call notify if it needed due to ViewHolder logic or something
+        mItemSelectedObservable.notifySelectableChanged(isSelectable);
+    }
+
+    @Override
+    @CallSuper
+    public void onAllowTogglingSelectionChanged(boolean isAllowed) {
+        // call notify if it needed due to ViewHolder logic or something
+        mItemSelectedObservable.notifyAllowTogglingSelectionChanged(isAllowed);
     }
 
     @Override
@@ -365,25 +387,135 @@ public abstract class BaseMultiSelectionRecyclerViewAdapter<I, VH
         return false;
     }
 
+    @Override
+    @CallSuper
+    public void release() {
+        super.release();
+        releaseSelectionHelper();
+        mItemSelectedObservable.unregisterAll();
+    }
 
-    @Nullable
-    private OnItemSelectedChangeListener itemSelectedChangeListener;
+    protected void invalidateSelections() {
+        Set<Integer> targetUnselected = new LinkedHashSet<>();
+        for (Integer selection : getSelectedItemsPositions()) {
+            if (selection != null && selection != RecyclerView.NO_POSITION && !(selection >= 0 && selection < getItemCount())) {
+                targetUnselected.add(selection);
+            }
+        }
+        setItemsSelectedByPositions(targetUnselected, false, false);
+    }
 
-    public void setOnSelectedChangeListener(@Nullable OnItemSelectedChangeListener selectedChangeListener) {
-        this.itemSelectedChangeListener = selectedChangeListener;
+    protected void invalidateSelectionIndexOnAdd(int to, int count) {
+        Set<Integer> targetSelected = new LinkedHashSet<>();
+        Set<Integer> targetUnselected = new LinkedHashSet<>();
+        if (count >= 1) {
+            for (Integer selection : getSelectedItemsPositions()) {
+                if (selection != null && selection != RecyclerView.NO_POSITION && selection >= to) {
+                    targetUnselected.add(selection);
+                    selection += count;
+                    if (selection >= 0 && selection < getItemCount()) {
+                        targetSelected.add(selection);
+                    }
+                }
+            }
+        }
+        Iterator<Integer> it = targetUnselected.iterator();
+        while (it.hasNext()) {
+            Integer index = it.next();
+            // unselect old if it's not clashes with target selected
+            if (targetSelected.contains(index)) {
+                it.remove();
+            }
+        }
+        setItemsSelectedByPositions(targetUnselected, false, false);
+        setItemsSelectedByPositions(targetSelected, true);
+    }
+
+    protected void invalidateSelectionIndexOnRemove(int from, int count) {
+        if (count >= 1) {
+            Set<Integer> targetSelected = new LinkedHashSet<>();
+            Set<Integer> targetUnselected = new LinkedHashSet<>();
+            for (Integer selection : getSelectedItemsPositions()) {
+                if (selection != null && selection != RecyclerView.NO_POSITION) {
+                    if (selection >= from && selection < from + count) {
+                        if (selection >= 0 && selection < getItemCount()) {
+                            targetUnselected.add(selection);
+                        }
+                    } else if (selection >= from + count) {
+                        targetUnselected.add(selection);
+                        selection -= count;
+                        if (selection >= 0 && selection < getItemCount()) {
+                            targetSelected.add(selection);
+                        }
+                    }
+                }
+            }
+            Iterator<Integer> it = targetUnselected.iterator();
+            while (it.hasNext()) {
+                Integer index = it.next();
+                // unselect old if it's not clashes with target selected
+                if (targetSelected.contains(index)) {
+                    it.remove();
+                }
+            }
+            setItemsSelectedByPositions(targetUnselected, false, false);
+            setItemsSelectedByPositions(targetSelected, true);
+        }
+    }
+
+    protected static class ItemSelectedObservable extends Observable<OnItemSelectedChangeListener> {
+
+        protected void notifyItemSelected(int position, boolean isSelected, boolean fromUser) {
+            synchronized (mObservers) {
+                for (OnItemSelectedChangeListener l : mObservers) {
+                    l.onItemSelected(position, isSelected, fromUser);
+                }
+            }
+        }
+
+        protected void notifyItemReselected(int position, boolean fromUser) {
+            synchronized (mObservers) {
+                for (OnItemSelectedChangeListener l : mObservers) {
+                    l.onItemReselected(position, fromUser);
+                }
+            }
+        }
+
+        protected void notifySelectableChanged(boolean isSelectable) {
+            synchronized (mObservers) {
+                for (OnItemSelectedChangeListener l : mObservers) {
+                    l.onSelectableChanged(isSelectable);
+                }
+            }
+        }
+
+        protected void notifyAllowTogglingSelectionChanged(boolean isAllowed) {
+            synchronized (mObservers) {
+                for (OnItemSelectedChangeListener l : mObservers) {
+                    l.onAllowTogglingSelectionChanged(isAllowed);
+                }
+            }
+        }
+
+        protected void notifySelectModesChanged(@NotNull Set<SelectionHelper.SelectMode> selectModes) {
+            synchronized (mObservers) {
+                for (OnItemSelectedChangeListener l : mObservers) {
+                    l.onSelectModesChanged(selectModes);
+                }
+            }
+        }
     }
 
     public interface OnItemSelectedChangeListener {
-        void onItemSelectedChange(int position, boolean isSelected);
-    }
 
-    @Override
-    protected void finalize() throws Throwable {
-        super.finalize();
-        if (mSelectionHelper != null) {
-            mSelectionHelper.unregisterSelectionObserver(this);
-            mSelectionHelper.unregisterHolderClickObserver(this);
-            mSelectionHelper = null;
-        }
+        void onItemSelected(int position, boolean isSelected, boolean fromUser);
+
+        void onItemReselected(int position, boolean fromUser);
+
+        void onSelectableChanged(boolean isSelectable);
+
+        void onAllowTogglingSelectionChanged(boolean isAllowed);
+
+        void onSelectModesChanged(@NotNull Set<SelectionHelper.SelectMode> selectModes);
     }
 }
