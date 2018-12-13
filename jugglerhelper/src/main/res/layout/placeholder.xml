@@ -7,5 +7,5 @@
     android:gravity="center"
     android:text="@string/no_data"
     android:textColor="@color/textColorPrimary"
-    android:textSize="18sp"
+    android:textSize="@dimen/placeholder_text_size"
     android:textStyle="bold" />

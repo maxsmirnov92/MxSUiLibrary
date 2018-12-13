@@ -335,7 +335,8 @@ public abstract class BaseSingleSelectionRecyclerViewAdapter<I, VH extends BaseR
     }
 
     protected void invalidateSelectionIndexOnAdd(int to, int count) {
-        if (count >= 1) {
+        final int currentCount = getItemCount();
+        if (to >= 0 && to < currentCount && count >= 1) {
             int previousSelection = RecyclerView.NO_POSITION;
             if (mSelection != RecyclerView.NO_POSITION) {
                 if (mSelection >= to) {
@@ -343,7 +344,6 @@ public abstract class BaseSingleSelectionRecyclerViewAdapter<I, VH extends BaseR
                     mSelection += count;
                 }
             }
-            final int currentCount = getItemCount();
             if (previousSelection >= 0 && previousSelection < currentCount) {
                 notifyItemChanged(previousSelection);
             }
@@ -354,7 +354,8 @@ public abstract class BaseSingleSelectionRecyclerViewAdapter<I, VH extends BaseR
     }
 
     protected void invalidateSelectionIndexOnRemove(int from, int count) {
-        if (count >= 1) {
+        final int currentCount = getItemCount();
+        if (from >= 0 && from <= currentCount && count >= 1) {
             int previousSelection = RecyclerView.NO_POSITION;
             if (mSelection != RecyclerView.NO_POSITION) {
                 if (mSelection >= from && mSelection < from + count) {
@@ -364,7 +365,6 @@ public abstract class BaseSingleSelectionRecyclerViewAdapter<I, VH extends BaseR
                     mSelection -= count;
                 }
             }
-            final int currentCount = getItemCount();
             if (previousSelection >= 0 && previousSelection < currentCount) {
                 notifyItemChanged(previousSelection);
             }

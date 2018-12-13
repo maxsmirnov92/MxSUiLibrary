@@ -18,16 +18,14 @@
         android:indeterminateTint="@color/colorProgressBarPrimary"
         android:indeterminateTintMode="src_atop" />
 
-    <!--android:indeterminateTint="@color/progress_start"-->
-    <!--android:indeterminateTintMode="src_atop"-->
-    <!--android:background="@drawable/layer_progressbar"-->
-
     <net.maxsmr.commonutils.android.gui.views.font.FontTextView
         android:id="@+id/tvLoadingMessage"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginLeft="@dimen/space_8"
+        android:layout_marginStart="@dimen/space_8"
         android:padding="10dp"
         android:text="@string/loading"
-        android:textSize="16sp"/>
+        android:textSize="@dimen/loading_text_size"/>
 
 </LinearLayout>

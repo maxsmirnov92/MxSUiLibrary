@@ -3,4 +3,5 @@
     android:id="@+id/recycler"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:elevation="@dimen/elevation_recycler"/>
+    android:padding="@dimen/recycler_padding"
+    android:elevation="@dimen/recycler_elevation"/>

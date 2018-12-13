@@ -5,11 +5,6 @@
     <dimen name="activity_horizontal_margin">16dp</dimen>
     <dimen name="activity_vertical_margin">16dp</dimen>
 
-    <dimen name="elevation_recycler">2dp</dimen>
-    <dimen name="elevation_tabs">2dp</dimen>
-
-    <dimen name="button_height">56dp</dimen>
-
     <dimen name="space_4">4dp</dimen>
     <dimen name="space_8">8dp</dimen>
     <dimen name="space_14">14dp</dimen>
@@ -18,5 +13,22 @@
     <dimen name="space_24">24dp</dimen>
     <dimen name="space_32">32dp</dimen>
     <dimen name="space_54">54dp</dimen>
+
+    <dimen name="window_corners_radius">4dp</dimen>
+
+    <dimen name="placeholder_text_size">18sp</dimen>
+    <dimen name="loading_text_size">@dimen/placeholder_text_size</dimen>
+
+    <dimen name="edittext_cursor_width">1dp</dimen>
+
+    <dimen name="button_height">56dp</dimen>
+
+    <dimen name="recycler_padding">@dimen/space_16</dimen>
+    <dimen name="recycler_elevation">20dp</dimen>
+
+    <dimen name="tabs_elevation">2dp</dimen>
+
+    <dimen name="item_divider_height">1dp</dimen>
+    <dimen name="item_divider_spacing">16dp</dimen>
 
 </resources>

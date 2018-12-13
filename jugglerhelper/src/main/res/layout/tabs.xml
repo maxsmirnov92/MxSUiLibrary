@@ -12,7 +12,7 @@
         android:layout_alignParentTop="true"
         android:layout_centerInParent="true"
         android:background="?attr/colorPrimary"
-        android:elevation="@dimen/elevation_tabs"
+        android:elevation="@dimen/tabs_elevation"
         android:minHeight="?attr/actionBarSize"
         app:tabIndicatorColor="@color/colorControlActivated"
         app:tabIndicatorHeight="4dp" />

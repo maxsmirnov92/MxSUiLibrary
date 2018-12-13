@@ -4,65 +4,47 @@ import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.support.annotation.CallSuper;
 import android.support.annotation.IdRes;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
 import android.support.design.widget.TabLayout;
 import android.support.v4.app.Fragment;
 import android.support.v4.util.Pair;
 import android.support.v4.view.ViewPager;
+import android.support.v7.widget.RecyclerView;
 import android.text.TextUtils;
 import android.view.View;
 
 import net.maxsmr.commonutils.android.gui.GuiUtils;
 import net.maxsmr.commonutils.android.gui.adapters.CustomFragmentStatePagerAdapter;
 import net.maxsmr.commonutils.android.gui.fonts.FontsHolder;
+import net.maxsmr.commonutils.data.CompareUtils;
+import net.maxsmr.commonutils.data.Predicate;
 import net.maxsmr.jugglerhelper.R;
 
 import java.lang.reflect.Field;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
-public abstract class BaseTabsJugglerFragment<PagerAdapter extends CustomFragmentStatePagerAdapter> extends BaseJugglerFragment implements ViewPager.OnPageChangeListener {
-
-    public static final int NO_IDX = -1;
+public abstract class BaseTabsJugglerFragment<PagerAdapter
+        extends CustomFragmentStatePagerAdapter> extends BaseJugglerFragment implements ViewPager.OnPageChangeListener, View.OnClickListener {
 
     public static final String ARG_TAB_FRAGMENT_INDEX = BaseTabsJugglerFragment.class.getSimpleName() + ".ARG_TAB_FRAGMENT_INDEX";
 
     @NotNull
-    protected abstract PagerAdapter initStatePagerAdapter();
-
-    @SuppressWarnings("unchecked")
-    protected final PagerAdapter getStatePagerAdapter() {
-        return (PagerAdapter) viewPager.getAdapter();
-    }
+    protected final Map<View, String> customViewTabsMap = new LinkedHashMap<>();
 
     @Nullable
     protected TabLayout tabLayout;
 
     protected ViewPager viewPager;
 
-    @IdRes
-    protected int getTabLayoutId() {
-        return R.id.tab_layout;
-    }
-
-    @IdRes
-    protected int getPagerId() {
-        return R.id.pager;
-    }
-
-    @Override
-    protected int getContentLayoutId() {
-        return R.layout.tabs;
-    }
-
     @Override
     @CallSuper
     protected void onBindViews(@NotNull View rootView) {
         tabLayout = GuiUtils.findViewById(rootView, getTabLayoutId());
         viewPager = GuiUtils.findViewById(rootView, getPagerId());
-    }
-
-    protected int getInitialTabFragmentIndex() {
-        return getArguments() != null ? getArguments().getInt(ARG_TAB_FRAGMENT_INDEX) : (getSavedInstanceState() != null? getSavedInstanceState().getInt(ARG_TAB_FRAGMENT_INDEX) : 0);
     }
 
     @SuppressWarnings("WrongConstant")
@@ -93,12 +75,29 @@ public abstract class BaseTabsJugglerFragment<PagerAdapter extends CustomFragmen
         reload();
 
         selectAdapterPage(getInitialTabFragmentIndex(), true);
+
+        long delay = getInitCustomTabViewsDelay();
+        if (delay < 0) {
+            delay = 0;
+        }
+
+        // due to juggler fragments init order (first 'content' fragment)
+        mainHandler.postDelayed(
+                () -> {
+                    if (isAdded()) {
+                        initCustomViewTabsMap(customViewTabsMap);
+                        for (View v : customViewTabsMap.keySet()) {
+                            v.setOnClickListener(this);
+                        }
+                        invalidateCustomViewTabsByPager();
+                    }
+                }, delay);
     }
 
     @Override
     public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
-        outState.putInt(ARG_TAB_FRAGMENT_INDEX, viewPager.getCurrentItem());
+        outState.putInt(ARG_TAB_FRAGMENT_INDEX, getCurrentSelectedPageIndex());
     }
 
     @Override
@@ -107,24 +106,57 @@ public abstract class BaseTabsJugglerFragment<PagerAdapter extends CustomFragmen
         viewPager.removeOnPageChangeListener(this);
     }
 
-    protected void selectAdapterPage(int index, boolean updateIfNotSelected) {
-
-//        int tabFragmentIndex = getInitialTabFragmentIndex();
-
-        boolean selected = false;
-        if (index >= 0 && index < getStatePagerAdapter().getCount()) {
-            if (index != viewPager.getCurrentItem()) {
-                viewPager.setCurrentItem(index, true);
-                selected = true;
-            }
-        }
-        if (!selected && updateIfNotSelected) {
-            invalidatePageSelected();
-        }
+    protected long getInitCustomTabViewsDelay() {
+        return 200;
     }
 
-    protected void invalidatePageSelected() {
-        onPageSelected(viewPager.getCurrentItem());
+    protected abstract void initCustomViewTabsMap(@NotNull Map<View, String> viewTabsMap);
+
+    @NotNull
+    protected abstract PagerAdapter initStatePagerAdapter();
+
+    @SuppressWarnings("unchecked")
+    @Nullable
+    protected final PagerAdapter getStatePagerAdapter() {
+        return (PagerAdapter) viewPager.getAdapter();
+    }
+
+    /** optional map containing views and tags for them */
+    @NotNull
+    public Map<View, String> getCustomViewTabsMap() {
+        return new LinkedHashMap<>(customViewTabsMap);
+    }
+
+    @IdRes
+    protected int getTabLayoutId() {
+        return R.id.tab_layout;
+    }
+
+    @IdRes
+    protected int getPagerId() {
+        return R.id.pager;
+    }
+
+    @Override
+    protected int getContentLayoutId() {
+        return R.layout.tabs;
+    }
+
+    @Nullable
+    protected String getTagForPagerFragment(@NotNull Fragment fragment) {
+        return fragment.getClass().getSimpleName();
+    }
+
+    protected int getCurrentPagesCount() {
+        PagerAdapter adapter = getStatePagerAdapter();
+        if (adapter != null) {
+            return adapter.getCount();
+        }
+        return 0;
+    }
+
+    protected int getCurrentSelectedPageIndex() {
+        return viewPager.getCurrentItem();
     }
 
     @TabLayout.TabGravity
@@ -135,6 +167,70 @@ public abstract class BaseTabsJugglerFragment<PagerAdapter extends CustomFragmen
     @TabLayout.Mode
     protected int getTabMode() {
         return TabLayout.MODE_FIXED;
+    }
+
+    protected int getInitialTabFragmentIndex() {
+        return getArguments() != null ? getArguments().getInt(ARG_TAB_FRAGMENT_INDEX) :
+                (getSavedInstanceState() != null ? getSavedInstanceState().getInt(ARG_TAB_FRAGMENT_INDEX) : 0);
+    }
+
+
+    protected void selectAdapterPage(int index, boolean updateIfNotSelected) {
+
+        boolean selected = false;
+        if (index >= 0 && index < getCurrentPagesCount()) {
+            if (index != getCurrentSelectedPageIndex()) {
+                viewPager.setCurrentItem(index, true);
+                selected = true;
+            }
+        }
+        if (!selected && updateIfNotSelected) {
+            invalidatePageSelected();
+        }
+    }
+
+    protected void invalidatePageSelected() {
+        final int position = getCurrentSelectedPageIndex();
+        if (position >= 0 && position < getCurrentPagesCount()) {
+            onPageSelected(position);
+        }
+    }
+
+    protected void invalidateCustomViewTabsByPager() {
+        PagerAdapter adapter = getStatePagerAdapter();
+        if (adapter != null) {
+            if (!customViewTabsMap.isEmpty()) {
+                for (int index = 0; index < getCurrentPagesCount(); index++) {
+
+                    final boolean isSelected = getCurrentSelectedPageIndex() == index;
+
+                    final Fragment fragment = adapter.getFragmentInstance(index);
+                    final String tag = getTagForPagerFragment(fragment);
+
+                    final Map.Entry<View, String> viewEntry = findCustomViewTabByTag(tag);
+                    if (viewEntry != null) {
+                        invalidateCustomViewTab(viewEntry.getKey(), tag, isSelected);
+                    }
+                }
+            }
+        }
+    }
+
+    protected void invalidateCustomViewTab(@NotNull View tabView, @Nullable String tabViewTag, boolean isSelected) {
+        tabView.setSelected(isSelected);
+    }
+
+    @Nullable
+    protected Map.Entry<View, String> findCustomViewTabByTag(@Nullable String tag) {
+        if (TextUtils.isEmpty(tag)) {
+            return null;
+        }
+        return Predicate.Methods.find(customViewTabsMap.entrySet(), element -> CompareUtils.stringsEqual(element.getValue(), tag, false));
+    }
+
+    @Nullable
+    protected Map.Entry<View, String> findCustomViewTabByView(@Nullable View view) {
+        return Predicate.Methods.find(customViewTabsMap.entrySet(), element -> element.getKey() == view);
     }
 
     protected void setTabsTypeface(String alias) {
@@ -262,7 +358,7 @@ public abstract class BaseTabsJugglerFragment<PagerAdapter extends CustomFragmen
 
     @Override
     public void onPageSelected(int position) {
-
+        invalidateCustomViewTabsByPager();
     }
 
     @Override
@@ -275,6 +371,37 @@ public abstract class BaseTabsJugglerFragment<PagerAdapter extends CustomFragmen
 
     }
 
+    @CallSuper
+    @Override
+    public void onClick(View v) {
+
+        PagerAdapter adapter = getStatePagerAdapter();
+        if (adapter != null) {
+
+            final Map.Entry<View, String> entry = findCustomViewTabByView(v);
+            if (entry != null) {
+
+                int selectedIndex = RecyclerView.NO_POSITION;
+
+                for (int index = 0; index < getCurrentPagesCount(); index++) {
+
+                    final Fragment fragment = adapter.getFragmentInstance(index);
+                    final String tag = getTagForPagerFragment(fragment);
+
+                    if (!TextUtils.isEmpty(tag) && CompareUtils.stringsEqual(entry.getValue(), tag, false)) {
+                        selectedIndex = index;
+                        break;
+                    }
+                }
+
+                if (selectedIndex >= 0 && selectedIndex < getCurrentPagesCount()) {
+                    viewPager.setCurrentItem(selectedIndex);
+                }
+            }
+        }
+    }
+
+    @Nullable
     public static <F extends Fragment> Pair<Integer, F> findFragmentByClass(@NotNull Class<F> fragmentClass, CustomFragmentStatePagerAdapter pagerAdapter) {
         Pair<Integer, F> result = null;
         for (int index = 0; index < pagerAdapter.getCount(); index++) {

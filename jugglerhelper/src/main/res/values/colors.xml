@@ -27,6 +27,8 @@
     <color name="textColorNormal">@color/textColorPrimary</color>
     <color name="textColorPressed">@color/textColorNormal</color>
 
+    <color name="colorItemDivider">@color/gray_light</color>
+
     <color name="colorProgressBarStart">#fcf132</color>
     <color name="colorProgressBarPrimary">@color/colorPrimary</color>
     <color name="colorProgressBarEnd">#fc8f19</color>
