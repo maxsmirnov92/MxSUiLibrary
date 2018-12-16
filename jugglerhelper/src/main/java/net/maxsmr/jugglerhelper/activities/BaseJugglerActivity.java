@@ -1,15 +1,14 @@
 package net.maxsmr.jugglerhelper.activities;
 
-import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.support.v4.util.Pair;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 
-import net.maxsmr.commonutils.logger.BaseLogger;
-import net.maxsmr.commonutils.logger.holder.BaseLoggerHolder;
 import net.maxsmr.jugglerhelper.fragments.BaseJugglerFragment;
+import net.maxsmr.jugglerhelper.fragments.FragmentFinder;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -99,17 +98,29 @@ public class BaseJugglerActivity extends JugglerActivity {
 
     @Nullable
     public Fragment findFragmentById(int id) {
-        return BaseJugglerFragment.findFragmentById(getSupportFragmentManager(), id);
+        Pair<Integer, Fragment> fragment = FragmentFinder.findFragmentById(getSupportFragmentManager(), id);
+        if (fragment != null) {
+            return fragment.second;
+        }
+        return null;
     }
 
     @Nullable
     public Fragment findFragmentByTag(String tag) {
-        return BaseJugglerFragment.findFragmentByTag(getSupportFragmentManager(), tag);
+        Pair<Integer, Fragment> fragment = FragmentFinder.findFragmentByTag(getSupportFragmentManager(), tag);
+        if (fragment != null) {
+            return fragment.second;
+        }
+        return null;
     }
 
     @Nullable
     public <F extends Fragment> F findFragmentByClass(Class<F> clazz) {
-        return BaseJugglerFragment.findFragmentByClass(getSupportFragmentManager(), clazz);
+        Pair<Integer, F> fragment = FragmentFinder.findFragmentByClass(getSupportFragmentManager(), clazz);
+        if (fragment != null) {
+            return fragment.second;
+        }
+        return null;
     }
 
     @Override

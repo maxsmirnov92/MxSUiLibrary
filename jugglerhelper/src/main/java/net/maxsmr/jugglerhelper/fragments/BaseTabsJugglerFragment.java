@@ -4,13 +4,8 @@ import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.support.annotation.CallSuper;
 import android.support.annotation.IdRes;
-
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import android.support.design.widget.TabLayout;
 import android.support.v4.app.Fragment;
-import android.support.v4.util.Pair;
 import android.support.v4.view.ViewPager;
 import android.support.v7.widget.RecyclerView;
 import android.text.TextUtils;
@@ -23,12 +18,17 @@ import net.maxsmr.commonutils.data.CompareUtils;
 import net.maxsmr.commonutils.data.Predicate;
 import net.maxsmr.jugglerhelper.R;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import java.lang.reflect.Field;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+import me.ilich.nestableviewpager.NestablePagerItem;
+
 public abstract class BaseTabsJugglerFragment<PagerAdapter
-        extends CustomFragmentStatePagerAdapter> extends BaseJugglerFragment implements ViewPager.OnPageChangeListener, View.OnClickListener {
+        extends CustomFragmentStatePagerAdapter> extends BaseJugglerFragment implements ViewPager.OnPageChangeListener, View.OnClickListener, NestablePagerItem {
 
     public static final String ARG_TAB_FRAGMENT_INDEX = BaseTabsJugglerFragment.class.getSimpleName() + ".ARG_TAB_FRAGMENT_INDEX";
 
@@ -140,6 +140,15 @@ public abstract class BaseTabsJugglerFragment<PagerAdapter
     @Override
     protected int getContentLayoutId() {
         return R.layout.tabs;
+    }
+
+    @Nullable
+    @Override
+    public ViewPager getNestedViewPager() {
+        if (viewPager == null) {
+            throw new IllegalStateException(ViewPager.class.getSimpleName() + " is not initialized");
+        }
+        return viewPager;
     }
 
     @Nullable
@@ -399,20 +408,5 @@ public abstract class BaseTabsJugglerFragment<PagerAdapter
                 }
             }
         }
-    }
-
-    @Nullable
-    public static <F extends Fragment> Pair<Integer, F> findFragmentByClass(@NotNull Class<F> fragmentClass, CustomFragmentStatePagerAdapter pagerAdapter) {
-        Pair<Integer, F> result = null;
-        for (int index = 0; index < pagerAdapter.getCount(); index++) {
-            Fragment fragment = pagerAdapter.getFragmentInstance(index);
-            if (fragmentClass.isAssignableFrom(fragment.getClass())) {
-                //noinspection unchecked
-                result = new Pair<>(index, (F) fragment);
-                break;
-            }
-            index++;
-        }
-        return result;
     }
 }

@@ -19,18 +19,23 @@
 
     <color name="textColorPrimary">@android:color/black</color>
     <color name="textColorSecondary">@color/gray_middle</color>
-    <color name="textColorPrimaryInverted">@android:color/white</color>
     <color name="textCursorColor">@color/colorPrimary</color>
     <color name="textColorHint">@color/gray</color>
     <color name="textColorError">#DA2718</color>
     <color name="textColorDisabled">@color/textColorHint</color>
     <color name="textColorNormal">@color/textColorPrimary</color>
-    <color name="textColorPressed">@color/textColorNormal</color>
+    <color name="textColorPressed">@color/textColorSecondary</color>
+    <color name="textColorPrimaryInverted">@android:color/white</color>
+    <color name="textColorPrimaryPressedInverted">@color/textColorNormal</color>
 
     <color name="colorItemDivider">@color/gray_light</color>
 
     <color name="colorProgressBarStart">#fcf132</color>
     <color name="colorProgressBarPrimary">@color/colorPrimary</color>
     <color name="colorProgressBarEnd">#fc8f19</color>
+
+    <color name="colorTabIndicator">@color/colorControlActivated</color>
+    <color name="colorTabTextNormal">@color/textColorNormal</color>
+    <color name="colorTabTextSelected">@color/colorTabTextNormal</color>
 
 </resources>

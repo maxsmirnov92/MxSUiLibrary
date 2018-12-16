@@ -1,14 +1,8 @@
 package net.maxsmr.jugglerhelper.fragments.loading;
 
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Looper;
 import android.support.annotation.CallSuper;
 import android.support.annotation.IdRes;
-
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -20,6 +14,8 @@ import net.maxsmr.commonutils.android.gui.views.recycler.RecyclerScrollableContr
 import net.maxsmr.commonutils.data.CompareUtils;
 import net.maxsmr.jugglerhelper.R;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -28,12 +24,10 @@ import java.util.Comparator;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 
 public abstract class BaseListLoadingJugglerFragment<I extends Comparable<I>, Adapter extends BaseRecyclerViewAdapter<I, ?>>
         extends BaseLoadingJugglerFragment<List<I>>
@@ -177,24 +171,9 @@ public abstract class BaseListLoadingJugglerFragment<I extends Comparable<I>, Ad
         recycler.setVisibility(View.GONE);
     }
 
-    @Override
-    public void onCreate(@Nullable Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        service = Executors.newSingleThreadExecutor();
-    }
+    protected void setupAdapter() {
 
-    @Override
-    public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
-
-        View rootView = getView();
-
-        if (rootView == null) {
-            throw new IllegalStateException("root view was not created");
-        }
-
-        if (recycler == null) {
-            throw new RuntimeException("recycler view not found");
-        }
+        releaseAdapter();
 
         adapter = initAdapter();
         adapter.registerItemsEventsListener(this);
@@ -205,24 +184,21 @@ public abstract class BaseListLoadingJugglerFragment<I extends Comparable<I>, Ad
         addScrollListeners();
 
         recycler.setAdapter(adapter);
-
-        super.onViewCreated(view, savedInstanceState);
     }
 
-    @Override
-    public void onDestroyView() {
-        super.onDestroyView();
-        adapter.unregisterItemsEventsListener(this);
-        removeItemDecorations();
-        removeScrollListeners();
+    protected void releaseAdapter() {
+        if (recycler == null) {
+            throw new RuntimeException("recycler view not found");
+        }
+        if (adapter != null) {
+            removeItemDecorations();
+            removeScrollListeners();
+            adapter.unregisterItemsEventsListener(this);
+            recycler.setLayoutManager(null);
+            recycler.setAdapter(null);
+        }
     }
 
-    @Override
-    public void onDestroy() {
-        super.onDestroy();
-        service.shutdown();
-        service = null;
-    }
 
     @Nullable
     protected abstract Comparator<I> getSortComparator();
@@ -288,6 +264,31 @@ public abstract class BaseListLoadingJugglerFragment<I extends Comparable<I>, Ad
     }
 
     @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        service = Executors.newSingleThreadExecutor();
+    }
+
+    @Override
+    public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
+        setupAdapter();
+        super.onViewCreated(view, savedInstanceState);
+    }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        releaseAdapter();
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        service.shutdown();
+        service = null;
+    }
+
+    @Override
     public void onItemClick(int position, I item) {
     }
 
@@ -324,9 +325,16 @@ public abstract class BaseListLoadingJugglerFragment<I extends Comparable<I>, Ad
     public void onLastItemVisible() {
     }
 
+    @Override
     protected void onLoaded(@NotNull List<I> items) {
         reloadAdapter(items);
         super.onLoaded(items);
+    }
+
+    @Override
+    public void onEmpty() {
+        reloadAdapter(null);
+        super.onEmpty();
     }
 
     protected void postActionOnRecyclerView(@NotNull final Runnable r, final long delay) {

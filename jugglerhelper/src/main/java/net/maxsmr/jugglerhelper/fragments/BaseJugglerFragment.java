@@ -1,8 +1,8 @@
 package net.maxsmr.jugglerhelper.fragments;
 
 import android.content.Intent;
-import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -13,7 +13,7 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.content.ContextCompat;
-import android.support.v4.view.ViewPager;
+import android.support.v4.util.Pair;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -23,9 +23,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
 
-import net.maxsmr.commonutils.android.gui.GuiUtils;
-import net.maxsmr.commonutils.data.CompareUtils;
 import net.maxsmr.jugglerhelper.R;
+import net.maxsmr.jugglerhelper.activities.BaseJugglerActivity;
 import net.maxsmr.jugglerhelper.fragments.toolbar.BaseJugglerToolbarFragment;
 
 import org.jetbrains.annotations.NotNull;
@@ -36,9 +35,8 @@ import java.util.List;
 import me.ilich.juggler.gui.JugglerActivity;
 import me.ilich.juggler.gui.JugglerFragment;
 import me.ilich.juggler.states.State;
-import me.ilich.nestableviewpager.NestablePagerItem;
 
-public abstract class BaseJugglerFragment extends JugglerFragment implements NestablePagerItem {
+public abstract class BaseJugglerFragment extends JugglerFragment {
 
     @NotNull
     protected final Handler mainHandler = new Handler(Looper.getMainLooper());
@@ -54,67 +52,52 @@ public abstract class BaseJugglerFragment extends JugglerFragment implements Nes
         return isAdded() && isCommitAllowed;
     }
 
-    @Nullable
-    public Fragment findChildFragmentByTag(String tag) {
-        return findFragmentByTag(getChildFragmentManager(), tag);
+    @Override
+    protected BaseJugglerActivity getJugglerActivity() {
+        return (BaseJugglerActivity) super.getJugglerActivity();
     }
 
     @Nullable
     public Fragment findChildFragmentById(int id) {
-        return findFragmentById(getChildFragmentManager(), id);
+        Pair<Integer, Fragment> fragment = FragmentFinder.findFragmentById(getChildFragmentManager(), id);
+        if (fragment != null) {
+            return fragment.second;
+        }
+        return null;
     }
+
+    @Nullable
+    public Fragment findChildFragmentByTag(String tag) {
+        Pair<Integer, Fragment> fragment = FragmentFinder.findFragmentByTag(getChildFragmentManager(), tag);
+        if (fragment != null) {
+            return fragment.second;
+        }
+        return null;
+    }
+
 
     @Nullable
     public <F extends Fragment> F findChildFragmentByClass(Class<F> clazz) {
-        return findFragmentByClass(getChildFragmentManager(), clazz);
-    }
-
-    @Nullable
-    public Fragment findRootFragmentByTag(String tag) {
-        return findFragmentByTag(getActivity() != null ? getActivity().getSupportFragmentManager() : null, tag);
+        Pair<Integer, F> fragment = FragmentFinder.findFragmentByClass(getChildFragmentManager(), clazz);
+        if (fragment != null) {
+            return fragment.second;
+        }
+        return null;
     }
 
     @Nullable
     public Fragment findRootFragmentById(int id) {
-        return findFragmentById(getActivity() != null ? getActivity().getSupportFragmentManager() : null, id);
+        return getJugglerActivity().findFragmentById(id);
+    }
+
+    @Nullable
+    public Fragment findRootFragmentByTag(String tag) {
+        return getJugglerActivity().findFragmentByTag(tag);
     }
 
     @Nullable
     public <F extends Fragment> F findRootFragmentByClass(Class<F> clazz) {
-        return findFragmentByClass(getFragmentManager(), clazz);
-    }
-
-
-    @SuppressWarnings("unchecked")
-    @NotNull
-    protected <T extends JugglerActivity> T getBaseActivity() {
-        FragmentActivity activity = getActivity();
-
-        if (activity == null) {
-            throw new NullPointerException("not attached to activity");
-        }
-        if (!(activity instanceof JugglerActivity)) {
-            throw new RuntimeException("activity isn't instance of a BaseActivity");
-        }
-        return (T) activity;
-    }
-
-    @SuppressWarnings("ConstantConditions")
-    @Nullable
-    protected Drawable getWindowBackground() {
-        return null;
-    }
-
-    @SuppressWarnings("ConstantConditions")
-    @ColorInt
-    protected Integer getStatusBarColor() {
-        return ContextCompat.getColor(getContext(), R.color.colorStatusBar);
-    }
-
-    @SuppressWarnings("ConstantConditions")
-    @ColorInt
-    protected Integer getNavigationBarColor() {
-        return ContextCompat.getColor(getContext(), R.color.colorNavigationBar);
+        return getJugglerActivity().findFragmentByClass(clazz);
     }
 
     @Nullable
@@ -164,29 +147,11 @@ public abstract class BaseJugglerFragment extends JugglerFragment implements Nes
         isCommitAllowed = true;
     }
 
-    @SuppressWarnings("ConstantConditions")
-    @Override
-    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
-        super.onActivityCreated(savedInstanceState);
-        final Window window = getActivity().getWindow();
-        Integer statusBarColor = getStatusBarColor();
-        if (statusBarColor != null) {
-            GuiUtils.setStatusBarColor(window, statusBarColor);
-        }
-        Integer navigationBarColor = getNavigationBarColor();
-        if (navigationBarColor != null) {
-            GuiUtils.setNavigationBarColor(window, navigationBarColor);
-        }
-        Drawable windowBackground = getWindowBackground();
-        if (windowBackground != null) {
-            window.setBackgroundDrawable(windowBackground);
-        }
-    }
-
     @Override
     public void onResume() {
         super.onResume();
         isCommitAllowed = true;
+        setupWindow();
     }
 
     @Override
@@ -253,12 +218,6 @@ public abstract class BaseJugglerFragment extends JugglerFragment implements Nes
         }
     }
 
-    @Nullable
-    @Override
-    public ViewPager getNestedViewPager() {
-        return null;
-    }
-
     @Override
     public void onRequestPermissionsResult(int requestCode, @NotNull String[] permissions, @NotNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
@@ -272,44 +231,57 @@ public abstract class BaseJugglerFragment extends JugglerFragment implements Nes
         }
     }
 
-    @Nullable
-    public static Fragment findFragmentById(FragmentManager fm, int id) {
-        if (fm != null) {
-            List<Fragment> fragments = fm.getFragments();
-            for (Fragment fragment : fragments) {
-                if (fragment != null && !fragment.isDetached() && fragment.getId() == id) {
-                    return fragment;
-                }
-            }
-        }
-        return null;
-    }
-
-    @Nullable
-    public static Fragment findFragmentByTag(FragmentManager fm, String tag) {
-        if (fm != null) {
-            List<Fragment> fragments = fm.getFragments();
-            for (Fragment fragment : fragments) {
-                if (fragment != null && !fragment.isDetached() && CompareUtils.stringsEqual(fragment.getTag(), tag, false)) {
-                    return fragment;
-                }
-            }
-        }
-        return null;
-    }
-
-    @Nullable
     @SuppressWarnings("unchecked")
-    public static <F extends Fragment> F findFragmentByClass(FragmentManager fm, Class<F> fragmentClass) {
-        if (fm != null) {
-            List<Fragment> fragments = fm.getFragments();
-            for (Fragment fragment : fragments) {
-                if (fragment != null && !fragment.isDetached() && fragmentClass.isAssignableFrom(fragment.getClass())) {
-                    return (F) fragment;
-                }
+    @NotNull
+    protected <T extends JugglerActivity> T getBaseActivity() {
+        FragmentActivity activity = getActivity();
+
+        if (activity == null) {
+            throw new NullPointerException("not attached to activity");
+        }
+        if (!(activity instanceof JugglerActivity)) {
+            throw new RuntimeException("activity isn't instance of a BaseActivity");
+        }
+        return (T) activity;
+    }
+
+    @SuppressWarnings("ConstantConditions")
+    @Nullable
+    protected Drawable getWindowBackground() {
+        return null;
+    }
+
+    @SuppressWarnings("ConstantConditions")
+    @ColorInt
+    @Nullable
+    protected Integer getStatusBarColor() {
+        return ContextCompat.getColor(getContext(), R.color.colorStatusBar);
+    }
+
+    @SuppressWarnings("ConstantConditions")
+    @ColorInt
+    @Nullable
+    protected Integer getNavigationBarColor() {
+        return ContextCompat.getColor(getContext(), R.color.colorNavigationBar);
+    }
+
+    @SuppressWarnings("ConstantConditions")
+    protected void setupWindow() {
+        final Window window = getActivity().getWindow();
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            Integer statusBarColor = getStatusBarColor();
+            if (statusBarColor != null) {
+                window.setStatusBarColor(statusBarColor);
+            }
+            Integer navigationBarColor = getNavigationBarColor();
+            if (navigationBarColor != null) {
+                window.setNavigationBarColor(navigationBarColor);
             }
         }
-        return null;
+        Drawable windowBackground = getWindowBackground();
+        if (windowBackground != null) {
+            window.setBackgroundDrawable(windowBackground);
+        }
     }
 }
 

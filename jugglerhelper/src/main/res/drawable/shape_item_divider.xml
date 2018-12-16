@@ -3,5 +3,4 @@
     android:shape="rectangle">
     <solid android:color="@color/colorItemDivider" />
     <size android:height="@dimen/item_divider_height" />
-    <!--TODO move-->
 </shape>
