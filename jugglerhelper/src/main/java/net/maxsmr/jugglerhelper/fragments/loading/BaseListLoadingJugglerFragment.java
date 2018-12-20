@@ -146,8 +146,8 @@ public abstract class BaseListLoadingJugglerFragment<I extends Comparable<I>, Ad
         }
     }
 
-    protected void loading(boolean isLoading) {
-        super.loading(isLoading);
+    protected void processLoading(boolean isLoading) {
+        super.processLoading(isLoading);
         recycler.setVisibility(isLoading ? View.GONE : View.VISIBLE);
     }
 

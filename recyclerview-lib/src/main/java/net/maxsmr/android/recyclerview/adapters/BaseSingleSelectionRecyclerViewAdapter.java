@@ -2,7 +2,6 @@ package net.maxsmr.android.recyclerview.adapters;
 
 import android.content.Context;
 import android.database.Observable;
-import android.graphics.drawable.Drawable;
 import android.support.annotation.CallSuper;
 import android.support.annotation.LayoutRes;
 
@@ -10,7 +9,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import android.support.v7.widget.RecyclerView;
-import android.view.View;
 import android.widget.Checkable;
 
 import com.bejibx.android.recyclerview.selection.SelectionHelper;
@@ -34,12 +32,17 @@ public abstract class BaseSingleSelectionRecyclerViewAdapter<I, VH extends BaseR
     @Nullable
     private SelectionHelper.SelectMode mSelectMode = null;
 
-    public BaseSingleSelectionRecyclerViewAdapter(@NotNull Context context, @LayoutRes int itemLayoutId, @Nullable Collection<I> items) {
-        this(context, itemLayoutId, items, null, null);
+    public BaseSingleSelectionRecyclerViewAdapter(@NotNull Context context, boolean isSelectable) {
+        this(context, 0, null, isSelectable);
     }
 
-    public BaseSingleSelectionRecyclerViewAdapter(Context context, @LayoutRes int itemLayoutId, @Nullable Collection<I> items, Drawable defaultDrawable, Drawable selectionDrawable) {
+    public BaseSingleSelectionRecyclerViewAdapter(@NotNull Context context, @LayoutRes int itemLayoutId, @Nullable Collection<I> items) {
+        this(context, itemLayoutId, items, true);
+    }
+
+    public BaseSingleSelectionRecyclerViewAdapter(Context context, @LayoutRes int itemLayoutId, @Nullable Collection<I> items, boolean isSelectable) {
         super(context, itemLayoutId, items);
+        setSelectable(isSelectable);
     }
 
     public void registerItemSelectedChangeListener(@NotNull OnItemSelectedChangeListener listener) {
@@ -50,13 +53,13 @@ public abstract class BaseSingleSelectionRecyclerViewAdapter<I, VH extends BaseR
         mItemSelectedObservable.unregisterObserver(listener);
     }
 
-    public boolean isIsSelectable() {
+    public boolean isSelectable() {
         return mIsSelectable;
     }
 
-    public boolean setIsSelectable(boolean isSelectable) {
-        if (this.mIsSelectable != isSelectable) {
-            this.mIsSelectable = isSelectable;
+    public boolean setSelectable(boolean isSelectable) {
+        if (mIsSelectable != isSelectable) {
+            mIsSelectable = isSelectable;
             if (!isSelectable) resetSelection();
             return true;
         }
@@ -73,7 +76,7 @@ public abstract class BaseSingleSelectionRecyclerViewAdapter<I, VH extends BaseR
 
     // override if need various for each position
     @NotNull
-    public Set<SelectionHelper.SelectMode> getSelectModes(int position) {
+    public Set<SelectionHelper.SelectMode> getSelectModes(@Nullable final I item, int position) {
         if (mSelectMode == null) {
             return Collections.emptySet();
         } else {
@@ -83,6 +86,16 @@ public abstract class BaseSingleSelectionRecyclerViewAdapter<I, VH extends BaseR
 
     public void setSelectMode(@Nullable SelectionHelper.SelectMode selectMode) {
         mSelectMode = selectMode;
+    }
+
+    @Override
+    protected boolean allowSetClickListener(@Nullable I item, int position) {
+        return super.allowSetClickListener(item, position) && !getSelectModes(item, position).contains(SelectionHelper.SelectMode.CLICK);
+    }
+
+    @Override
+    protected boolean allowSetLongClickListener(@Nullable I item, int position) {
+        return super.allowSetLongClickListener(item, position) && !getSelectModes(item, position).contains(SelectionHelper.SelectMode.LONG_CLICK);
     }
 
     @Nullable
@@ -101,7 +114,7 @@ public abstract class BaseSingleSelectionRecyclerViewAdapter<I, VH extends BaseR
     }
 
     protected void processSelection(@NotNull VH holder, @Nullable final I item, final int position) {
-        for (SelectionHelper.SelectMode mode : getSelectModes(position)) {
+        for (SelectionHelper.SelectMode mode : getSelectModes(item, position)) {
             switch (mode) {
                 case CLICK:
                     holder.itemView.setClickable(true);
@@ -149,17 +162,17 @@ public abstract class BaseSingleSelectionRecyclerViewAdapter<I, VH extends BaseR
             checkableView.setChecked(isSelected);
         }
         if (isSelected) {
-            onProcessItemSelected(holder);
+            onProcessItemSelected(holder, item, position);
         } else {
-            onProcessItemNotSelected(holder);
+            onProcessItemNotSelected(holder, item, position);
         }
     }
 
-    protected void onProcessItemSelected(@NotNull VH holder) {
+    protected void onProcessItemSelected(@NotNull VH holder, @Nullable final I item, final int position) {
 
     }
 
-    protected void onProcessItemNotSelected(@NotNull VH holder) {
+    protected void onProcessItemNotSelected(@NotNull VH holder, @Nullable final I item, final int position) {
 
     }
 
@@ -200,23 +213,24 @@ public abstract class BaseSingleSelectionRecyclerViewAdapter<I, VH extends BaseR
         setSelection(selection, false);
     }
 
-    protected void setSelection(int selection, boolean fromUser) {
-        rangeCheck(selection);
-        int previousSelection = mSelection;
-        mSelection = selection;
-        onSelectionChanged(previousSelection, mSelection, fromUser);
-        if (isNotifyOnChange()) {
-            boolean isNewSelection = true;
-            if (previousSelection >= 0 && previousSelection < getItemCount()) {
-                isNewSelection = mSelection != previousSelection;
+    protected boolean setSelection(int selection, boolean fromUser) {
+        if (isSelectable()) {
+            rangeCheck(selection);
+            int previousSelection = mSelection;
+            mSelection = selection;
+            onSelectionChanged(previousSelection, mSelection, fromUser);
+            if (isNotifyOnChange()) {
+                boolean isNewSelection = true;
+                if (previousSelection >= 0 && previousSelection < getItemCount()) {
+                    isNewSelection = mSelection != previousSelection;
+                }
                 if (isNewSelection) {
-                    notifyItemChanged(previousSelection);
+                    notifyItemChanged(selection);
                 }
             }
-            if (isNewSelection) {
-                notifyItemChanged(selection);
-            }
+            return true;
         }
+        return false;
     }
 
     public void resetSelection() {

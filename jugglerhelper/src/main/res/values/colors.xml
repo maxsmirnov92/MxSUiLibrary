@@ -27,6 +27,9 @@
     <color name="textColorPressed">@color/textColorSecondary</color>
     <color name="textColorPrimaryInverted">@android:color/white</color>
     <color name="textColorPrimaryPressedInverted">@color/textColorNormal</color>
+    <color name="textColorLoadingMessage">@color/textColorNormal</color>
+    <color name="textColorEmptyMessage">@color/textColorNormal</color>
+    <color name="textColorErrorMessage">@color/textColorError</color>
 
     <color name="colorItemDivider">@color/gray_light</color>
 

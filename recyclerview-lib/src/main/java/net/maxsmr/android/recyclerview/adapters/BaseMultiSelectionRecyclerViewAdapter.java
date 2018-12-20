@@ -38,8 +38,8 @@ public abstract class BaseMultiSelectionRecyclerViewAdapter<I, VH
     @NotNull
     private final Set<SelectionHelper.SelectMode> mSelectModes = new LinkedHashSet<>();
 
-    public BaseMultiSelectionRecyclerViewAdapter(@NotNull Context context) {
-        this(context, 0, null);
+    public BaseMultiSelectionRecyclerViewAdapter(@NotNull Context context, boolean isSelectable) {
+        this(context, 0, null, isSelectable);
     }
 
     public BaseMultiSelectionRecyclerViewAdapter(@NotNull Context context, @LayoutRes int itemLayoutId, @Nullable Collection<I> items) {
@@ -160,12 +160,12 @@ public abstract class BaseMultiSelectionRecyclerViewAdapter<I, VH
 
     @Override
     protected boolean allowSetClickListener(@Nullable I item, int position) {
-        return !mSelectModes.contains(SelectionHelper.SelectMode.CLICK);
+        return super.allowSetClickListener(item, position) && !mSelectModes.contains(SelectionHelper.SelectMode.CLICK);
     }
 
     @Override
     protected boolean allowSetLongClickListener(@Nullable I item, int position) {
-        return !mSelectModes.contains(SelectionHelper.SelectMode.LONG_CLICK);
+        return super.allowSetLongClickListener(item, position) && !mSelectModes.contains(SelectionHelper.SelectMode.LONG_CLICK);
     }
 
     @Override

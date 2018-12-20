@@ -7,6 +7,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
+import android.content.res.ColorStateList;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Bundle;
@@ -72,7 +73,7 @@ public abstract class BaseLoadingJugglerFragment<I> extends BaseJugglerFragment 
 
     @IdRes
     protected int getEmptyTextId() {
-        return R.id.emptyText;
+        return R.id.tvEmptyText;
     }
 
     @IdRes
@@ -137,14 +138,13 @@ public abstract class BaseLoadingJugglerFragment<I> extends BaseJugglerFragment 
 
 
     protected void invalidateLoading(@Nullable I data) {
-        loading(isLoading);
+        processLoading(isLoading);
         afterLoading(data);
     }
 
-    protected boolean enableSwipeRefresh() {
+    protected boolean isSwipeRefreshChangeStateEnabled() {
         return true;
     }
-
 
     protected abstract boolean allowReloadOnNetworkRestored();
 
@@ -177,7 +177,6 @@ public abstract class BaseLoadingJugglerFragment<I> extends BaseJugglerFragment 
         }
     }
 
-
     @Override
     public void onRefresh() {
         if (allowSetInitial()) {
@@ -185,9 +184,15 @@ public abstract class BaseLoadingJugglerFragment<I> extends BaseJugglerFragment 
         }
     }
 
-    protected void loading(boolean isLoading) {
+    protected void processLoading(boolean isLoading) {
         this.isLoading = isLoading;
         if (loadingLayout != null) {
+            if (loadingMessageView != null) {
+                ColorStateList loadingTextColor = getLoadingTextColor();
+                if (loadingTextColor != null) {
+                    loadingMessageView.setTextColor(loadingTextColor);
+                }
+            }
             loadingLayout.setVisibility(isLoading ? View.VISIBLE : View.GONE);
         }
         if (placeholder != null) {
@@ -196,9 +201,15 @@ public abstract class BaseLoadingJugglerFragment<I> extends BaseJugglerFragment 
         if (retryButton != null) {
             retryButton.setVisibility(View.GONE);
         }
-        if (swipeRefreshLayout != null && swipeRefreshLayout.isEnabled()) {
-            if (swipeRefreshLayout.isRefreshing() != isLoading) {
-                swipeRefreshLayout.setRefreshing(isLoading);
+        switchSwipe(isLoading);
+    }
+
+    protected void switchSwipe(boolean toggle) {
+        if (swipeRefreshLayout != null) {
+            if (isSwipeRefreshChangeStateEnabled()) {
+                if (swipeRefreshLayout.isRefreshing() != toggle) {
+                    swipeRefreshLayout.setRefreshing(toggle);
+                }
             }
         }
     }
@@ -213,12 +224,16 @@ public abstract class BaseLoadingJugglerFragment<I> extends BaseJugglerFragment 
             placeholder.setVisibility(!isEmpty ? View.GONE : View.VISIBLE);
             if (isEmpty) {
                 placeholder.setText(getEmptyText());
+                final ColorStateList emptyTextColor = getEmptyTextColor();
+                if (emptyTextColor != null) {
+                    placeholder.setTextColor(emptyTextColor);
+                }
             }
         }
         if (retryButton != null) {
             retryButton.setVisibility(View.GONE);
         }
-
+        switchSwipe(isLoading);
     }
 
     @CallSuper
@@ -226,6 +241,10 @@ public abstract class BaseLoadingJugglerFragment<I> extends BaseJugglerFragment 
         if (placeholder != null) {
             placeholder.setVisibility(View.VISIBLE);
             placeholder.setText(getErrorText());
+            final ColorStateList errorTextColor = getErrorTextColor();
+            if (errorTextColor != null) {
+                placeholder.setTextColor(errorTextColor);
+            }
         }
         if (retryButton != null) {
             retryButton.setVisibility(View.VISIBLE);
@@ -238,7 +257,7 @@ public abstract class BaseLoadingJugglerFragment<I> extends BaseJugglerFragment 
 
         if (swipeRefreshLayout != null) {
             swipeRefreshLayout.setOnRefreshListener(this);
-            swipeRefreshLayout.setEnabled(enableSwipeRefresh());
+            swipeRefreshLayout.setEnabled(isSwipeRefreshChangeStateEnabled());
         }
 
         progressable = initProgressable();
@@ -282,6 +301,21 @@ public abstract class BaseLoadingJugglerFragment<I> extends BaseJugglerFragment 
         return getContext().getString(R.string.data_load_failed);
     }
 
+    @Nullable
+    protected ColorStateList getEmptyTextColor() {
+        return ColorStateList.valueOf(ContextCompat.getColor(getContext(), R.color.textColorEmptyMessage));
+    }
+
+    @Nullable
+    protected ColorStateList getLoadingTextColor() {
+        return ColorStateList.valueOf(ContextCompat.getColor(getContext(), R.color.textColorLoadingMessage));
+    }
+
+    @Nullable
+    protected ColorStateList getErrorTextColor() {
+        return ColorStateList.valueOf(ContextCompat.getColor(getContext(), R.color.textColorErrorMessage));
+    }
+
     protected abstract boolean isLoadErrorOccurred();
 
     protected void onLoaded(@NotNull I data) {
@@ -318,7 +352,7 @@ public abstract class BaseLoadingJugglerFragment<I> extends BaseJugglerFragment 
 
     protected class LoadFragmentProgressable implements Progressable {
 
-        public LoadFragmentProgressable() {
+        protected LoadFragmentProgressable() {
             if (getContext() == null) {
                 throw new IllegalStateException("fragment is not attached");
             }
@@ -337,14 +371,14 @@ public abstract class BaseLoadingJugglerFragment<I> extends BaseJugglerFragment 
         @Override
         public void onStart() {
             if (isCommitAllowed()) {
-                loading(true);
+                processLoading(true);
             }
         }
 
         @Override
         public void onStop() {
             if (isCommitAllowed()) {
-                loading(false);
+                processLoading(false);
             }
         }
     }

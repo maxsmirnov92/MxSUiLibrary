@@ -2,12 +2,10 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/loading"
-    android:layout_width="match_parent"
+    android:layout_width="wrap_content"
     android:layout_height="wrap_content"
-    android:layout_gravity="center"
-    android:gravity="center"
     android:orientation="horizontal"
-    android:padding="20dp">
+    android:padding="@dimen/loading_container_margin">
 
     <ProgressBar
         android:id="@+id/pbLoading"
@@ -22,10 +20,12 @@
         android:id="@+id/tvLoadingMessage"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginLeft="@dimen/space_8"
-        android:layout_marginStart="@dimen/space_8"
-        android:padding="10dp"
+        android:layout_marginStart="@dimen/loading_message_padding"
+        android:layout_marginLeft="@dimen/loading_message_padding"
+        android:padding="@dimen/loading_message_margin"
         android:text="@string/loading"
-        android:textSize="@dimen/loading_text_size"/>
+        android:textColor="@color/textColorLoadingMessage"
+        android:textSize="@dimen/loading_message_text_size"
+        app:fontFamily="sans-serif" />
 
 </LinearLayout>

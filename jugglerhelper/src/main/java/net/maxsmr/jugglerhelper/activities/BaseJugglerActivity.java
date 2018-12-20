@@ -2,6 +2,7 @@ package net.maxsmr.jugglerhelper.activities;
 
 import android.os.Build;
 import android.os.Bundle;
+import android.support.annotation.AnimRes;
 import android.support.v4.app.Fragment;
 import android.support.v4.util.Pair;
 import android.view.KeyEvent;
@@ -18,9 +19,11 @@ import java.util.List;
 import me.ilich.juggler.gui.JugglerActivity;
 import me.ilich.juggler.states.State;
 
+import static me.ilich.juggler.Juggler.DATA_ANIMATION_FINISH_ENTER;
+import static me.ilich.juggler.Juggler.DATA_ANIMATION_FINISH_EXIT;
+
 
 public class BaseJugglerActivity extends JugglerActivity {
-
 
     private Bundle savedInstanceState;
 
@@ -40,8 +43,20 @@ public class BaseJugglerActivity extends JugglerActivity {
         return (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1 && !isDestroyed());
     }
 
+    @AnimRes
+    protected int getFinishEnterAnimataion() {
+        return 0;
+    }
+
+    @AnimRes
+    protected int getFinishExitAnimataion() {
+        return 0;
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        getIntent().putExtra(DATA_ANIMATION_FINISH_ENTER, getFinishEnterAnimataion());
+        getIntent().putExtra(DATA_ANIMATION_FINISH_EXIT, getFinishExitAnimataion());
         super.onCreate(savedInstanceState);
         this.savedInstanceState = savedInstanceState;
         isCommitAllowed = true;

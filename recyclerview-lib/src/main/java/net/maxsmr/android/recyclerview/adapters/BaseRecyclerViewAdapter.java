@@ -4,14 +4,13 @@ import android.content.Context;
 import android.database.Observable;
 import android.support.annotation.CallSuper;
 import android.support.annotation.LayoutRes;
-
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -339,11 +338,11 @@ public abstract class BaseRecyclerViewAdapter<I, VH extends BaseRecyclerViewAdap
     }
 
     protected boolean allowSetClickListener(@Nullable final I item, final int position) {
-        return true;
+        return !isItemEmpty(item, position);
     }
 
     protected boolean allowSetLongClickListener(@Nullable final I item, final int position) {
-        return true;
+        return allowSetClickListener(item, position);
     }
 
     protected boolean allowFillHolderForItem(@NotNull VH holder, @Nullable final I item, final int position) {
@@ -429,11 +428,11 @@ public abstract class BaseRecyclerViewAdapter<I, VH extends BaseRecyclerViewAdap
             this.context = view.getContext();
         }
 
-        protected void displayData(int position, @NotNull final I item, int count) {
+        public void displayData(int position, @NotNull final I item, int count) {
             itemView.setVisibility(View.VISIBLE);
         }
 
-        protected void displayEmptyData(int position, @Nullable final I item, int count) {
+        public void displayEmptyData(int position, @Nullable final I item, int count) {
             itemView.setVisibility(View.GONE);
         }
 

@@ -4,15 +4,17 @@
     android:id="@+id/swipeRefreshLayout"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="@android:color/white"
     android:fitsSystemWindows="true">
 
+    <!--not working via include and without 'fitsSystemWindows'-->
     <android.support.v7.widget.RecyclerView
         android:id="@+id/recycler"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:elevation="1dp"
-        android:visibility="visible"
+        android:padding="@dimen/recycler_padding"
+        app:elevation="@dimen/recycler_elevation"
+        app:layoutManager="android.support.v7.widget.LinearLayoutManager"
         app:layout_behavior="@string/appbar_scrolling_view_behavior" />
+
 
 </android.support.v4.widget.SwipeRefreshLayout>

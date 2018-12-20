@@ -17,7 +17,10 @@
     <dimen name="window_corners_radius">4dp</dimen>
 
     <dimen name="placeholder_text_size">18sp</dimen>
-    <dimen name="loading_text_size">@dimen/placeholder_text_size</dimen>
+    <dimen name="loading_message_text_size">@dimen/placeholder_text_size</dimen>
+    <dimen name="loading_message_padding">@dimen/space_8</dimen>
+    <dimen name="loading_message_margin">10dp</dimen>
+    <dimen name="loading_container_margin">20dp</dimen>
 
     <dimen name="edittext_cursor_width">1dp</dimen>
 
@@ -34,5 +37,7 @@
 
     <dimen name="item_divider_height">1dp</dimen>
     <dimen name="item_divider_spacing">16dp</dimen>
+
+    <dimen name="view_shadow_height">6dp</dimen>
 
 </resources>

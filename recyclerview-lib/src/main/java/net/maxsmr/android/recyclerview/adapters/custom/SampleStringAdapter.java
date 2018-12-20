@@ -4,15 +4,15 @@ package net.maxsmr.android.recyclerview.adapters.custom;
 import android.content.Context;
 import android.support.annotation.IdRes;
 import android.support.annotation.LayoutRes;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import android.support.annotation.NonNull;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
 import net.maxsmr.android.recyclerview.adapters.BaseRecyclerViewAdapter;
+
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
 
@@ -49,14 +49,14 @@ public class SampleStringAdapter extends BaseRecyclerViewAdapter<String, SampleS
         }
 
         @Override
-        protected void displayData(int position, @NotNull String item, int count) {
+        public void displayData(int position, @NotNull String item, int count) {
             super.displayData(position, item, count);
             textView.setText(item);
             textView.setVisibility(View.VISIBLE);
         }
 
         @Override
-        protected void displayEmptyData(int position, @Nullable String item, int count) {
+        public void displayEmptyData(int position, @Nullable String item, int count) {
             super.displayEmptyData(position, item, count);
             textView.setVisibility(View.GONE);
         }

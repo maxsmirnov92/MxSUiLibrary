@@ -16,7 +16,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -73,10 +73,11 @@ public class AlertDialogFragmentsHolder implements AlertDialogFragment.EventList
 
     private boolean isCommitAllowed = true;
 
-    public AlertDialogFragmentsHolder(@NotNull FragmentManager fragmentManager, String... tags) {
+    public AlertDialogFragmentsHolder(@NotNull FragmentManager fragmentManager, @NotNull Collection<String> tags) {
         this.fragmentManager = fragmentManager;
-        if (tags != null) {
-            this.tags.addAll(Arrays.asList(tags));
+        this.tags.addAll(Predicate.Methods.filter(tags, element -> !TextUtils.isEmpty(element)));
+        if (this.tags.isEmpty()) {
+            throw new IllegalArgumentException("No valid tags specified");
         }
         restoreDialogsFromFragmentManager();
     }
@@ -205,7 +206,7 @@ public class AlertDialogFragmentsHolder implements AlertDialogFragment.EventList
     public <F extends AlertDialogFragment> F getShowingAlertByTag(String tag) {
         checkTag(tag);
         return (F) Predicate.Methods.find(activeAlerts,
-                        element -> element != null && element.isAdded() && tag.equals(element.getTag()));
+                element -> element != null && element.isAdded() && tag.equals(element.getTag()));
     }
 
     @MainThread
@@ -265,7 +266,7 @@ public class AlertDialogFragmentsHolder implements AlertDialogFragment.EventList
     /**
      * @return Pair:
      * - true if fragment for specified tag was successfully hided or already not showing,
-     *   false - otherwise (also when showing was scheduled)
+     * false - otherwise (also when showing was scheduled)
      * - {@linkplain AlertDialogFragment} instance non-null if was added to {@linkplain FragmentManager} before, false otherwise
      */
     @NotNull
@@ -347,7 +348,7 @@ public class AlertDialogFragmentsHolder implements AlertDialogFragment.EventList
         if (TextUtils.isEmpty(tag)) {
             throw new IllegalArgumentException("Tag must be non-empty");
         }
-        if (!tags.isEmpty() && !tags.contains(tag)) {
+        if (!tags.contains(tag)) {
             throw new IllegalArgumentException("Tag '" + tag + "' is not declared in holder");
         }
     }
