@@ -104,12 +104,14 @@ public abstract class BaseLoadingJugglerFragment<I> extends BaseJugglerFragment 
         return networkReceiver != null;
     }
 
+    @SuppressWarnings("ConstantConditions")
     protected void registerNetworkBroadcastReceiver() {
         if (ContextCompat.checkSelfPermission(getContext(), "android.permission.ACCESS_NETWORK_STATE") == PackageManager.PERMISSION_GRANTED && !isNetworkBroadcastReceiverRegistered()) {
             getContext().registerReceiver(networkReceiver = new NetworkBroadcastReceiver(), new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION));
         }
     }
 
+    @SuppressWarnings("ConstantConditions")
     protected void unregisterNetworkBroadcastReceiver() {
         if (isNetworkBroadcastReceiverRegistered()) {
             getContext().unregisterReceiver(networkReceiver);
@@ -153,6 +155,14 @@ public abstract class BaseLoadingJugglerFragment<I> extends BaseJugglerFragment 
     @Nullable
     protected abstract I getInitial();
 
+    protected boolean allowRetryButtonOnEmpty() {
+        return true;
+    }
+
+    protected boolean allowRetryButtonOnError() {
+        return true;
+    }
+
     protected void afterLoading(@Nullable I data) {
         if (!isLoadErrorOccurred()) {
             if (data != null && !isDataEmpty(data)) {
@@ -195,13 +205,15 @@ public abstract class BaseLoadingJugglerFragment<I> extends BaseJugglerFragment 
             }
             loadingLayout.setVisibility(isLoading ? View.VISIBLE : View.GONE);
         }
-        if (placeholder != null) {
-            placeholder.setVisibility(View.GONE);
-        }
-        if (retryButton != null) {
-            retryButton.setVisibility(View.GONE);
-        }
         switchSwipe(isLoading);
+        if (isLoading) {
+            if (placeholder != null) {
+                placeholder.setVisibility(View.GONE);
+            }
+            if (retryButton != null) {
+                retryButton.setVisibility(View.GONE);
+            }
+        }
     }
 
     protected void switchSwipe(boolean toggle) {
@@ -231,9 +243,8 @@ public abstract class BaseLoadingJugglerFragment<I> extends BaseJugglerFragment 
             }
         }
         if (retryButton != null) {
-            retryButton.setVisibility(View.GONE);
+            retryButton.setVisibility(isEmpty && allowRetryButtonOnEmpty()? View.VISIBLE : View.GONE);
         }
-        switchSwipe(isLoading);
     }
 
     @CallSuper
@@ -247,7 +258,7 @@ public abstract class BaseLoadingJugglerFragment<I> extends BaseJugglerFragment 
             }
         }
         if (retryButton != null) {
-            retryButton.setVisibility(View.VISIBLE);
+            retryButton.setVisibility(allowRetryButtonOnError()? View.VISIBLE : View.GONE);
         }
     }
 

@@ -146,9 +146,13 @@ public abstract class BaseListLoadingJugglerFragment<I extends Comparable<I>, Ad
         }
     }
 
+    protected boolean allowHideRecyclerOnLoading() {
+        return true;
+    }
+
     protected void processLoading(boolean isLoading) {
         super.processLoading(isLoading);
-        recycler.setVisibility(isLoading ? View.GONE : View.VISIBLE);
+        recycler.setVisibility(isLoading && allowHideRecyclerOnLoading() ? View.GONE : View.VISIBLE);
     }
 
     protected boolean isDataEmpty() {
