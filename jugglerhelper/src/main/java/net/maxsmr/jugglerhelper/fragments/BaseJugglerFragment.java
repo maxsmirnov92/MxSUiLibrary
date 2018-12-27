@@ -1,5 +1,7 @@
 package net.maxsmr.jugglerhelper.fragments;
 
+import android.annotation.SuppressLint;
+import android.app.Activity;
 import android.content.Intent;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
@@ -148,10 +150,15 @@ public abstract class BaseJugglerFragment extends JugglerFragment {
     }
 
     @Override
+    public void onActivityCreated(@android.support.annotation.Nullable Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
+        setupWindow();
+    }
+
+    @Override
     public void onResume() {
         super.onResume();
         isCommitAllowed = true;
-        setupWindow();
     }
 
     @Override
@@ -197,6 +204,7 @@ public abstract class BaseJugglerFragment extends JugglerFragment {
     @Override
     @CallSuper
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        isCommitAllowed = true;
         List<Fragment> childFragments = getChildFragmentManager().getFragments();
         for (Fragment f : childFragments) {
             if (f != null && !f.isDetached())
@@ -245,42 +253,54 @@ public abstract class BaseJugglerFragment extends JugglerFragment {
         return (T) activity;
     }
 
-    @SuppressWarnings("ConstantConditions")
     @Nullable
+    protected Integer getScreenOrientation() {
+        return null;
+    }
+
+    @Nullable
+    @SuppressWarnings("ConstantConditions")
     protected Drawable getWindowBackground() {
         return null;
     }
 
+    @Nullable
     @SuppressWarnings("ConstantConditions")
     @ColorInt
-    @Nullable
     protected Integer getStatusBarColor() {
         return ContextCompat.getColor(getContext(), R.color.colorStatusBar);
     }
 
+    @Nullable
     @SuppressWarnings("ConstantConditions")
     @ColorInt
-    @Nullable
     protected Integer getNavigationBarColor() {
         return ContextCompat.getColor(getContext(), R.color.colorNavigationBar);
     }
 
-    @SuppressWarnings("ConstantConditions")
+    @SuppressLint("WrongConstant")
     protected void setupWindow() {
-        final Window window = getActivity().getWindow();
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            Integer statusBarColor = getStatusBarColor();
-            if (statusBarColor != null) {
-                window.setStatusBarColor(statusBarColor);
+        final Activity activity = getActivity();
+        if (activity != null) {
+            final Integer orientation = getScreenOrientation();
+            if (orientation != null) {
+                activity.setRequestedOrientation(orientation);
             }
-            Integer navigationBarColor = getNavigationBarColor();
-            if (navigationBarColor != null) {
-                window.setNavigationBarColor(navigationBarColor);
+            final Window window = activity.getWindow();
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                Integer statusBarColor = getStatusBarColor();
+                if (statusBarColor != null) {
+                    window.setStatusBarColor(statusBarColor);
+                }
+                Integer navigationBarColor = getNavigationBarColor();
+                if (navigationBarColor != null) {
+                    window.setNavigationBarColor(navigationBarColor);
+                }
             }
-        }
-        Drawable windowBackground = getWindowBackground();
-        if (windowBackground != null) {
-            window.setBackgroundDrawable(windowBackground);
+            Drawable windowBackground = getWindowBackground();
+            if (windowBackground != null) {
+                window.setBackgroundDrawable(windowBackground);
+            }
         }
     }
 }

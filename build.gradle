@@ -38,7 +38,7 @@ ext {
     bintrayGradleVersion = "1.7.3"
     mavenGradleVersion = "1.4.1"
 
-    commonUtilsVersion = "1.0.5.7"
+    commonUtilsVersion = "1.0.5.8"
 
     jetbrainsAnnotationsVersion = '13.0'
 

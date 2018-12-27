@@ -24,7 +24,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-
 /**
  * class for showing/hiding and restoring {@linkplain AlertDialogFragment} linked
  * to specified {@linkplain FragmentManager} alerts
@@ -61,10 +60,10 @@ public class AlertDialogFragmentsHolder implements AlertDialogFragment.EventList
     @NotNull
     protected final Set<String> targetAlertsToHide = new LinkedHashSet<>();
 
-    @NotNull
-    protected final FragmentManager fragmentManager;
-
     private final AlertEventsObservable eventsObservable = new AlertEventsObservable();
+
+    @Nullable
+    protected FragmentManager fragmentManager;
 
     @NotNull
     private ShowRule showRule = ShowRule.MULTI;
@@ -73,13 +72,16 @@ public class AlertDialogFragmentsHolder implements AlertDialogFragment.EventList
 
     private boolean isCommitAllowed = true;
 
-    public AlertDialogFragmentsHolder(@NotNull FragmentManager fragmentManager, @NotNull Collection<String> tags) {
-        this.fragmentManager = fragmentManager;
+    public AlertDialogFragmentsHolder(@NotNull Collection<String> tags) {
+        this(null, tags);
+    }
+
+    public AlertDialogFragmentsHolder(@Nullable FragmentManager fragmentManager, @NotNull Collection<String> tags) {
         this.tags.addAll(Predicate.Methods.filter(tags, element -> !TextUtils.isEmpty(element)));
         if (this.tags.isEmpty()) {
             throw new IllegalArgumentException("No valid tags specified");
         }
-        restoreDialogsFromFragmentManager();
+        setFragmentManager(fragmentManager);
     }
 
     public void registerEventListener(@NotNull AlertDialogFragment.EventListener listener) {
@@ -88,6 +90,19 @@ public class AlertDialogFragmentsHolder implements AlertDialogFragment.EventList
 
     public void unregisterEventListener(@NotNull AlertDialogFragment.EventListener listener) {
         eventsObservable.unregisterObserver(listener);
+    }
+
+    public void setFragmentManager(@Nullable FragmentManager fragmentManager) {
+        if (this.fragmentManager != fragmentManager) {
+            this.fragmentManager = fragmentManager;
+            if (fragmentManager != null) {
+                restoreDialogsFromFragmentManager();
+                handleTargetFragmentsToHide();
+                handleTargetFragmentsToShow();
+            } else {
+                activeAlerts.clear();
+            }
+        }
     }
 
     /**
@@ -142,8 +157,10 @@ public class AlertDialogFragmentsHolder implements AlertDialogFragment.EventList
     public void onResumed() {
         logger.d("onResumed");
         isCommitAllowed = true;
-        handleTargetFragmentsToHide();
-        handleTargetFragmentsToShow();
+        if (fragmentManager != null) {
+            handleTargetFragmentsToHide();
+            handleTargetFragmentsToShow();
+        }
     }
 
     /**
@@ -179,12 +196,14 @@ public class AlertDialogFragmentsHolder implements AlertDialogFragment.EventList
         eventsObservable.notifyDialogDismiss(fragment);
         activeAlerts.remove(fragment);
         targetAlertsToHide.remove(fragment.getTag());
-        if (showRule == ShowRule.SINGLE && !targetAlertsToShow.isEmpty()) {
-            // add first scheduled fragment, because of mode
-            final Map.Entry<String, Pair<AlertDialogFragment, Boolean>> e = new ArrayList<>(targetAlertsToShow.entrySet()).get(0);
-            final Pair<AlertDialogFragment, Boolean> p = e.getValue();
-            if (p != null && p.first != null && p.second != null) {
-                showAlert(e.getKey(), p.first, p.second);
+        if (fragmentManager != null) {
+            if (showRule == ShowRule.SINGLE && !targetAlertsToShow.isEmpty()) {
+                // add first scheduled fragment, because of mode
+                final Map.Entry<String, Pair<AlertDialogFragment, Boolean>> e = new ArrayList<>(targetAlertsToShow.entrySet()).get(0);
+                final Pair<AlertDialogFragment, Boolean> p = e.getValue();
+                if (p != null && p.first != null && p.second != null) {
+                    showAlert(e.getKey(), p.first, p.second);
+                }
             }
         }
     }
@@ -220,10 +239,12 @@ public class AlertDialogFragmentsHolder implements AlertDialogFragment.EventList
      * @param reshow   if fragment for specified tag is already showing, it will be re-showed
      * @return true if successfully showed, false - otherwise (also when showing was scheduled)
      */
+    @SuppressWarnings("ConstantConditions")
     @MainThread
     protected boolean showAlert(String tag, @NotNull AlertDialogFragment fragment, boolean reshow) {
         logger.d("showAlert: tag=" + tag + ", reshow=" + reshow);
 
+        checkFragmentManager();
         checkTag(tag);
 
         if (!reshow && isAlertShowing(tag)) {
@@ -274,6 +295,8 @@ public class AlertDialogFragmentsHolder implements AlertDialogFragment.EventList
     protected Pair<Boolean, AlertDialogFragment> hideAlert(String tag) {
         logger.d("hideAlert: tag=" + tag);
 
+        checkFragmentManager();
+
         final AlertDialogFragment fragment = getShowingAlertByTag(tag);
 
         boolean result = true;
@@ -312,7 +335,11 @@ public class AlertDialogFragmentsHolder implements AlertDialogFragment.EventList
         return new Pair<>(result, fragment);
     }
 
+    @SuppressWarnings("ConstantConditions")
+    @MainThread
     protected void restoreDialogsFromFragmentManager() {
+        checkFragmentManager();
+        activeAlerts.clear();
         for (String tag : tags) {
             if (!TextUtils.isEmpty(tag)) {
                 AlertDialogFragment fragment = (AlertDialogFragment) fragmentManager.findFragmentByTag(tag);
@@ -324,8 +351,9 @@ public class AlertDialogFragmentsHolder implements AlertDialogFragment.EventList
         }
     }
 
+    @MainThread
     protected void handleTargetFragmentsToShow() {
-        for (Map.Entry<String, Pair<AlertDialogFragment, Boolean>> e : new LinkedHashMap<>(targetAlertsToShow).entrySet()) {
+        for (Map.Entry<String, Pair<AlertDialogFragment, Boolean>> e : targetAlertsToShow.entrySet()) {
             Pair<AlertDialogFragment, Boolean> p = e.getValue();
             if (p != null && p.first != null && p.second != null) {
                 String tag = e.getKey();
@@ -334,14 +362,21 @@ public class AlertDialogFragmentsHolder implements AlertDialogFragment.EventList
         }
     }
 
+    @MainThread
     protected void handleTargetFragmentsToHide() {
-        for (String tag : new LinkedHashSet<>(targetAlertsToHide)) {
+        for (String tag : targetAlertsToHide) {
             hideAlert(tag);
         }
     }
 
     protected Class<? extends AlertDialogFragmentsHolder> getLoggerClass() {
         return getClass();
+    }
+
+    private void checkFragmentManager() {
+        if (fragmentManager == null) {
+            throw new IllegalStateException(FragmentManager.class.getSimpleName() + " is not specified");
+        }
     }
 
     private void checkTag(String tag) {

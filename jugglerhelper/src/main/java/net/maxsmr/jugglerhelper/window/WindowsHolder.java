@@ -198,7 +198,7 @@ public class WindowsHolder {
         }
     }
 
-    interface ViewFactory {
+    public interface ViewFactory {
 
         View createViewByTag(String tag);
     }

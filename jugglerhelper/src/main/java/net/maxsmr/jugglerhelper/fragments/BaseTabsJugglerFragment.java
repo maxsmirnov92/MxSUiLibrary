@@ -6,17 +6,18 @@ import android.support.annotation.CallSuper;
 import android.support.annotation.IdRes;
 import android.support.design.widget.TabLayout;
 import android.support.v4.app.Fragment;
+import android.support.v4.util.Pair;
 import android.support.v4.view.ViewPager;
 import android.support.v7.widget.RecyclerView;
 import android.text.TextUtils;
 import android.view.View;
 
 import net.maxsmr.commonutils.android.gui.GuiUtils;
-import net.maxsmr.commonutils.android.gui.adapters.CustomFragmentStatePagerAdapter;
 import net.maxsmr.commonutils.android.gui.fonts.FontsHolder;
 import net.maxsmr.commonutils.data.CompareUtils;
 import net.maxsmr.commonutils.data.Predicate;
 import net.maxsmr.jugglerhelper.R;
+import net.maxsmr.jugglerhelper.fragments.adapters.CustomFragmentStatePagerAdapter;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -38,6 +39,7 @@ public abstract class BaseTabsJugglerFragment<PagerAdapter
     @Nullable
     protected TabLayout tabLayout;
 
+    // lateinit, must not be null
     protected ViewPager viewPager;
 
     @Override
@@ -330,24 +332,24 @@ public abstract class BaseTabsJugglerFragment<PagerAdapter
         updateTabIcons();
     }
 
-    public void selectTab(int at) {
+    public void selectTab(int position) {
         PagerAdapter adapter = getStatePagerAdapter();
 
         if (adapter == null) {
             throw new RuntimeException("adapter is not initialized");
         }
 
-        if (at < 0 || at >= adapter.getCount()) {
-            throw new IndexOutOfBoundsException("incorrect tab index: " + at);
+        if (position < 0 || position >= adapter.getCount()) {
+            throw new IndexOutOfBoundsException("incorrect tab index: " + position);
         }
 
         if (tabLayout != null) {
-            TabLayout.Tab tab = tabLayout.getTabAt(at);
+            TabLayout.Tab tab = tabLayout.getTabAt(position);
             if (tab != null && !tab.isSelected()) {
                 tab.select();
             }
         } else {
-            viewPager.setCurrentItem(at, true);
+            viewPager.setCurrentItem(position, true);
         }
     }
 
@@ -358,9 +360,22 @@ public abstract class BaseTabsJugglerFragment<PagerAdapter
             throw new RuntimeException("adapter is not initialized");
         }
 
-        int index = adapter.fragmentIndexOf(fragment);
-        if (index >= 0) {
-            selectTab(index);
+        Pair<Integer, CustomFragmentStatePagerAdapter.FragmentPair> pair = adapter.findByInstance(fragment);
+        if (pair != null && pair.first != null) {
+            selectTab(pair.first);
+        }
+    }
+
+    public void selectTabByFragmentClass(Class<Fragment> fragmentClass) {
+        PagerAdapter adapter = getStatePagerAdapter();
+
+        if (adapter == null) {
+            throw new RuntimeException("adapter is not initialized");
+        }
+
+        Pair<Integer, CustomFragmentStatePagerAdapter.FragmentPair> pair = adapter.findByClass(fragmentClass);
+        if (pair != null && pair.first != null) {
+            selectTab(pair.first);
         }
     }
 
@@ -395,11 +410,12 @@ public abstract class BaseTabsJugglerFragment<PagerAdapter
                 for (int index = 0; index < getCurrentPagesCount(); index++) {
 
                     final Fragment fragment = adapter.getFragmentInstance(index);
-                    final String tag = getTagForPagerFragment(fragment);
-
-                    if (!TextUtils.isEmpty(tag) && CompareUtils.stringsEqual(entry.getValue(), tag, false)) {
-                        selectedIndex = index;
-                        break;
+                    if (fragment != null) {
+                        final String tag = getTagForPagerFragment(fragment);
+                        if (!TextUtils.isEmpty(tag) && CompareUtils.stringsEqual(entry.getValue(), tag, false)) {
+                            selectedIndex = index;
+                            break;
+                        }
                     }
                 }
 

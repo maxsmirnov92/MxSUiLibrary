@@ -1,4 +1,4 @@
-package net.maxsmr.android.recyclerview.adapters.custom;
+package net.maxsmr.android.recyclerview.adapters.sample;
 
 
 import android.content.Context;

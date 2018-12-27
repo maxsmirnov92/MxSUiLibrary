@@ -5,7 +5,7 @@
     <color name="gray_middle">#c2c2c2</color>
     <color name="gray_light">#ffe6e6e6</color>
     <color name="gray_dark">#ff333333</color>
-    <color name="gray_half_transparent">#66585858</color>
+    <color name="gray_half_transparent">#7f585858</color>
 
     <color name="colorAccent">#81CAF4</color>
     <color name="colorPrimary">@color/colorAccent</color>
@@ -20,7 +20,7 @@
     <color name="textColorPrimary">@android:color/black</color>
     <color name="textColorSecondary">@color/gray_middle</color>
     <color name="textCursorColor">@color/colorPrimary</color>
-    <color name="textColorHint">@color/gray</color>
+    <color name="textColorHint">@color/gray_light</color>
     <color name="textColorError">#DA2718</color>
     <color name="textColorDisabled">@color/textColorHint</color>
     <color name="textColorNormal">@color/textColorPrimary</color>

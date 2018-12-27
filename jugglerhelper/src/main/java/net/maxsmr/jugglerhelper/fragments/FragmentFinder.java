@@ -4,11 +4,9 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.util.Pair;
 
-import net.maxsmr.commonutils.android.gui.adapters.CustomFragmentStatePagerAdapter;
 import net.maxsmr.commonutils.data.CompareUtils;
 import net.maxsmr.commonutils.data.Predicate;
 
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
@@ -80,31 +78,10 @@ public final class FragmentFinder {
     @Nullable
     @SuppressWarnings("unchecked")
     public static <F extends Fragment> Pair<Integer, F> findFragmentByInstance(@Nullable Collection<Fragment> fragments, @Nullable F targetFragment) {
-        Pair<Integer, Fragment> result = Predicate.Methods.findWithIndex(fragments, fragment -> fragment != null && !fragment.isDetached() &&
-                CompareUtils.objectsEqual(fragment, targetFragment) &&
-                (targetFragment == null || targetFragment.getClass().isAssignableFrom(fragment.getClass())));
+        Pair<Integer, Fragment> result = Predicate.Methods.findWithIndex(fragments, fragment -> fragment != null && !fragment.isDetached() && CompareUtils.objectsEqual(fragment, targetFragment));
         if (result != null) {
             return new Pair<>(result.first, (F) result.second);
         }
         return null;
-    }
-
-    // TODO update CustomFragmentStatePagerAdapter
-    @Deprecated
-    @Nullable
-    public static <F extends Fragment> Pair<Integer, F> findFragmentByClass(@NotNull Class<F> fragmentClass, @Nullable CustomFragmentStatePagerAdapter pagerAdapter) {
-        Pair<Integer, F> result = null;
-        if (pagerAdapter != null) {
-            for (int index = 0; index < pagerAdapter.getCount(); index++) {
-                Fragment fragment = pagerAdapter.getFragmentInstance(index);
-                if (fragmentClass.isAssignableFrom(fragment.getClass())) {
-                    //noinspection unchecked
-                    result = new Pair<>(index, (F) fragment);
-                    break;
-                }
-                index++;
-            }
-        }
-        return result;
     }
 }

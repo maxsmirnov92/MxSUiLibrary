@@ -4,14 +4,13 @@ import android.content.Context;
 import android.database.Observable;
 import android.support.annotation.CallSuper;
 import android.support.annotation.LayoutRes;
-
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import android.support.v7.widget.RecyclerView;
 import android.widget.Checkable;
 
 import com.bejibx.android.recyclerview.selection.SelectionHelper;
+
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -184,7 +183,7 @@ public abstract class BaseSingleSelectionRecyclerViewAdapter<I, VH extends BaseR
         if (mSelection >= 0 && mSelection < getItemCount()) {
             return mSelection;
         }
-        return (mSelection = RecyclerView.NO_POSITION);
+        return mSelection = RecyclerView.NO_POSITION;
     }
 
     @Nullable
@@ -213,22 +212,29 @@ public abstract class BaseSingleSelectionRecyclerViewAdapter<I, VH extends BaseR
         setSelection(selection, false);
     }
 
-    protected boolean setSelection(int selection, boolean fromUser) {
+    /** @return true if selection changed, false - otherwise */
+    public boolean setSelection(int selection, boolean fromUser) {
         if (isSelectable()) {
             rangeCheck(selection);
             int previousSelection = mSelection;
             mSelection = selection;
-            onSelectionChanged(previousSelection, mSelection, fromUser);
-            if (isNotifyOnChange()) {
-                boolean isNewSelection = true;
-                if (previousSelection >= 0 && previousSelection < getItemCount()) {
-                    isNewSelection = mSelection != previousSelection;
-                }
-                if (isNewSelection) {
-                    notifyItemChanged(selection);
-                }
+            boolean isNewSelection = true;
+            if (previousSelection >= 0 && previousSelection < getItemCount()) {
+                isNewSelection = mSelection != previousSelection;
+            } else {
+                previousSelection = RecyclerView.NO_POSITION;
             }
-            return true;
+            // calling it anyway to trigger reselect if needed
+            onSelectionChanged(previousSelection, mSelection, fromUser);
+            if (isNewSelection) {
+                if (isNotifyOnChange()) {
+                    notifyItemChanged(selection);
+                    if (previousSelection != RecyclerView.NO_POSITION) {
+                        notifyItemChanged(previousSelection);
+                    }
+                }
+                return true;
+            }
         }
         return false;
     }
@@ -237,7 +243,8 @@ public abstract class BaseSingleSelectionRecyclerViewAdapter<I, VH extends BaseR
         resetSelection(false);
     }
 
-    private void resetSelection(boolean fromUser) {
+    /** @return true if was resetted, false - it was already not selected */
+    public boolean resetSelection(boolean fromUser) {
         if (isSelected()) {
             int previousSelection = mSelection;
             mSelection = RecyclerView.NO_POSITION;
@@ -250,7 +257,9 @@ public abstract class BaseSingleSelectionRecyclerViewAdapter<I, VH extends BaseR
                     notifyItemChanged(previousSelection);
                 }
             }
+            return true;
         }
+        return false;
     }
 
     public void toggleSelection(int selection) {
@@ -358,11 +367,13 @@ public abstract class BaseSingleSelectionRecyclerViewAdapter<I, VH extends BaseR
                     mSelection += count;
                 }
             }
-            if (previousSelection >= 0 && previousSelection < currentCount) {
-                notifyItemChanged(previousSelection);
-            }
-            if (mSelection != previousSelection && mSelection >= 0 && mSelection < currentCount) {
-                notifyItemChanged(mSelection);
+            if (isNotifyOnChange()) {
+                if (previousSelection >= 0 && previousSelection < currentCount) {
+                    notifyItemChanged(previousSelection);
+                }
+                if (mSelection != previousSelection && mSelection >= 0 && mSelection < currentCount) {
+                    notifyItemChanged(mSelection);
+                }
             }
         }
     }
@@ -379,11 +390,13 @@ public abstract class BaseSingleSelectionRecyclerViewAdapter<I, VH extends BaseR
                     mSelection -= count;
                 }
             }
-            if (previousSelection >= 0 && previousSelection < currentCount) {
-                notifyItemChanged(previousSelection);
-            }
-            if (mSelection != previousSelection && mSelection >= 0 && mSelection < currentCount) {
-                notifyItemChanged(mSelection);
+            if (isNotifyOnChange()) {
+                if (previousSelection >= 0 && previousSelection < currentCount) {
+                    notifyItemChanged(previousSelection);
+                }
+                if (mSelection != previousSelection && mSelection >= 0 && mSelection < currentCount) {
+                    notifyItemChanged(mSelection);
+                }
             }
         }
     }

@@ -78,6 +78,22 @@ public abstract class BaseRecyclerViewAdapter<I, VH extends BaseRecyclerViewAdap
     }
 
     @Nullable
+    public final I getFirstItem() {
+        if (!isEmpty()) {
+            return getItem(0);
+        }
+        return null;
+    }
+
+    @Nullable
+    public final I getLastItem() {
+        if (!isEmpty()) {
+            return getItem(getItemCount() - 1);
+        }
+        return null;
+    }
+
+    @Nullable
     public final I getItem(int at) throws IndexOutOfBoundsException {
         synchronized (mItems) {
             rangeCheck(at);
@@ -362,14 +378,17 @@ public abstract class BaseRecyclerViewAdapter<I, VH extends BaseRecyclerViewAdap
             View clickableView = getClickableView(holder);
 
             if (clickableView != null) {
-                if (allowSetClickListener(item, position)) {
-                    clickableView.setOnClickListener(v -> {
+                clickableView.setOnClickListener(v -> {
+                    if (allowSetClickListener(item, position)) {
                         mItemsEventsObservable.notifyItemClick(position, item);
-                    });
-                }
-                if (allowSetLongClickListener(item, position)) {
-                    clickableView.setOnLongClickListener(v -> mItemsEventsObservable.notifyItemLongClick(position, item));
-                }
+                    }
+                });
+                clickableView.setOnLongClickListener(v -> {
+                    if (allowSetLongClickListener(item, position)) {
+                        return mItemsEventsObservable.notifyItemLongClick(position, item);
+                    }
+                    return false;
+                });
             }
 
             if (allowFillHolderForItem(holder, item, position)) {
@@ -451,7 +470,7 @@ public abstract class BaseRecyclerViewAdapter<I, VH extends BaseRecyclerViewAdap
             }
         }
 
-        protected boolean notifyItemLongClick(int position, I item){
+        protected boolean notifyItemLongClick(int position, I item) {
             synchronized (mObservers) {
                 boolean consumed = false;
                 for (ItemsEventsListener<I> l : mObservers) {
@@ -463,7 +482,7 @@ public abstract class BaseRecyclerViewAdapter<I, VH extends BaseRecyclerViewAdap
             }
         }
 
-        protected void notifyItemAdded(int to, @Nullable I item){
+        protected void notifyItemAdded(int to, @Nullable I item) {
             synchronized (mObservers) {
                 for (ItemsEventsListener<I> l : mObservers) {
                     l.onItemAdded(to, item);
@@ -471,7 +490,7 @@ public abstract class BaseRecyclerViewAdapter<I, VH extends BaseRecyclerViewAdap
             }
         }
 
-        protected void notifyItemsAdded(int to, @NotNull Collection<I> items){
+        protected void notifyItemsAdded(int to, @NotNull Collection<I> items) {
             synchronized (mObservers) {
                 for (ItemsEventsListener<I> l : mObservers) {
                     l.onItemsAdded(to, items);
@@ -479,7 +498,7 @@ public abstract class BaseRecyclerViewAdapter<I, VH extends BaseRecyclerViewAdap
             }
         }
 
-        protected void notifyItemSet(int to, I item){
+        protected void notifyItemSet(int to, I item) {
             synchronized (mObservers) {
                 for (ItemsEventsListener<I> l : mObservers) {
                     l.onItemSet(to, item);
@@ -487,7 +506,7 @@ public abstract class BaseRecyclerViewAdapter<I, VH extends BaseRecyclerViewAdap
             }
         }
 
-        protected void notifyItemsSet(@NotNull List<I> items){
+        protected void notifyItemsSet(@NotNull List<I> items) {
             synchronized (mObservers) {
                 for (ItemsEventsListener<I> l : mObservers) {
                     l.onItemsSet(items);
@@ -495,7 +514,7 @@ public abstract class BaseRecyclerViewAdapter<I, VH extends BaseRecyclerViewAdap
             }
         }
 
-        protected void notifyItemRemoved(int from, I item){
+        protected void notifyItemRemoved(int from, I item) {
             synchronized (mObservers) {
                 for (ItemsEventsListener<I> l : mObservers) {
                     l.onItemRemoved(from, item);
@@ -503,7 +522,7 @@ public abstract class BaseRecyclerViewAdapter<I, VH extends BaseRecyclerViewAdap
             }
         }
 
-        protected void notifyItemsRangeRemoved(int from, int to, int previousSize){
+        protected void notifyItemsRangeRemoved(int from, int to, int previousSize) {
             synchronized (mObservers) {
                 for (ItemsEventsListener<I> l : mObservers) {
                     l.onItemsRangeRemoved(from, to, previousSize);
@@ -520,7 +539,7 @@ public abstract class BaseRecyclerViewAdapter<I, VH extends BaseRecyclerViewAdap
          * @return true if event consumed
          */
         boolean onItemLongClick(int position, I item);
-        
+
         void onItemAdded(int to, @Nullable I item);
 
         void onItemsAdded(int to, @NotNull Collection<I> items);
