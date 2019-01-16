@@ -1,5 +1,6 @@
-package net.maxsmr.jugglerhelper.fragments.alert;
+package net.maxsmr.jugglerhelper.fragments.alert.holder;
 
+import android.support.annotation.CallSuper;
 import android.support.annotation.MainThread;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.util.Pair;
@@ -11,12 +12,14 @@ import net.maxsmr.commonutils.data.Observable;
 import net.maxsmr.commonutils.data.Predicate;
 import net.maxsmr.commonutils.logger.BaseLogger;
 import net.maxsmr.commonutils.logger.holder.BaseLoggerHolder;
+import net.maxsmr.jugglerhelper.fragments.alert.AlertDialogFragment;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -37,7 +40,7 @@ public class AlertDialogFragmentsHolder implements AlertDialogFragment.EventList
      * tags to use in this holder
      */
     @NotNull
-    protected final List<String> tags = new ArrayList<>();
+    protected final Set<String> tags = new HashSet<>();
 
     /**
      * active alerts, added to specified {@linkplain FragmentManager}
@@ -100,7 +103,7 @@ public class AlertDialogFragmentsHolder implements AlertDialogFragment.EventList
                 handleTargetFragmentsToHide();
                 handleTargetFragmentsToShow();
             } else {
-                activeAlerts.clear();
+                hideActiveAlerts();
             }
         }
     }
@@ -171,26 +174,31 @@ public class AlertDialogFragmentsHolder implements AlertDialogFragment.EventList
         isCommitAllowed = false;
     }
 
+    @CallSuper
     @Override
     public void onDialogCreated(@NotNull AlertDialogFragment fragment, @NotNull AlertDialog dialog) {
         eventsObservable.notifyDialogCreated(fragment, dialog);
     }
 
+    @CallSuper
     @Override
     public void onDialogButtonClick(@NotNull AlertDialogFragment fragment, int which) {
         eventsObservable.notifyDialogButtonClick(fragment, which);
     }
 
+    @CallSuper
     @Override
     public boolean onDialogKey(@NotNull AlertDialogFragment fragment, int keyCode, KeyEvent event) {
         return eventsObservable.notifyDialogKeyPressed(fragment, keyCode, event);
     }
 
+    @CallSuper
     @Override
     public void onDialogCancel(@NotNull AlertDialogFragment fragment) {
         eventsObservable.notifyDialogCancel(fragment);
     }
 
+    @CallSuper
     @Override
     public void onDialogDismiss(@NotNull AlertDialogFragment fragment) {
         eventsObservable.notifyDialogDismiss(fragment);
@@ -226,6 +234,22 @@ public class AlertDialogFragmentsHolder implements AlertDialogFragment.EventList
         checkTag(tag);
         return (F) Predicate.Methods.find(activeAlerts,
                 element -> element != null && element.isAdded() && tag.equals(element.getTag()));
+    }
+
+    public void hideActiveAlerts() {
+        for (AlertDialogFragment f: activeAlerts) {
+            if (f != null) {
+                hideAlert(f.getTag());
+            }
+        }
+        activeAlerts.clear();
+    }
+
+    public void release() {
+        targetAlertsToShow.clear();
+        targetAlertsToHide.clear();
+        setFragmentManager(null);
+        eventsObservable.unregisterAll();
     }
 
     @MainThread
@@ -387,6 +411,15 @@ public class AlertDialogFragmentsHolder implements AlertDialogFragment.EventList
             throw new IllegalArgumentException("Tag '" + tag + "' is not declared in holder");
         }
     }
+
+    public static List<String> mergeTags(@Nullable Collection<String> oneTags, @Nullable Collection<String> anotherTags) {
+        final ArrayList<String> tags = oneTags != null? new ArrayList<>(oneTags) : new ArrayList<>();
+        if (anotherTags != null) {
+            tags.addAll(anotherTags);
+        }
+        return tags;
+    }
+
 
     public enum ShowRule {
         /**

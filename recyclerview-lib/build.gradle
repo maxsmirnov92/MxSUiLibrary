@@ -1,17 +1,3 @@
-buildscript {
-    repositories {
-        jcenter()
-    }
-    dependencies {
-        classpath "com.jfrog.bintray.gradle:gradle-bintray-plugin:$bintrayGradleVersion"
-        classpath "com.github.dcendents:android-maven-gradle-plugin:$mavenGradleVersion"
-    }
-}
-
-repositories {
-    jcenter()
-}
-
 apply plugin: 'com.android.library'
 
 apply plugin: 'com.jfrog.bintray'

@@ -1,5 +1,7 @@
 package net.maxsmr.jugglerhelper.activities;
 
+import android.annotation.SuppressLint;
+import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.AnimRes;
@@ -14,8 +16,11 @@ import net.maxsmr.jugglerhelper.fragments.FragmentFinder;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.io.Serializable;
 import java.util.List;
 
+import me.ilich.juggler.Navigable;
+import me.ilich.juggler.change.Add;
 import me.ilich.juggler.gui.JugglerActivity;
 import me.ilich.juggler.states.State;
 
@@ -25,7 +30,11 @@ import static me.ilich.juggler.Juggler.DATA_ANIMATION_FINISH_EXIT;
 
 public class BaseJugglerActivity extends JugglerActivity {
 
-    private Bundle savedInstanceState;
+    @Nullable
+    protected State<?> initialState;
+
+    @Nullable
+    protected Bundle savedInstanceState;
 
     private boolean isCommitAllowed = false;
 
@@ -53,11 +62,24 @@ public class BaseJugglerActivity extends JugglerActivity {
         return 0;
     }
 
+    protected boolean shouldActivateState(State<?> state) {
+        return true;
+    }
+
+    protected void doActionStateNotActivated(State<?> state) {
+
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         getIntent().putExtra(DATA_ANIMATION_FINISH_ENTER, getFinishEnterAnimataion());
         getIntent().putExtra(DATA_ANIMATION_FINISH_EXIT, getFinishExitAnimataion());
         super.onCreate(savedInstanceState);
+        initialState = getActivityState();
+        if (!shouldActivateState(initialState)) {
+            getIntent().putExtra(EXTRA_STATE, (Serializable) null);
+            doActionStateNotActivated(initialState);
+        }
         this.savedInstanceState = savedInstanceState;
         isCommitAllowed = true;
     }
@@ -151,12 +173,32 @@ public class BaseJugglerActivity extends JugglerActivity {
 
     @Nullable
     public State getActivityState() {
+        final Intent intent = getIntent();
+        if (intent == null) {
+            throw new IllegalStateException(Intent.class.getSimpleName() + " is null");
+        }
         final State<?> state;
-        if (getIntent().hasExtra(EXTRA_STATE)) {
+        if (intent.hasExtra(EXTRA_STATE)) {
             state = (State<?>) getIntent().getSerializableExtra(EXTRA_STATE);
         } else {
             state = createState();
         }
         return state;
     }
+
+    @SuppressLint("VisibleForTests")
+    protected void applyState(@Nullable State<?> state) {
+        final Navigable navigable = navigateTo();
+        if (navigable == null) {
+            throw new IllegalStateException(Navigable.class.getSimpleName() + " is null");
+        }
+        if (state != null) {
+            if (savedInstanceState == null) {
+                navigable.state(Add.deeper(state));
+            } else {
+                navigable.restore();
+            }
+        }
+    }
+
 }

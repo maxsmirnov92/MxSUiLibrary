@@ -243,7 +243,7 @@ public abstract class BaseLoadingJugglerFragment<I> extends BaseJugglerFragment 
             }
         }
         if (retryButton != null) {
-            retryButton.setVisibility(isEmpty && allowRetryButtonOnEmpty()? View.VISIBLE : View.GONE);
+            retryButton.setVisibility(isEmpty && allowRetryButtonOnEmpty() ? View.VISIBLE : View.GONE);
         }
     }
 
@@ -258,7 +258,7 @@ public abstract class BaseLoadingJugglerFragment<I> extends BaseJugglerFragment 
             }
         }
         if (retryButton != null) {
-            retryButton.setVisibility(allowRetryButtonOnError()? View.VISIBLE : View.GONE);
+            retryButton.setVisibility(allowRetryButtonOnError() ? View.VISIBLE : View.GONE);
         }
     }
 
@@ -381,16 +381,12 @@ public abstract class BaseLoadingJugglerFragment<I> extends BaseJugglerFragment 
 
         @Override
         public void onStart() {
-            if (isCommitAllowed()) {
-                processLoading(true);
-            }
+            processLoading(true);
         }
 
         @Override
         public void onStop() {
-            if (isCommitAllowed()) {
-                processLoading(false);
-            }
+            processLoading(false);
         }
     }
 
