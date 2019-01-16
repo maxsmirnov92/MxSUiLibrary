@@ -63,6 +63,7 @@ public class AlertDialogFragmentsHolder implements AlertDialogFragment.EventList
     @NotNull
     protected final Set<String> targetAlertsToHide = new LinkedHashSet<>();
 
+    @NotNull
     private final AlertEventsObservable eventsObservable = new AlertEventsObservable();
 
     @Nullable

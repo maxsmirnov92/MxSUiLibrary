@@ -2,15 +2,12 @@ package net.maxsmr.jugglerhelper.fragments.toolbar;
 
 import android.graphics.drawable.Drawable;
 import android.support.annotation.IdRes;
-
-import org.jetbrains.annotations.Nullable;
-
 import android.text.TextUtils;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import net.maxsmr.jugglerhelper.R;
+import org.jetbrains.annotations.Nullable;
 
 public abstract class BaseCustomJugglerToolbarFragment extends BaseJugglerToolbarFragment {
 
@@ -28,7 +25,7 @@ public abstract class BaseCustomJugglerToolbarFragment extends BaseJugglerToolba
         }
         TextView titleView = rootView.findViewById(getToolbarTitleId());
         if (titleView != null) {
-            super.setTitle(getString(R.string.no_data));
+            super.setTitle("");
             titleView.setText(title);
             titleView.setVisibility(TextUtils.isEmpty(title) ? View.GONE : View.VISIBLE);
         } else {

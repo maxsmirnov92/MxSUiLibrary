@@ -303,11 +303,9 @@ public final class SelectionHelper {
                     if (mode != null) {
                         switch (mode) {
                             case CLICK:
-                                itemView.setClickable(true);
                                 itemView.setOnClickListener(this);
                                 break;
                             case LONG_CLICK:
-                                itemView.setLongClickable(true);
                                 itemView.setOnLongClickListener(this);
                                 break;
                         }
@@ -359,7 +357,6 @@ public final class SelectionHelper {
             super(holder);
             View itemView = holder.itemView;
             itemView.setOnClickListener(this);
-            itemView.setClickable(true);
         }
 
         @Override

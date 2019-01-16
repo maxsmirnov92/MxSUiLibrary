@@ -23,7 +23,7 @@ import java.io.File;
 import java.util.Collection;
 import java.util.Collections;
 
-public final class FilePickerDialogFragmentsHolder extends AlertDialogFragmentsHolder {
+public class FilePickerDialogFragmentsHolder extends AlertDialogFragmentsHolder {
 
     private static final String TAG_PICK_FILE_CHOICE = "pick_file_choice";
 

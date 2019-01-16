@@ -27,7 +27,6 @@ import me.ilich.juggler.states.State;
 import static me.ilich.juggler.Juggler.DATA_ANIMATION_FINISH_ENTER;
 import static me.ilich.juggler.Juggler.DATA_ANIMATION_FINISH_EXIT;
 
-
 public class BaseJugglerActivity extends JugglerActivity {
 
     @Nullable
@@ -74,7 +73,6 @@ public class BaseJugglerActivity extends JugglerActivity {
     protected void onCreate(Bundle savedInstanceState) {
         getIntent().putExtra(DATA_ANIMATION_FINISH_ENTER, getFinishEnterAnimataion());
         getIntent().putExtra(DATA_ANIMATION_FINISH_EXIT, getFinishExitAnimataion());
-        super.onCreate(savedInstanceState);
         initialState = getActivityState();
         if (!shouldActivateState(initialState)) {
             getIntent().putExtra(EXTRA_STATE, (Serializable) null);
@@ -82,6 +80,7 @@ public class BaseJugglerActivity extends JugglerActivity {
         }
         this.savedInstanceState = savedInstanceState;
         isCommitAllowed = true;
+        super.onCreate(savedInstanceState);
     }
 
     @Override
@@ -193,11 +192,7 @@ public class BaseJugglerActivity extends JugglerActivity {
             throw new IllegalStateException(Navigable.class.getSimpleName() + " is null");
         }
         if (state != null) {
-            if (savedInstanceState == null) {
-                navigable.state(Add.deeper(state));
-            } else {
-                navigable.restore();
-            }
+            navigable.state(Add.deeper(state));
         }
     }
 

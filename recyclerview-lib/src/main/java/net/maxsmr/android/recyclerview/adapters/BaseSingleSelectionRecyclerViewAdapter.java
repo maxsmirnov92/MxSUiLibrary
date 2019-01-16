@@ -116,7 +116,6 @@ public abstract class BaseSingleSelectionRecyclerViewAdapter<I, VH extends BaseR
         for (SelectionHelper.SelectMode mode : getSelectModes(item, position)) {
             switch (mode) {
                 case CLICK:
-                    holder.itemView.setClickable(true);
                     holder.itemView.setOnClickListener(v -> {
                         if (position == mSelection) {
                             if (allowTogglingSelection() || mSelection != position) {
@@ -135,7 +134,6 @@ public abstract class BaseSingleSelectionRecyclerViewAdapter<I, VH extends BaseR
                     break;
 
                 case LONG_CLICK:
-                    holder.itemView.setLongClickable(true);
                     holder.itemView.setOnLongClickListener(v -> {
                         if (position == mSelection) {
                             if (allowTogglingSelection() || mSelection != position) {
