@@ -27,12 +27,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+
 /**
  * class for showing/hiding and restoring {@linkplain AlertDialogFragment} linked
  * to specified {@linkplain FragmentManager} alerts
  */
 @MainThread
-public class AlertDialogFragmentsHolder implements AlertDialogFragment.EventListener {
+public abstract class BaseAlertDialogFragmentsHolder<L extends AlertDialogFragment.EventListener, O extends BaseAlertDialogFragmentsHolder.AlertEventsObservable<L>>
+        implements AlertDialogFragment.EventListener {
 
     protected final BaseLogger logger = BaseLoggerHolder.getInstance().getLogger(getLoggerClass());
 
@@ -45,7 +47,7 @@ public class AlertDialogFragmentsHolder implements AlertDialogFragment.EventList
     /**
      * active alerts, added to specified {@linkplain FragmentManager}
      * note that Set may be not actual (for example, if removing/adding directly to manager in other place)
-     * so invalidate manually by {@linkplain AlertDialogFragmentsHolder#hideAlert(String)}
+     * so invalidate manually by {@linkplain BaseAlertDialogFragmentsHolder#hideAlert(String)}
      */
     @NotNull
     protected final Set<AlertDialogFragment> activeAlerts = new LinkedHashSet<>();
@@ -63,8 +65,7 @@ public class AlertDialogFragmentsHolder implements AlertDialogFragment.EventList
     @NotNull
     protected final Set<String> targetAlertsToHide = new LinkedHashSet<>();
 
-    @NotNull
-    private final AlertEventsObservable eventsObservable = new AlertEventsObservable();
+    protected final O eventsObservable = newAlertEventsObservable();
 
     @Nullable
     protected FragmentManager fragmentManager;
@@ -76,11 +77,11 @@ public class AlertDialogFragmentsHolder implements AlertDialogFragment.EventList
 
     private boolean isCommitAllowed = true;
 
-    public AlertDialogFragmentsHolder(@NotNull Collection<String> tags) {
+    public BaseAlertDialogFragmentsHolder(@NotNull Collection<String> tags) {
         this(null, tags);
     }
 
-    public AlertDialogFragmentsHolder(@Nullable FragmentManager fragmentManager, @NotNull Collection<String> tags) {
+    public BaseAlertDialogFragmentsHolder(@Nullable FragmentManager fragmentManager, @NotNull Collection<String> tags) {
         this.tags.addAll(Predicate.Methods.filter(tags, element -> !TextUtils.isEmpty(element)));
         if (this.tags.isEmpty()) {
             throw new IllegalArgumentException("No valid tags specified");
@@ -88,11 +89,16 @@ public class AlertDialogFragmentsHolder implements AlertDialogFragment.EventList
         setFragmentManager(fragmentManager);
     }
 
-    public void registerEventListener(@NotNull AlertDialogFragment.EventListener listener) {
+    @NotNull
+    protected abstract O newAlertEventsObservable();
+
+    public abstract void onSetEventListener(@NotNull AlertDialogFragment<L> forFragment);
+
+    public void registerEventListener(@NotNull L listener) {
         eventsObservable.registerObserver(listener);
     }
 
-    public void unregisterEventListener(@NotNull AlertDialogFragment.EventListener listener) {
+    public void unregisterEventListener(@NotNull L listener) {
         eventsObservable.unregisterObserver(listener);
     }
 
@@ -292,7 +298,7 @@ public class AlertDialogFragmentsHolder implements AlertDialogFragment.EventList
         }
 
         if (isCommitAllowed()) {
-            fragment.setEventListener(this);
+            onSetEventListener(fragment);
             try {
                 fragment.show(fragmentManager, tag);
             } catch (Exception e) {
@@ -370,7 +376,7 @@ public class AlertDialogFragmentsHolder implements AlertDialogFragment.EventList
                 AlertDialogFragment fragment = (AlertDialogFragment) fragmentManager.findFragmentByTag(tag);
                 if (fragment != null) {
                     activeAlerts.add(fragment);
-                    fragment.setEventListener(this);
+                    onSetEventListener(fragment);
                 }
             }
         }
@@ -394,7 +400,7 @@ public class AlertDialogFragmentsHolder implements AlertDialogFragment.EventList
         }
     }
 
-    protected Class<? extends AlertDialogFragmentsHolder> getLoggerClass() {
+    protected Class<? extends BaseAlertDialogFragmentsHolder> getLoggerClass() {
         return getClass();
     }
 
@@ -433,20 +439,24 @@ public class AlertDialogFragmentsHolder implements AlertDialogFragment.EventList
         MULTI
     }
 
-    protected static class AlertEventsObservable extends Observable<AlertDialogFragment.EventListener> {
+    public static class AlertEventsObservable<L extends AlertDialogFragment.EventListener> extends Observable<L> {
 
         void notifyDialogCreated(AlertDialogFragment fragment, AlertDialog dialog) {
             synchronized (observers) {
-                for (AlertDialogFragment.EventListener l : observers) {
-                    l.onDialogCreated(fragment, dialog);
+                for (L l : observers) {
+                    if (l != null) {
+                        l.onDialogCreated(fragment, dialog);
+                    }
                 }
             }
         }
 
         void notifyDialogButtonClick(AlertDialogFragment fragment, int which) {
             synchronized (observers) {
-                for (AlertDialogFragment.EventListener l : observers) {
-                    l.onDialogButtonClick(fragment, which);
+                for (L l : observers) {
+                    if (l != null) {
+                        l.onDialogButtonClick(fragment, which);
+                    }
                 }
             }
         }
@@ -454,8 +464,10 @@ public class AlertDialogFragmentsHolder implements AlertDialogFragment.EventList
         boolean notifyDialogKeyPressed(AlertDialogFragment fragment, int keyCode, KeyEvent event) {
             boolean handled = false;
             synchronized (observers) {
-                for (AlertDialogFragment.EventListener l : observers) {
-                    handled |= l.onDialogKey(fragment, keyCode, event);
+                for (L l : observers) {
+                    if (l != null) {
+                        handled |= l.onDialogKey(fragment, keyCode, event);
+                    }
                 }
             }
             return handled;
@@ -463,16 +475,20 @@ public class AlertDialogFragmentsHolder implements AlertDialogFragment.EventList
 
         void notifyDialogCancel(AlertDialogFragment fragment) {
             synchronized (observers) {
-                for (AlertDialogFragment.EventListener l : observers) {
-                    l.onDialogCancel(fragment);
+                for (L l : observers) {
+                    if (l != null) {
+                        l.onDialogCancel(fragment);
+                    }
                 }
             }
         }
 
         void notifyDialogDismiss(AlertDialogFragment fragment) {
             synchronized (observers) {
-                for (AlertDialogFragment.EventListener l : observers) {
-                    l.onDialogDismiss(fragment);
+                for (L l : observers) {
+                    if (l != null) {
+                        l.onDialogDismiss(fragment);
+                    }
                 }
             }
         }

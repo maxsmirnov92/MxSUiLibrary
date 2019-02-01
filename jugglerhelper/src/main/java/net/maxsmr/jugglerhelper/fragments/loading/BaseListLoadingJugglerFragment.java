@@ -146,15 +146,6 @@ public abstract class BaseListLoadingJugglerFragment<I extends Comparable<I>, Ad
         }
     }
 
-    protected boolean allowHideRecyclerOnLoading() {
-        return true;
-    }
-
-    protected void processLoading(boolean isLoading) {
-        super.processLoading(isLoading);
-        recycler.setVisibility(isLoading && allowHideRecyclerOnLoading() ? View.GONE : View.VISIBLE);
-    }
-
     protected boolean isDataEmpty() {
         return adapter.isEmpty();
     }
@@ -164,15 +155,41 @@ public abstract class BaseListLoadingJugglerFragment<I extends Comparable<I>, Ad
         return data == null || data.isEmpty();
     }
 
+    protected boolean allowHideRecyclerOnLoading() {
+        return true;
+    }
+
+    protected boolean allowHideRecyclerOnFail() {
+        return true;
+    }
+
+    protected boolean allowHideRecyclerOnEmpty() {
+        return true;
+    }
+
+    protected void processLoading(boolean isLoading) {
+        super.processLoading(isLoading);
+        invalidateRecyclerVisibility();
+    }
+
     protected void processEmpty() {
         super.processEmpty();
-        boolean hasItems = !isDataEmpty();
-        recycler.setVisibility(hasItems ? View.VISIBLE : View.GONE);
+        invalidateRecyclerVisibility();
     }
 
     protected void processError() {
         super.processError();
-        recycler.setVisibility(View.GONE);
+        invalidateRecyclerVisibility();
+    }
+
+    protected boolean isRecyclerVisible() {
+        return !(allowHideRecyclerOnFail() && isLoadErrorOccurred()
+                || allowHideRecyclerOnEmpty() && isDataEmpty()
+                || allowHideRecyclerOnLoading() && isLoading);
+    }
+
+    protected void invalidateRecyclerVisibility() {
+        recycler.setVisibility(isRecyclerVisible() ? View.VISIBLE : View.GONE);
     }
 
     protected void setupAdapter() {
@@ -370,7 +387,7 @@ public abstract class BaseListLoadingJugglerFragment<I extends Comparable<I>, Ad
             }
         }
 
-}
+    }
 
     protected void postActionOnRecyclerView(@NotNull final Runnable r) {
         postActionOnRecyclerView(r, 0);

@@ -231,34 +231,39 @@ public abstract class BaseLoadingJugglerFragment<I> extends BaseJugglerFragment 
     protected abstract boolean isDataEmpty(@Nullable I data);
 
     protected void processEmpty() {
-        boolean isEmpty = isDataEmpty();
-        if (placeholder != null) {
-            placeholder.setVisibility(!isEmpty ? View.GONE : View.VISIBLE);
-            if (isEmpty) {
-                placeholder.setText(getEmptyText());
-                final ColorStateList emptyTextColor = getEmptyTextColor();
-                if (emptyTextColor != null) {
-                    placeholder.setTextColor(emptyTextColor);
+        if (!isLoadErrorOccurred()) {
+            boolean isEmpty = isDataEmpty();
+            if (placeholder != null) {
+                placeholder.setVisibility(isEmpty ? View.VISIBLE : View.GONE);
+                if (isEmpty) {
+                    placeholder.setText(getEmptyText());
+                    final ColorStateList emptyTextColor = getEmptyTextColor();
+                    if (emptyTextColor != null) {
+                        placeholder.setTextColor(emptyTextColor);
+                    }
                 }
             }
-        }
-        if (retryButton != null) {
-            retryButton.setVisibility(isEmpty && allowRetryButtonOnEmpty() ? View.VISIBLE : View.GONE);
+            if (retryButton != null) {
+                retryButton.setVisibility(isEmpty && allowRetryButtonOnEmpty() ? View.VISIBLE : View.GONE);
+            }
         }
     }
 
     @CallSuper
     protected void processError() {
+        final boolean isLoadErrorOccurred = isLoadErrorOccurred();
         if (placeholder != null) {
-            placeholder.setVisibility(View.VISIBLE);
-            placeholder.setText(getErrorText());
-            final ColorStateList errorTextColor = getErrorTextColor();
-            if (errorTextColor != null) {
-                placeholder.setTextColor(errorTextColor);
+            placeholder.setVisibility(isLoadErrorOccurred ? View.VISIBLE : View.GONE);
+            if (isLoadErrorOccurred) {
+                placeholder.setText(getErrorText());
+                final ColorStateList errorTextColor = getErrorTextColor();
+                if (errorTextColor != null) {
+                    placeholder.setTextColor(errorTextColor);
+                }
             }
         }
         if (retryButton != null) {
-            retryButton.setVisibility(allowRetryButtonOnError() ? View.VISIBLE : View.GONE);
+            retryButton.setVisibility(isLoadErrorOccurred && allowRetryButtonOnError() ? View.VISIBLE : View.GONE);
         }
     }
 
@@ -297,6 +302,7 @@ public abstract class BaseLoadingJugglerFragment<I> extends BaseJugglerFragment 
         unregisterNetworkBroadcastReceiver();
     }
 
+    @SuppressWarnings("ConstantConditions")
     @Nullable
     protected String getEmptyText() {
         return getContext().getString(R.string.no_data);
@@ -312,16 +318,19 @@ public abstract class BaseLoadingJugglerFragment<I> extends BaseJugglerFragment 
         return getContext().getString(R.string.data_load_failed);
     }
 
+    @SuppressWarnings("ConstantConditions")
     @Nullable
     protected ColorStateList getEmptyTextColor() {
         return ColorStateList.valueOf(ContextCompat.getColor(getContext(), R.color.textColorEmptyMessage));
     }
 
+    @SuppressWarnings("ConstantConditions")
     @Nullable
     protected ColorStateList getLoadingTextColor() {
         return ColorStateList.valueOf(ContextCompat.getColor(getContext(), R.color.textColorLoadingMessage));
     }
 
+    @SuppressWarnings("ConstantConditions")
     @Nullable
     protected ColorStateList getErrorTextColor() {
         return ColorStateList.valueOf(ContextCompat.getColor(getContext(), R.color.textColorErrorMessage));
@@ -330,15 +339,11 @@ public abstract class BaseLoadingJugglerFragment<I> extends BaseJugglerFragment 
     protected abstract boolean isLoadErrorOccurred();
 
     protected void onLoaded(@NotNull I data) {
-        if (!isLoadErrorOccurred()) {
-            processEmpty();
-        }
+        processEmpty();
     }
 
     protected void onEmpty() {
-        if (!isLoadErrorOccurred()) {
-            processEmpty();
-        }
+        processEmpty();
     }
 
 
@@ -381,12 +386,16 @@ public abstract class BaseLoadingJugglerFragment<I> extends BaseJugglerFragment 
 
         @Override
         public void onStart() {
-            processLoading(true);
+            if (isAdded()) {
+                processLoading(true);
+            }
         }
 
         @Override
         public void onStop() {
-            processLoading(false);
+            if (isAdded()) {
+                processLoading(false);
+            }
         }
     }
 
@@ -394,6 +403,7 @@ public abstract class BaseLoadingJugglerFragment<I> extends BaseJugglerFragment 
         return new LoadFragmentProgressable();
     }
 
+    @SuppressWarnings("ConstantConditions")
     protected DialogProgressable newDialogProgressable() {
         return new DialogProgressable(getContext());
     }
@@ -404,7 +414,7 @@ public abstract class BaseLoadingJugglerFragment<I> extends BaseJugglerFragment 
         if (innerProgressables != null) {
             progressables.addAll(Arrays.asList(innerProgressables));
         }
-        return new WrappedProgressable(progressables.toArray(new Progressable[progressables.size()])) {
+        return new WrappedProgressable(progressables.toArray(new Progressable[0])) {
             @Override
             protected boolean isAlive() {
                 return isCommitAllowed();

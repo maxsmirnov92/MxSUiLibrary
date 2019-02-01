@@ -6,15 +6,16 @@ import android.os.Bundle;
 import android.support.annotation.CallSuper;
 import android.support.annotation.DrawableRes;
 import android.support.annotation.LayoutRes;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import android.support.v4.app.DialogFragment;
 import android.support.v7.app.AlertDialog;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 
-public class AlertDialogFragment extends DialogFragment {
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+public class AlertDialogFragment<L extends AlertDialogFragment.EventListener> extends DialogFragment implements DialogInterface.OnClickListener {
 
     private static AlertDialogFragment newInstance(@Nullable Bundle args) {
         AlertDialogFragment fragment = new AlertDialogFragment();
@@ -23,7 +24,7 @@ public class AlertDialogFragment extends DialogFragment {
     }
 
     @Nullable
-    protected EventListener eventListener;
+    protected L eventListener;
 
     protected Bundle args;
 
@@ -42,7 +43,7 @@ public class AlertDialogFragment extends DialogFragment {
         this.alertId = alertId;
     }
 
-    public void setEventListener(@Nullable EventListener eventListener) {
+    public void setEventListener(@Nullable L eventListener) {
         this.eventListener = eventListener;
     }
 
@@ -92,6 +93,14 @@ public class AlertDialogFragment extends DialogFragment {
         return createBuilder(args).create();
     }
 
+    @CallSuper
+    @Override
+    public void onClick(DialogInterface dialog, int which) {
+        if (eventListener != null) {
+            eventListener.onDialogButtonClick(AlertDialogFragment.this, which);
+        }
+    }
+
     /** here you can setup your views */
     protected void onDialogCreated(@NotNull AlertDialog dialog) {
         setCancelable(args.getBoolean(Args.ARG_CANCELABLE, true));
@@ -131,20 +140,14 @@ public class AlertDialogFragment extends DialogFragment {
             builder.setMessage(args.getString(Args.ARG_MESSAGE));
         }
 
-        final DialogInterface.OnClickListener clickListener = (dialog, which) -> {
-            if (eventListener != null) {
-                eventListener.onDialogButtonClick(AlertDialogFragment.this, which);
-            }
-        };
-
         if (args.containsKey(Args.ARG_BUTTON_POSITIVE)) {
-            builder.setPositiveButton(args.getString(Args.ARG_BUTTON_POSITIVE), clickListener);
+            builder.setPositiveButton(args.getString(Args.ARG_BUTTON_POSITIVE), this);
         }
         if (args.containsKey(Args.ARG_BUTTON_NEUTRAL)) {
-            builder.setNeutralButton(args.getString(Args.ARG_BUTTON_NEUTRAL), clickListener);
+            builder.setNeutralButton(args.getString(Args.ARG_BUTTON_NEUTRAL), this);
         }
         if (args.containsKey(Args.ARG_BUTTON_NEGATIVE)) {
-            builder.setNegativeButton(args.getString(Args.ARG_BUTTON_NEGATIVE), clickListener);
+            builder.setNegativeButton(args.getString(Args.ARG_BUTTON_NEGATIVE), this);
         }
         builder.setOnKeyListener((dialog, keyCode, event) -> eventListener != null && eventListener.onDialogKey(AlertDialogFragment.this, keyCode, event));
         return builder;

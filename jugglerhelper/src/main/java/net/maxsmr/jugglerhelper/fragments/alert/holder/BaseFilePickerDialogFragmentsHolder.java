@@ -23,7 +23,8 @@ import java.io.File;
 import java.util.Collection;
 import java.util.Collections;
 
-public class FilePickerDialogFragmentsHolder extends AlertDialogFragmentsHolder {
+public abstract class BaseFilePickerDialogFragmentsHolder<L extends AlertDialogFragment.EventListener, O extends BaseAlertDialogFragmentsHolder.AlertEventsObservable<L>>
+        extends BaseAlertDialogFragmentsHolder<L, O> {
 
     private static final String TAG_PICK_FILE_CHOICE = "pick_file_choice";
 
@@ -39,11 +40,11 @@ public class FilePickerDialogFragmentsHolder extends AlertDialogFragmentsHolder 
     @Nullable
     private Fragment fragment;
 
-    public FilePickerDialogFragmentsHolder() {
+    public BaseFilePickerDialogFragmentsHolder() {
         this(null);
     }
 
-    public FilePickerDialogFragmentsHolder(@Nullable Collection<String> tags) {
+    public BaseFilePickerDialogFragmentsHolder(@Nullable Collection<String> tags) {
         super(mergeTags(Collections.singletonList(TAG_PICK_FILE_CHOICE), tags));
     }
 
@@ -57,7 +58,7 @@ public class FilePickerDialogFragmentsHolder extends AlertDialogFragmentsHolder 
         return null;
     }
 
-    public void setFilePickerConfigurator(@NotNull FilePickerDialogFragmentsHolder.IFilePickerConfigurator IFilePickerConfigurator) {
+    public void setFilePickerConfigurator(@NotNull BaseFilePickerDialogFragmentsHolder.IFilePickerConfigurator IFilePickerConfigurator) {
         this.filePickerConfigurator = IFilePickerConfigurator;
     }
 
@@ -225,9 +226,11 @@ public class FilePickerDialogFragmentsHolder extends AlertDialogFragmentsHolder 
         }
     }
 
-    private void deleteCameraPictureFile() {
-        FileHelper.deleteFile(cameraPictureFile);
-        cameraPictureFile = null;
+    public void deleteCameraPictureFile() {
+        if (cameraPictureFile != null) {
+            FileHelper.deleteFile(cameraPictureFile);
+            cameraPictureFile = null;
+        }
     }
 
     public interface IFilePickerConfigurator {
