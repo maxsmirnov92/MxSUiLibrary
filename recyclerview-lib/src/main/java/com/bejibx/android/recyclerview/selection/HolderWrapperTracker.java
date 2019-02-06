@@ -21,20 +21,21 @@ public class HolderWrapperTracker {
     public void recycleWrapper(int position) {
         SelectionHelper.ViewHolderWrapper wrapper = mWrappersByPosition.get(position);
         if (wrapper != null) {
-            if (wrapper.getHolder() != null) {
+            final RecyclerView.ViewHolder holder = wrapper.getHolder();
+            if (holder != null && holder.isRecyclable()) {
                 if (wrapper instanceof SelectionHelper.ViewHolderMultiSelectionWrapper) {
                     Set<SelectionHelper.SelectMode> selectModes = ((SelectionHelper.ViewHolderMultiSelectionWrapper) wrapper).getSelectModes();
                     if (selectModes.contains(SelectionHelper.SelectMode.CLICK)) {
-                        wrapper.getHolder().itemView.setOnClickListener(null);
+                        holder.itemView.setOnClickListener(null);
                     }
                     if (selectModes.contains(SelectionHelper.SelectMode.LONG_CLICK)) {
-                        wrapper.getHolder().itemView.setOnLongClickListener(null);
+                        holder.itemView.setOnLongClickListener(null);
                     }
                 } else if (wrapper instanceof SelectionHelper.ViewHolderClickWrapper) {
-                    wrapper.getHolder().itemView.setOnClickListener(null);
+                    holder.itemView.setOnClickListener(null);
                 }
+                mWrappersByPosition.remove(position);
             }
-            mWrappersByPosition.remove(position);
         }
     }
 
@@ -47,16 +48,16 @@ public class HolderWrapperTracker {
         if (wrapper == null) {
             correct = false;
         } else {
-            if (wrapper.getHolder() != null) {
-                int adapterPosition = wrapper.getHolder().getAdapterPosition();
-                if (adapterPosition != position && wrapper.getHolder().getAdapterPosition() != RecyclerView.NO_POSITION) {
+            final RecyclerView.ViewHolder holder = wrapper.getHolder();
+            if (holder != null) {
+                int adapterPosition = holder.getAdapterPosition();
+                if (adapterPosition != position && holder.getAdapterPosition() != RecyclerView.NO_POSITION) {
                     correct = false;
                 }
             } else {
                 correct = false;
             }
         }
-
 
         if (!correct) {
             mWrappersByPosition.remove(position);

@@ -13,7 +13,6 @@ import android.support.annotation.ColorInt;
 import android.support.annotation.LayoutRes;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
-import android.support.v4.app.FragmentManager;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.util.Pair;
 import android.view.KeyEvent;
@@ -32,6 +31,7 @@ import net.maxsmr.jugglerhelper.fragments.toolbar.BaseJugglerToolbarFragment;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Collection;
 import java.util.List;
 
 import me.ilich.juggler.gui.JugglerActivity;
@@ -123,17 +123,21 @@ public abstract class BaseJugglerFragment extends JugglerFragment {
         setHasOptionsMenu(false);
     }
 
-    @NotNull
+    @Nullable
     @Override
     public final View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        View rootView = inflater.inflate(getContentLayoutId(), container, false);
-        onBindViews(rootView);
+        View rootView = null;
+        int layoutId = getContentLayoutId();
+        if (layoutId != 0) {
+            rootView = inflater.inflate(layoutId, container, false);
+        }
+        if (rootView != null) {
+            onBindViews(rootView);
+        }
         return rootView;
     }
 
-    protected void onBindViews(@NotNull View rootView) {
-
-    }
+    protected abstract void onBindViews(@NotNull View rootView);
 
     protected Menu getMenu() {
         return menu;
@@ -150,7 +154,7 @@ public abstract class BaseJugglerFragment extends JugglerFragment {
     }
 
     @Override
-    public void onActivityCreated(@android.support.annotation.Nullable Bundle savedInstanceState) {
+    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
         setupWindow();
     }
@@ -169,74 +173,59 @@ public abstract class BaseJugglerFragment extends JugglerFragment {
 
     @CallSuper
     public void onTouchEvent(MotionEvent event) {
-        List<Fragment> childFragments = getChildFragmentManager().getFragments();
-
-        for (Fragment f : childFragments) {
-            if (f instanceof BaseJugglerFragment && !f.isDetached()) {
-                ((BaseJugglerFragment) f).onTouchEvent(event);
+        if (isAdded()) {
+            List<Fragment> childFragments = getChildFragmentManager().getFragments();
+            for (Fragment f : childFragments) {
+                if (f instanceof BaseJugglerFragment && f.isAdded()) {
+                    ((BaseJugglerFragment) f).onTouchEvent(event);
+                }
             }
         }
     }
 
     @CallSuper
     public void onKeyDown(int keyCode, KeyEvent e) {
-        List<Fragment> childFragments = getChildFragmentManager().getFragments();
-        for (Fragment f : childFragments) {
-            if (f instanceof BaseJugglerFragment && !f.isDetached()) {
-                ((BaseJugglerFragment) f).onKeyDown(keyCode, e);
+        if (isAdded()) {
+            List<Fragment> childFragments = getChildFragmentManager().getFragments();
+            for (Fragment f : childFragments) {
+                if (f instanceof BaseJugglerFragment && f.isAdded()) {
+                    ((BaseJugglerFragment) f).onKeyDown(keyCode, e);
+                }
             }
         }
     }
 
     @Override
     public boolean onBackPressed() {
-        List<Fragment> childFragments = getChildFragmentManager().getFragments();
-        for (Fragment f : childFragments) {
-            if (f instanceof BaseJugglerFragment && !f.isDetached()) {
-                if (((BaseJugglerFragment) f).onBackPressed()) {
-                    return true;
+        if (isAdded()) {
+            List<Fragment> childFragments = getChildFragmentManager().getFragments();
+            for (Fragment f : childFragments) {
+                if (f instanceof BaseJugglerFragment && f.isAdded()) {
+                    if (((BaseJugglerFragment) f).onBackPressed()) {
+                        return true;
+                    }
                 }
             }
         }
         return false;
     }
 
+    @CallSuper
+    public void onStateActivated(JugglerActivity activity, State<?> state) {
+        notifyStateActivated(activity, state, getChildFragmentManager().getFragments());
+    }
+
     @Override
     @CallSuper
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         isCommitAllowed = true;
-        List<Fragment> childFragments = getChildFragmentManager().getFragments();
-        for (Fragment f : childFragments) {
-            if (f != null && !f.isDetached())
-                f.onActivityResult(requestCode, resultCode, data);
-        }
-    }
-
-
-    @CallSuper
-    public void onStateActivated(JugglerActivity activity, State<?> state) {
-        FragmentManager fm = getChildFragmentManager();
-        List<Fragment> fragments = fm.getFragments();
-        for (Fragment fragment : fragments) {
-            if (fragment instanceof BaseJugglerFragment) {
-                ((BaseJugglerFragment) fragment).onStateActivated(activity, state);
-            } else if (fragment instanceof BaseJugglerToolbarFragment) {
-                ((BaseJugglerToolbarFragment) fragment).onStateActivated(activity, state);
-            }
-        }
+        notifyActivityResult(requestCode, resultCode, data, getChildFragmentManager().getFragments());
     }
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NotNull String[] permissions, @NotNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        if (isAdded()) {
-            List<Fragment> childFragments = getChildFragmentManager().getFragments();
-            for (Fragment f : childFragments) {
-                if (f != null && !f.isDetached()) {
-                    f.onRequestPermissionsResult(requestCode, permissions, grantResults);
-                }
-            }
-        }
+        notifyRequestPermissionsResult(requestCode, permissions, grantResults, getChildFragmentManager().getFragments());
     }
 
     @SuppressWarnings("unchecked")
@@ -300,6 +289,45 @@ public abstract class BaseJugglerFragment extends JugglerFragment {
             Drawable windowBackground = getWindowBackground();
             if (windowBackground != null) {
                 window.setBackgroundDrawable(windowBackground);
+            }
+        }
+    }
+
+    protected void notifyStateActivated(JugglerActivity activity, State<?> state, @Nullable Collection<Fragment> fragments) {
+        if (isAdded()) {
+            if (fragments != null) {
+                for (Fragment fragment : fragments) {
+                    if (fragment != null && fragment.isAdded()) {
+                        if (fragment instanceof BaseJugglerFragment) {
+                            ((BaseJugglerFragment) fragment).onStateActivated(activity, state);
+                        } else if (fragment instanceof BaseJugglerToolbarFragment) {
+                            ((BaseJugglerToolbarFragment) fragment).onStateActivated(activity, state);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    protected void notifyActivityResult(int requestCode, int resultCode, Intent data, @Nullable Collection<Fragment> fragments) {
+        if (isAdded()) {
+            if (fragments != null) {
+                for (Fragment f : fragments) {
+                    if (f != null && f.isAdded())
+                        f.onActivityResult(requestCode, resultCode, data);
+                }
+            }
+        }
+    }
+
+    protected void notifyRequestPermissionsResult(int requestCode, @NotNull String[] permissions, @NotNull int[] grantResults, @Nullable Collection<Fragment> fragments) {
+        if (isAdded()) {
+            if (fragments != null) {
+                for (Fragment f : fragments) {
+                    if (f != null && f.isAdded()) {
+                        f.onRequestPermissionsResult(requestCode, permissions, grantResults);
+                    }
+                }
             }
         }
     }

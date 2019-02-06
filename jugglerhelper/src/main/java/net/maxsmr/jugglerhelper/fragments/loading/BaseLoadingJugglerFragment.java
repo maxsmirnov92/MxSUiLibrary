@@ -93,11 +93,26 @@ public abstract class BaseLoadingJugglerFragment<I> extends BaseJugglerFragment 
 
     @CallSuper
     protected void onBindViews(@NotNull View rootView) {
-        swipeRefreshLayout = GuiUtils.findViewById(rootView, getSwipeRefreshLayoutId());
-        placeholder = GuiUtils.findViewById(rootView, getEmptyTextId());
-        loadingLayout = GuiUtils.findViewById(rootView, getLoadingLayoutId());
-        loadingMessageView = GuiUtils.findViewById(rootView, getLoadingMessageViewId());
-        retryButton = GuiUtils.findViewById(rootView, getRetryButtonId());
+        final int swipeRefreshLayoutId = getSwipeRefreshLayoutId();
+        if (swipeRefreshLayoutId != 0) {
+            swipeRefreshLayout = GuiUtils.findViewById(rootView, swipeRefreshLayoutId);
+        }
+        final int emptyTextId = getEmptyTextId();
+        if (emptyTextId != 0) {
+            placeholder = GuiUtils.findViewById(rootView, emptyTextId);
+        }
+        final int loadingLayoutId = getLoadingLayoutId();
+        if (loadingLayoutId != 0) {
+            loadingLayout = GuiUtils.findViewById(rootView, loadingLayoutId);
+        }
+        final int loadingMessageViewId = getLoadingMessageViewId();
+        if (loadingMessageViewId != 0) {
+            loadingMessageView = GuiUtils.findViewById(rootView, loadingMessageViewId);
+        }
+        final int retryButtonId = getRetryButtonId();
+        if (retryButtonId != 0) {
+            retryButton = GuiUtils.findViewById(rootView, retryButtonId);
+        }
     }
 
     protected boolean isNetworkBroadcastReceiverRegistered() {

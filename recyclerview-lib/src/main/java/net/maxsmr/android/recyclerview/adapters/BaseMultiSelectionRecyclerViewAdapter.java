@@ -137,7 +137,7 @@ public abstract class BaseMultiSelectionRecyclerViewAdapter<I, VH
     }
 
     @Override
-    public void onViewRecycled(@NonNull VH holder) {
+    public void onViewRecycled(@NotNull VH holder) {
         super.onViewRecycled(holder);
         mSelectionHelper.recycleHolder(holder);
     }

@@ -113,7 +113,7 @@ public class BaseJugglerActivity extends JugglerActivity {
 //        logger.debug("onTouchEvent(), event=" + event);
         List<Fragment> fragments = getSupportFragmentManager().getFragments();
         for (Fragment f : fragments) {
-            if (f instanceof BaseJugglerFragment && !f.isDetached()) {
+            if (f instanceof BaseJugglerFragment && f.isAdded()) {
                 ((BaseJugglerFragment) f).onTouchEvent(event);
             }
         }
@@ -125,7 +125,7 @@ public class BaseJugglerActivity extends JugglerActivity {
 //        logger.debug("onKeyDown(), keyCode=" + keyCode + ", event=" + event);
         List<Fragment> fragments = getSupportFragmentManager().getFragments();
         for (Fragment f : fragments) {
-            if (f instanceof BaseJugglerFragment && !f.isDetached()) {
+            if (f instanceof BaseJugglerFragment && f.isAdded()) {
                 ((BaseJugglerFragment) f).onKeyDown(keyCode, event);
             }
         }
@@ -164,7 +164,7 @@ public class BaseJugglerActivity extends JugglerActivity {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         List<Fragment> fragments = getSupportFragmentManager().getFragments();
         for (Fragment f : fragments) {
-            if (f != null && !f.isDetached()) {
+            if (f != null && f.isAdded()) {
                 f.onRequestPermissionsResult(requestCode, permissions, grantResults);
             }
         }

@@ -78,7 +78,7 @@ dependencies {
     api fileTree(dir: 'libs', include: ['*.jar'])
 
     api "net.maxsmr:commonutils:$commonUtilsVersion"
-    api "net.maxsmr:recyclerview-lib:$recyclerViewLibVersion"
+//    api "net.maxsmr:recyclerview-lib:$recyclerViewLibVersion" TODO
 
     api "me.ilich:juggler:$jugglerVersion"
     api(group: 'me.ilich', name: 'NestableViewPager', version: "$nestableViewPagerVersion")
@@ -108,7 +108,7 @@ bintray {
         licenses = ['Apache-2.0']
         vcsUrl = gitUrl
         version {
-            name = project.jugglerHelperVersion
+            name = project.jugglerHelperVersion // TODO independent version
         }
         publicDownloadNumbers = true
     }

@@ -1,7 +1,6 @@
 package net.maxsmr.jugglerhelper.fragments.adapters;
 
 import android.content.Context;
-import android.support.annotation.NonNull;
 import android.support.annotation.StringRes;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
@@ -316,7 +315,7 @@ public class CustomFragmentStatePagerAdapter extends FragmentStatePagerAdapter {
             this.title = title;
         }
 
-        @NonNull
+        @NotNull
         @Override
         public String toString() {
             return "FragmentPair{" +

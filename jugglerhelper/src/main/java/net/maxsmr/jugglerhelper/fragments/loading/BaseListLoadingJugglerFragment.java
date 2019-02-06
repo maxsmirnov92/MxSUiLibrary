@@ -20,7 +20,6 @@ import org.jetbrains.annotations.Nullable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -29,7 +28,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
-public abstract class BaseListLoadingJugglerFragment<I extends Comparable<I>, Adapter extends BaseRecyclerViewAdapter<I, ?>>
+public abstract class BaseListLoadingJugglerFragment<I, Adapter extends BaseRecyclerViewAdapter<I, ?>>
         extends BaseLoadingJugglerFragment<List<I>>
         implements BaseRecyclerViewAdapter.ItemsEventsListener<I>, RecyclerScrollableController.OnLastItemVisibleListener, SwipeRefreshLayout.OnRefreshListener, View.OnClickListener {
 
@@ -132,15 +131,10 @@ public abstract class BaseListLoadingJugglerFragment<I extends Comparable<I>, Ad
 
     protected abstract boolean allowDuplicateItems();
 
-    protected abstract boolean allowSort();
-
     protected void reloadAdapter(@Nullable List<I> items) {
         if (adapter != null) {
             if (!allowDuplicateItems()) {
                 removeDuplicateItemsFromList(items);
-            }
-            if (allowSort()) {
-                sortItems(items, getSortComparator());
             }
             adapter.setItems(items);
         }
@@ -220,32 +214,8 @@ public abstract class BaseListLoadingJugglerFragment<I extends Comparable<I>, Ad
         }
     }
 
-
-    @Nullable
-    protected abstract Comparator<I> getSortComparator();
-
     protected boolean isDuplicateItems(@Nullable I one, @Nullable I another) {
         return CompareUtils.objectsEqual(one, another); // TODO default
-    }
-
-    protected void sortItems(List<I> items, @Nullable Comparator<? super I> comparator) {
-        if (items != null) {
-            if (comparator != null) {
-                Collections.sort(items, comparator);
-            } else {
-                Collections.sort(items);
-            }
-        }
-    }
-
-    protected void resortAdapterItems() {
-        resortAdapterItems(getSortComparator());
-    }
-
-    protected void resortAdapterItems(@Nullable Comparator<? super I> comparator) {
-        List<I> items = adapter.getItems();
-        sortItems(items, comparator);
-        adapter.setItems(items);
     }
 
     /**

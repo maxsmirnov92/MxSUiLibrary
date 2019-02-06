@@ -30,9 +30,9 @@ public class SampleStringAdapter extends BaseRecyclerViewAdapter<String, SampleS
         this.viewResId = viewResId;
     }
 
-    @NonNull
+    @NotNull
     @Override
-    public final ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+    public final ViewHolder onCreateViewHolder(@NotNull ViewGroup parent, int viewType) {
         return new ViewHolder(onInflateView(parent, viewType), viewResId);
     }
 

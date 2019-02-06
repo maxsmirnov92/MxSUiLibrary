@@ -108,7 +108,7 @@ bintray {
         licenses = ['Apache-2.0']
         vcsUrl = gitUrl
         version {
-            name = recyclerViewLibVersion
+            name = recyclerViewLibVersion // TODO independent version
         }
         publicDownloadNumbers = true
     }

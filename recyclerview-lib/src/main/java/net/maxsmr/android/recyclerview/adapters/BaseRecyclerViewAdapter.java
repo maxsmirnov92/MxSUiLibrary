@@ -378,17 +378,15 @@ public abstract class BaseRecyclerViewAdapter<I, VH extends BaseRecyclerViewAdap
             View clickableView = getClickableView(holder);
 
             if (clickableView != null) {
-                clickableView.setOnClickListener(v -> {
-                    if (allowSetClickListener(item, position)) {
-                        mItemsEventsObservable.notifyItemClick(position, item);
-                    }
-                });
-                clickableView.setOnLongClickListener(v -> {
-                    if (allowSetLongClickListener(item, position)) {
-                        return mItemsEventsObservable.notifyItemLongClick(position, item);
-                    }
-                    return false;
-                });
+                if (allowSetClickListener(item, position)) {
+                    clickableView.setOnClickListener(v -> {
+                                mItemsEventsObservable.notifyItemClick(position, item);
+                            }
+                    );
+                }
+                if (allowSetLongClickListener(item, position)) {
+                    clickableView.setOnLongClickListener(v -> mItemsEventsObservable.notifyItemLongClick(position, item));
+                }
             }
 
             if (allowFillHolderForItem(holder, item, position)) {
@@ -425,7 +423,6 @@ public abstract class BaseRecyclerViewAdapter<I, VH extends BaseRecyclerViewAdap
     public void onViewRecycled(@NotNull VH holder) {
         super.onViewRecycled(holder);
         holder.onViewRecycled();
-        holder.itemView.setOnClickListener(null);
     }
 
     @CallSuper

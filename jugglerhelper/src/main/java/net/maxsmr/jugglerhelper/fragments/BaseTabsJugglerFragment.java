@@ -1,5 +1,6 @@
 package net.maxsmr.jugglerhelper.fragments;
 
+import android.content.Intent;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.support.annotation.CallSuper;
@@ -26,6 +27,8 @@ import java.lang.reflect.Field;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+import me.ilich.juggler.gui.JugglerActivity;
+import me.ilich.juggler.states.State;
 import me.ilich.nestableviewpager.NestablePagerItem;
 
 public abstract class BaseTabsJugglerFragment<PagerAdapter
@@ -45,7 +48,10 @@ public abstract class BaseTabsJugglerFragment<PagerAdapter
     @Override
     @CallSuper
     protected void onBindViews(@NotNull View rootView) {
-        tabLayout = GuiUtils.findViewById(rootView, getTabLayoutId());
+        final int tabLayoutId = getTabLayoutId();
+        if (tabLayoutId != 0) {
+            tabLayout = GuiUtils.findViewById(rootView, tabLayoutId);
+        }
         viewPager = GuiUtils.findViewById(rootView, getPagerId());
     }
 
@@ -123,7 +129,9 @@ public abstract class BaseTabsJugglerFragment<PagerAdapter
         return (PagerAdapter) viewPager.getAdapter();
     }
 
-    /** optional map containing views and tags for them */
+    /**
+     * optional map containing views and tags for them
+     */
     @NotNull
     public Map<View, String> getCustomViewTabsMap() {
         return new LinkedHashMap<>(customViewTabsMap);
@@ -314,7 +322,7 @@ public abstract class BaseTabsJugglerFragment<PagerAdapter
         return null;
     }
 
-    protected void notifyFragmentsChanged() {
+    public void notifyFragmentsChanged() {
 
         if (getContext() == null) {
             throw new RuntimeException("not attached to activity");
@@ -423,6 +431,33 @@ public abstract class BaseTabsJugglerFragment<PagerAdapter
                     viewPager.setCurrentItem(selectedIndex);
                 }
             }
+        }
+    }
+
+    @Override
+    public void onStateActivated(JugglerActivity activity, State<?> state) {
+        super.onStateActivated(activity, state);
+        PagerAdapter adapter = getStatePagerAdapter();
+        if (adapter != null) {
+            notifyStateActivated(activity, state, adapter.getFragments());
+        }
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        PagerAdapter adapter = getStatePagerAdapter();
+        if (adapter != null) {
+            notifyActivityResult(requestCode, resultCode, data, adapter.getFragments());
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NotNull String[] permissions, @NotNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        PagerAdapter adapter = getStatePagerAdapter();
+        if (adapter != null) {
+            notifyRequestPermissionsResult(requestCode, permissions, grantResults, adapter.getFragments());
         }
     }
 }
