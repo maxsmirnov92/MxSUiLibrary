@@ -1,8 +1,11 @@
 package net.maxsmr.android.recyclerview.adapters;
 
+import android.support.annotation.NonNull;
 import android.support.v4.view.PagerAdapter;
 import android.view.View;
 import android.view.ViewGroup;
+
+import net.maxsmr.android.recyclerview.adapters.BaseRecyclerViewAdapter;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -13,6 +16,9 @@ import java.util.List;
 
 public abstract class BasePagerAdapter<I, VH extends BaseRecyclerViewAdapter.ViewHolder<I>> extends PagerAdapter {
 
+    @NotNull
+    private final List<I> items = new ArrayList<>();
+
     protected BasePagerAdapter() {
         this(null);
     }
@@ -21,11 +27,9 @@ public abstract class BasePagerAdapter<I, VH extends BaseRecyclerViewAdapter.Vie
         setItems(items);
     }
 
-    @NotNull
-    private final List<I> items = new ArrayList<>();
 
     @NotNull
-    public List<I> getItems() {
+    public ArrayList<I> getItems() {
         return new ArrayList<>(items);
     }
 
@@ -48,6 +52,11 @@ public abstract class BasePagerAdapter<I, VH extends BaseRecyclerViewAdapter.Vie
     }
 
     @Override
+    public int getItemPosition(@NonNull Object object) {
+        return POSITION_NONE;
+    }
+
+    @Override
     public boolean isViewFromObject(@NotNull View view, @NotNull Object o) {
         return view == o;
     }
@@ -59,13 +68,8 @@ public abstract class BasePagerAdapter<I, VH extends BaseRecyclerViewAdapter.Vie
 
         final int count = getCount();
         final I item = getItem(position);
-        final boolean isEmpty = isItemEmpty(position, item);
 
-        if (!isEmpty) {
-            holder.displayData(position, item, count);
-        } else {
-            holder.displayEmptyData(position, item, count);
-        }
+        processItem(holder, position, item, count);
 
         container.addView(holder.itemView);
         return holder.itemView;
@@ -84,6 +88,15 @@ public abstract class BasePagerAdapter<I, VH extends BaseRecyclerViewAdapter.Vie
 
     @NotNull
     protected abstract VH createViewHolder(@NotNull ViewGroup container, int position);
+
+    protected void processItem(@NotNull VH holder, int position, @Nullable I item, int count) {
+        final boolean isEmpty = isItemEmpty(position, item);
+        if (item != null && !isEmpty) {
+            holder.displayData(position, item, count);
+        } else {
+            holder.displayEmptyData(position, item, count);
+        }
+    }
 
     protected boolean isItemEmpty(int position, I item) {
         return item == null;

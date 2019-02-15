@@ -137,7 +137,9 @@ public abstract class BaseJugglerFragment extends JugglerFragment {
         return rootView;
     }
 
-    protected abstract void onBindViews(@NotNull View rootView);
+    protected void onBindViews(@NotNull View rootView) {
+
+    }
 
     protected Menu getMenu() {
         return menu;

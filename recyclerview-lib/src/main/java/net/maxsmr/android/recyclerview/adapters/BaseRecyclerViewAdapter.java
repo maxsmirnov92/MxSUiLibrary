@@ -101,7 +101,7 @@ public abstract class BaseRecyclerViewAdapter<I, VH extends BaseRecyclerViewAdap
         }
     }
 
-    public final int indexOf(I item) {
+    public int indexOf(I item) {
         synchronized (mItems) {
             return mItems.indexOf(item);
         }
@@ -122,12 +122,23 @@ public abstract class BaseRecyclerViewAdapter<I, VH extends BaseRecyclerViewAdap
         }
     }
 
+    public boolean itemsEqual(@Nullable Collection<I> items) {
+        if (items == null) {
+            items = Collections.emptyList();
+        }
+        return mItems.equals(items);
+    }
+
+    public boolean shouldSetItems(@Nullable Collection<I> items) {
+        return !itemsEqual(items);
+    }
+
     /**
      * @param items null for reset adapter
      */
     public final void setItems(@Nullable Collection<I> items) {
         synchronized (mItems) {
-            if (!mItems.equals(items)) {
+            if (shouldSetItems(items)) {
                 clearItems();
                 if (items != null) {
                     this.mItems.addAll(items);

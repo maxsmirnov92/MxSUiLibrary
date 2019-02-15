@@ -78,7 +78,7 @@ dependencies {
     api fileTree(dir: 'libs', include: ['*.jar'])
 
     api "net.maxsmr:commonutils:$commonUtilsVersion"
-//    api "net.maxsmr:recyclerview-lib:$recyclerViewLibVersion" TODO
+    api "net.maxsmr:recyclerview-lib:$recyclerViewLibVersion"
 
     api "me.ilich:juggler:$jugglerVersion"
     api(group: 'me.ilich', name: 'NestableViewPager', version: "$nestableViewPagerVersion")

@@ -4,18 +4,16 @@ import android.os.Bundle;
 import android.support.annotation.CallSuper;
 import android.support.annotation.IdRes;
 import android.support.v4.view.ViewPager;
-import android.support.v7.widget.RecyclerView;
 import android.view.View;
 
+import net.maxsmr.android.recyclerview.adapters.BasePagerAdapter;
 import net.maxsmr.commonutils.android.gui.views.ViewPagerIndicator;
-import net.maxsmr.jugglerhelper.fragments.loading.BaseLoadingJugglerFragment;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
 import java.util.List;
-
 
 public abstract class BaseViewPagerListLoadingFragment<I, Adapter extends BasePagerAdapter<I, ?>>
         extends BaseLoadingJugglerFragment<List<I>> implements ViewPager.OnPageChangeListener {
@@ -69,7 +67,6 @@ public abstract class BaseViewPagerListLoadingFragment<I, Adapter extends BasePa
     public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
         setupAdapter();
         setupViewPager();
-        updateViewsByCurrentAdapterPosition();
         viewPager.addOnPageChangeListener(this);
         super.onViewCreated(view, savedInstanceState);
     }
@@ -88,7 +85,7 @@ public abstract class BaseViewPagerListLoadingFragment<I, Adapter extends BasePa
 
     @Override
     public void onPageSelected(int i) {
-        updateViewsByCurrentAdapterPosition();
+        updateViewsByCurrentAdapterPosition(i, adapter.getItem(i), adapter.getCount());
     }
 
     @Override
@@ -136,6 +133,17 @@ public abstract class BaseViewPagerListLoadingFragment<I, Adapter extends BasePa
 
     protected void processEmpty() {
         super.processEmpty();
+        if (viewPagerIndicator != null) {
+            viewPagerIndicator.notifyDataSetChanged();
+        }
+        final int targetPosition = getTargetPagerPosition();
+        if (targetPosition >= 0 && targetPosition < adapter.getCount()) {
+            viewPager.setCurrentItem(targetPosition);
+        } else {
+            final int currentPosition = viewPager.getCurrentItem();
+            final int count = adapter.getCount();
+            updateViewsByCurrentAdapterPosition(currentPosition, currentPosition >= 0 && currentPosition < count ? adapter.getItem(currentPosition) : null, count);
+        }
         invalidatePagerVisibility();
     }
 
@@ -165,7 +173,7 @@ public abstract class BaseViewPagerListLoadingFragment<I, Adapter extends BasePa
         }
     }
 
-    protected abstract void updateViewsByCurrentAdapterPosition();
+    protected abstract void updateViewsByCurrentAdapterPosition(int position, @Nullable I item, int count);
 
     protected abstract void setupViewPager();
 
@@ -195,13 +203,5 @@ public abstract class BaseViewPagerListLoadingFragment<I, Adapter extends BasePa
 
     protected void reloadAdapter(Collection<I> items) {
         adapter.setItems(items);
-        if (viewPagerIndicator != null) {
-            viewPagerIndicator.notifyDataSetChanged();
-        }
-        final int targetPosition = getTargetPagerPosition();
-        if (targetPosition != RecyclerView.NO_POSITION) {
-            viewPager.setCurrentItem(targetPosition);
-        }
-        updateViewsByCurrentAdapterPosition();
     }
 }
