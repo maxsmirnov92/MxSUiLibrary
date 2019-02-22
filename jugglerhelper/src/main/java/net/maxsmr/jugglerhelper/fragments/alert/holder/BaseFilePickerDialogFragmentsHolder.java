@@ -135,7 +135,9 @@ public abstract class BaseFilePickerDialogFragmentsHolder<L extends AlertDialogF
             throw new IllegalStateException(IFilePickerConfigurator.class.getSimpleName() + " is not specified");
         }
 
-        filePickerConfigurator.onBeforePickPictureFromGallery();
+        if (!filePickerConfigurator.onBeforePickPictureFromGallery(intent)) {
+            return;
+        }
 
         boolean handled = false;
         if (fragment == null) {
@@ -163,8 +165,16 @@ public abstract class BaseFilePickerDialogFragmentsHolder<L extends AlertDialogF
             throw new IllegalStateException(IFilePickerConfigurator.class.getSimpleName() + " is not specified");
         }
 
-        if (filePickerConfigurator.shouldDeletePreviousFile() && FileHelper.isFileExists(cameraPictureFile)) {
-            deleteCameraPictureFile();
+        final boolean shouldRecreate = filePickerConfigurator.shouldDeletePreviousFile();
+        final boolean exists = FileHelper.isFileExists(cameraPictureFile);
+
+        if (exists) {
+            if (shouldRecreate) {
+                deleteCameraPictureFile();
+            } else {
+                logger.e("File \"" + cameraPictureFile + "\" exists and should not be recreated");
+                return;
+            }
         }
 
         cameraPictureFile = filePickerConfigurator.newCameraPictureFile();
@@ -182,9 +192,17 @@ public abstract class BaseFilePickerDialogFragmentsHolder<L extends AlertDialogF
 
         Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
         intent.putExtra(MediaStore.EXTRA_OUTPUT, fileUri);
-        FileHelper.createNewFile(cameraPictureFile.getName(), cameraPictureFile.getParent(), true);
 
-        filePickerConfigurator.onBeforePickPictureFromCamera();
+        if (!filePickerConfigurator.onBeforePickPictureFromCamera(intent)) {
+            return;
+        }
+
+        cameraPictureFile = FileHelper.createNewFile(cameraPictureFile.getName(), cameraPictureFile.getParent(), true);
+
+        if (cameraPictureFile == null) {
+            logger.e("Cannot create file \"" + cameraPictureFile + "\"");
+            return;
+        }
 
         boolean handled = false;
         if (fragment == null) {
@@ -209,7 +227,9 @@ public abstract class BaseFilePickerDialogFragmentsHolder<L extends AlertDialogF
             throw new IllegalStateException(IFilePickerConfigurator.class.getSimpleName() + " is not specified");
         }
 
-        filePickerConfigurator.onBeforePickFile();
+        if (!filePickerConfigurator.onBeforePickFile(intent)) {
+            return;
+        }
 
         boolean handled = false;
         if (fragment == null) {
@@ -271,11 +291,11 @@ public abstract class BaseFilePickerDialogFragmentsHolder<L extends AlertDialogF
 
         int getPickFileRequestCode();
 
-        void onBeforePickPictureFromGallery();
+        boolean onBeforePickPictureFromGallery(@NotNull Intent intent);
 
-        void onBeforePickPictureFromCamera();
+        boolean onBeforePickPictureFromCamera(@NotNull Intent intent);
 
-        void onBeforePickFile();
+        boolean onBeforePickFile(@NotNull Intent intent);
     }
 
 }

@@ -155,7 +155,11 @@ public abstract class BaseLoadingJugglerFragment<I> extends BaseJugglerFragment 
 
 
     protected void invalidateLoading(@Nullable I data) {
-        processLoading(isLoading);
+        if (isLoading) {
+            onStartLoading();
+        } else {
+            onStopLoading();
+        }
         afterLoading(data);
     }
 
