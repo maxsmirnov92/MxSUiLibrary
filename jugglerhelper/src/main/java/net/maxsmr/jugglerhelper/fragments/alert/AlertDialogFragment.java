@@ -15,7 +15,7 @@ import android.view.View;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class AlertDialogFragment<L extends AlertDialogFragment.EventListener> extends DialogFragment implements DialogInterface.OnClickListener {
+public class AlertDialogFragment<L extends AlertDialogFragment.EventListener> extends AppCompatDialogFragment implements DialogInterface.OnClickListener {
 
     private static AlertDialogFragment newInstance(@Nullable Bundle args) {
         AlertDialogFragment fragment = new AlertDialogFragment();

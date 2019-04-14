@@ -1,3 +1,3 @@
-include ':jugglerhelper'
+include ':recyclerview-lib'
 // ':recyclerview-lib'
 // ':jugglerhelper'
