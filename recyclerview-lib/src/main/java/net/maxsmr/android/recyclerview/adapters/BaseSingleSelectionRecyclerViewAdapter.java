@@ -5,6 +5,7 @@ import android.database.Observable;
 import android.support.annotation.CallSuper;
 import android.support.annotation.LayoutRes;
 import android.support.v7.widget.RecyclerView;
+import android.view.View;
 import android.widget.Checkable;
 
 import com.bejibx.android.recyclerview.selection.SelectionHelper;
@@ -26,7 +27,7 @@ public abstract class BaseSingleSelectionRecyclerViewAdapter<I, VH extends BaseR
 
     private boolean mIsSelectable = false;
 
-    private boolean mAllowTogglingSelection = true;
+    private boolean mAllowResettingSelection = true;
 
     @Nullable
     private SelectionHelper.SelectMode mSelectMode = null;
@@ -65,12 +66,12 @@ public abstract class BaseSingleSelectionRecyclerViewAdapter<I, VH extends BaseR
         return false;
     }
 
-    public boolean allowTogglingSelection() {
-        return mAllowTogglingSelection;
+    public boolean allowResettingSelection() {
+        return mAllowResettingSelection;
     }
 
-    public void setAllowTogglingSelection(boolean toggle) {
-        mAllowTogglingSelection = toggle;
+    public void setAllowResettingSelection(boolean toggle) {
+        mAllowResettingSelection = toggle;
     }
 
     // override if need various for each position
@@ -98,11 +99,8 @@ public abstract class BaseSingleSelectionRecyclerViewAdapter<I, VH extends BaseR
     }
 
     @Nullable
-    protected Checkable getCheckableView(@NotNull VH holder) {
-        if (holder.itemView instanceof Checkable) {
-            return (Checkable) holder.itemView;
-        }
-        return null;
+    protected View getSelectableView(@NotNull VH holder) {
+        return getClickableView(holder);
     }
 
     @Override
@@ -113,55 +111,75 @@ public abstract class BaseSingleSelectionRecyclerViewAdapter<I, VH extends BaseR
     }
 
     protected void processSelection(@NotNull VH holder, @Nullable final I item, final int position) {
-        for (SelectionHelper.SelectMode mode : getSelectModes(item, position)) {
-            switch (mode) {
-                case CLICK:
-                    holder.itemView.setOnClickListener(v -> {
-                        if (position == mSelection) {
-                            if (allowTogglingSelection() || mSelection != position) {
-                                toggleSelection(position, true);
-                            } else {
-                                // current state is selected, triggering reselect
-                                setSelection(position, true);
-                            }
-                        } else {
-                            setSelection(position, true);
-                        }
-                        if (allowSetClickListener(item, position)) {
-                            mItemsEventsObservable.notifyItemClick(position, item);
-                        }
-                    });
-                    break;
 
-                case LONG_CLICK:
-                    holder.itemView.setOnLongClickListener(v -> {
-                        if (position == mSelection) {
-                            if (allowTogglingSelection() || mSelection != position) {
-                                toggleSelection(position, true);
-                            } else {
-                                // current state is selected, triggering reselect
-                                setSelection(position, true);
-                            }
-                        } else {
-                            setSelection(position, true);
-                        }
-                        if (allowSetLongClickListener(item, position)) {
-                             return mItemsEventsObservable.notifyItemLongClick(position, item);
-                        }
-                        return true;
-                    });
-                    break;
-            }
-        }
         boolean isSelected = isItemPositionSelected(position);
-        Checkable checkableView = getCheckableView(holder);
-        if (checkableView != null) {
-            checkableView.setChecked(isSelected);
+        final View selectableView = getSelectableView(holder);
+        final View clickableView = getClickableView(holder);
+
+        if (clickableView != null) {
+            final Set<SelectionHelper.SelectMode> selectModes = getSelectModes(item, position);
+            clickableView.setOnClickListener(v -> {
+                if (selectModes.contains(SelectionHelper.SelectMode.CLICK)) {
+                    changeSelectedStateFromUiNotifify(position, isSelected, selectableView);
+                    if (allowSetClickListener(item, position)) {
+                        mItemsEventsObservable.notifyItemClick(position, item);
+                    }
+                }
+
+            });
+            clickableView.setOnLongClickListener(v -> {
+                if (selectModes.contains(SelectionHelper.SelectMode.LONG_CLICK)) {
+                    changeSelectedStateFromUiNotifify(position, isSelected, selectableView);
+                    if (allowSetLongClickListener(item, position)) {
+                        return mItemsEventsObservable.notifyItemLongClick(position, item);
+                    }
+                }
+                return false;
+            });
         }
+
+        handleSelected(selectableView, isSelected);
         if (isSelected) {
             onProcessItemSelected(holder, item, position);
         } else {
             onProcessItemNotSelected(holder, item, position);
+        }
+    }
+
+    protected void handleSelected(@Nullable View selectableView, boolean isSelected) {
+        if (selectableView != null) {
+            if (selectableView instanceof Checkable) {
+                final Checkable checkableSelectableView = (Checkable) selectableView;
+                checkableSelectableView.setChecked(isSelected);
+            } else {
+                selectableView.setSelected(isSelected);
+            }
+        }
+    }
+
+    protected boolean changeSelectedStateFromUi(int position) {
+        if (isSelectable()) {
+            if (position == mSelection) {
+                if (allowResettingSelection()) {
+                    resetSelection(true);
+                } else {
+                    // current state is selected, triggering reselect, state must be not changed
+                    setSelection(position, true);
+                    return false;
+                }
+            } else {
+                setSelection(position, true);
+            }
+            return true;
+        }
+        return false;
+    }
+
+    protected void changeSelectedStateFromUiNotifify(int position,
+                                                     boolean wasSelected,
+                                                     View selectableView) {
+        if (!changeSelectedStateFromUi(position)) {
+            handleSelected(selectableView, wasSelected);
         }
     }
 
@@ -210,7 +228,9 @@ public abstract class BaseSingleSelectionRecyclerViewAdapter<I, VH extends BaseR
         setSelection(selection, false);
     }
 
-    /** @return true if selection changed, false - otherwise */
+    /**
+     * @return true if selection changed, false - otherwise
+     */
     public boolean setSelection(int selection, boolean fromUser) {
         if (isSelectable()) {
             rangeCheck(selection);
@@ -241,7 +261,9 @@ public abstract class BaseSingleSelectionRecyclerViewAdapter<I, VH extends BaseR
         resetSelection(false);
     }
 
-    /** @return true if was resetted, false - it was already not selected */
+    /**
+     * @return true if was resetted, false - it was already not selected
+     */
     public boolean resetSelection(boolean fromUser) {
         if (isSelected()) {
             int previousSelection = mSelection;

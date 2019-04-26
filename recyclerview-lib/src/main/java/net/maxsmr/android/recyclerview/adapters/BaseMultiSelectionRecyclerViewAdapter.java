@@ -11,6 +11,7 @@ import org.jetbrains.annotations.Nullable;
 
 import android.support.annotation.NonNull;
 import android.support.v7.widget.RecyclerView;
+import android.view.View;
 import android.widget.Checkable;
 
 import com.bejibx.android.recyclerview.selection.HolderClickListener;
@@ -124,15 +125,23 @@ public abstract class BaseMultiSelectionRecyclerViewAdapter<I, VH
         mSelectionHelper.wrapSelectable(holder, mSelectModes); /* mSelectModes.get(position) */
 
         final boolean isSelected = isItemPositionSelected(position);
-        Checkable checkableView = getCheckableView(holder);
-        if (checkableView != null) {
-            checkableView.setChecked(isSelected);
-        }
+        handleSelected(getSelectableView(holder), isSelected);
 
         if (isSelected) {
             onProcessItemSelected(holder);
         } else {
             onProcessItemNotSelected(holder);
+        }
+    }
+
+    protected void handleSelected(@Nullable View selectableView, boolean isSelected) {
+        if (selectableView != null) {
+            if (selectableView instanceof Checkable) {
+                final Checkable checkableSelectableView = (Checkable) selectableView;
+                checkableSelectableView.setChecked(isSelected);
+            } else {
+                selectableView.setSelected(isSelected);
+            }
         }
     }
 
@@ -143,13 +152,9 @@ public abstract class BaseMultiSelectionRecyclerViewAdapter<I, VH
     }
 
     @Nullable
-    protected Checkable getCheckableView(@NotNull VH holder) {
-        if (holder.itemView instanceof Checkable) {
-            return (Checkable) holder.itemView;
-        }
-        return null;
+    protected View getSelectableView(@NotNull VH holder) {
+        return getClickableView(holder);
     }
-
 
     @Override
     @CallSuper
