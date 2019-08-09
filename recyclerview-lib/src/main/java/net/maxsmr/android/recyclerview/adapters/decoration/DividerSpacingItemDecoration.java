@@ -232,6 +232,9 @@ public class DividerSpacingItemDecoration extends RecyclerView.ItemDecoration {
             case LAST:
                 result = childPos == adapter.getItemCount() - 1;
                 break;
+            case FIRST_AND_LAST:
+                result = childPos == 0 || childPos == adapter.getItemCount() - 1;
+                break;
             case CUSTOM:
                 result = dividerOrSpacing ? settings.getDividerPositions().contains(childPos) : (settings.getDividerPositions().contains(childPos) || settings.getSpacingPositions().contains(childPos));
                 break;
@@ -384,6 +387,11 @@ public class DividerSpacingItemDecoration extends RecyclerView.ItemDecoration {
              * Только последний
              */
             LAST,
+
+            /**
+             * Первый и последний
+             */
+            FIRST_AND_LAST,
 
             /*
              * В указанных позициях
