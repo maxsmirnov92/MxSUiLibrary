@@ -2,12 +2,12 @@ package net.maxsmr.android.recyclerview.adapters.sample;
 
 
 import android.content.Context;
-import android.support.annotation.IdRes;
-import android.support.annotation.LayoutRes;
-import android.support.annotation.NonNull;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
+
+import androidx.annotation.IdRes;
+import androidx.annotation.LayoutRes;
 
 import net.maxsmr.android.recyclerview.adapters.BaseRecyclerViewAdapter;
 
@@ -38,26 +38,26 @@ public class SampleStringAdapter extends BaseRecyclerViewAdapter<String, SampleS
 
     public static class ViewHolder extends BaseRecyclerViewAdapter.ViewHolder<String> {
 
-        protected TextView textView;
+        private TextView textView;
 
         public ViewHolder(@NotNull View view, @IdRes int viewResId) {
             super(view);
-            textView = (TextView) itemView.findViewById(viewResId);
+            textView = itemView.findViewById(viewResId);
             if (textView == null) {
                 throw new RuntimeException("view with id " + viewResId + " not found");
             }
         }
 
         @Override
-        public void displayData(int position, @NotNull String item, int count) {
-            super.displayData(position, item, count);
+        public void bindData(int position, @NotNull String item, int count) {
+            super.bindData(position, item, count);
             textView.setText(item);
             textView.setVisibility(View.VISIBLE);
         }
 
         @Override
-        public void displayEmptyData(int position, @Nullable String item, int count) {
-            super.displayEmptyData(position, item, count);
+        public void bindEmptyData(int position, @Nullable String item, int count) {
+            super.bindEmptyData(position, item, count);
             textView.setVisibility(View.GONE);
         }
     }

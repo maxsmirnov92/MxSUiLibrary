@@ -1,7 +1,8 @@
 package com.bejibx.android.recyclerview.selection;
 
-import android.support.v7.widget.RecyclerView;
 import android.util.SparseArray;
+
+import androidx.recyclerview.widget.RecyclerView;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;

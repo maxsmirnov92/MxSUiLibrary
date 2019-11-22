@@ -1,11 +1,10 @@
 package net.maxsmr.android.recyclerview.adapters;
 
-import android.support.annotation.NonNull;
-import android.support.v4.view.PagerAdapter;
 import android.view.View;
 import android.view.ViewGroup;
 
-import net.maxsmr.android.recyclerview.adapters.BaseRecyclerViewAdapter;
+import androidx.annotation.NonNull;
+import androidx.viewpager.widget.PagerAdapter;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -26,7 +25,6 @@ public abstract class BasePagerAdapter<I, VH extends BaseRecyclerViewAdapter.Vie
     protected BasePagerAdapter(@Nullable List<I> items) {
         setItems(items);
     }
-
 
     @NotNull
     public ArrayList<I> getItems() {
@@ -69,7 +67,7 @@ public abstract class BasePagerAdapter<I, VH extends BaseRecyclerViewAdapter.Vie
         final int count = getCount();
         final I item = getItem(position);
 
-        processItem(holder, position, item, count);
+        bindItem(holder, position, item, count);
 
         container.addView(holder.itemView);
         return holder.itemView;
@@ -89,12 +87,12 @@ public abstract class BasePagerAdapter<I, VH extends BaseRecyclerViewAdapter.Vie
     @NotNull
     protected abstract VH createViewHolder(@NotNull ViewGroup container, int position);
 
-    protected void processItem(@NotNull VH holder, int position, @Nullable I item, int count) {
+    protected void bindItem(@NotNull VH holder, int position, @Nullable I item, int count) {
         final boolean isEmpty = isItemEmpty(position, item);
         if (item != null && !isEmpty) {
-            holder.displayData(position, item, count);
+            holder.bindData(position, item, count);
         } else {
-            holder.displayEmptyData(position, item, count);
+            holder.bindEmptyData(position, item, count);
         }
     }
 

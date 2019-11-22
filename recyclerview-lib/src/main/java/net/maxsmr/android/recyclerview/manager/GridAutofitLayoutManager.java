@@ -1,9 +1,10 @@
-package net.maxsmr.android.recyclerview.adapters.manager;
+package net.maxsmr.android.recyclerview.manager;
 
 import android.content.Context;
-import android.support.v7.widget.GridLayoutManager;
-import android.support.v7.widget.RecyclerView;
 import android.util.TypedValue;
+
+import androidx.recyclerview.widget.GridLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 public class GridAutofitLayoutManager extends GridLayoutManager {
 

@@ -1,0 +1,69 @@
+import groovy.json.JsonSlurper
+
+ext.getProjectVersion = { project ->
+    def version = ""
+    if (project != null) {
+        version = project.version
+        if (!project.stable && project.unstableVersion > 0) {
+            version += "-alpha.$unstableVersion"
+        }
+    }
+    if (version.isEmpty()) {
+        throw new GradleException("Project version is not specified")
+    }
+    return version
+}
+
+ext.getProjectInfo = {
+    return new JsonSlurper().parse(new File("$rootDir/projectConfig.json"), 'utf-8')
+}
+
+ext.getModuleVersionName = { path ->
+    def module = getModuleInfo(path)
+    def version = ""
+    if (module != null) {
+        version = module.versionName
+        if (!module.stable && module.unstableVersion > 0) {
+            version += "-alpha.$unstableVersion"
+        }
+    }
+    if (version.isEmpty()) {
+        throw new GradleException("Version name for module with path $path not found")
+    }
+    return version
+}
+
+ext.getModuleVersionCode = { path ->
+    def module = getModuleInfo(path)
+    def version = null
+    if (module != null) {
+        version = module.versionCode
+    }
+    if (version == null) {
+        throw new GradleException("Version code for module with path $path not found")
+    }
+    return version
+}
+
+ext.getModuleInfo = { path ->
+    if (path.isEmpty()) return ""
+//    def lastIndex = path.lastIndexOf("/")
+//    def lastPathSegment
+//    if (lastIndex < 0 || lastIndex == path.size() - 1) {
+//        lastPathSegment = path
+//    } else {
+//        lastPathSegment = path.substring(lastIndex + 1, path.length())
+//    }
+    def modules = new JsonSlurper().parse(new File("$rootDir/modules.json"), 'utf-8')
+    def result = null
+    modules.each { module ->
+        if (module.id == path) {
+            result = module
+            return true
+        }
+    }
+    if (result == null) {
+        throw new GradleException("Module with id $path not found")
+    }
+    return result
+}

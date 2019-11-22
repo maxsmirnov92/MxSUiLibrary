@@ -7,10 +7,6 @@ import android.content.res.TypedArray;
 import android.graphics.Rect;
 import android.os.Bundle;
 import android.os.Parcelable;
-import android.support.annotation.Nullable;
-import android.support.v4.view.GestureDetectorCompat;
-import android.support.v4.view.ViewCompat;
-import android.support.v4.widget.ViewDragHelper;
 import android.util.AttributeSet;
 import android.util.DisplayMetrics;
 import android.view.GestureDetector;
@@ -18,7 +14,13 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 
+import androidx.core.view.GestureDetectorCompat;
+import androidx.core.view.ViewCompat;
+import androidx.customview.widget.ViewDragHelper;
+
 import com.bejibx.android.recyclerview.R;
+
+import org.jetbrains.annotations.Nullable;
 
 
 /**
@@ -193,10 +195,8 @@ public class SwipeRevealLayout extends ViewGroup {
             boolean matchParentWidth = false;
 
             if (childParams != null) {
-                matchParentHeight = (childParams.height == LayoutParams.MATCH_PARENT) ||
-                        (childParams.height == LayoutParams.FILL_PARENT);
-                matchParentWidth = (childParams.width == LayoutParams.MATCH_PARENT) ||
-                        (childParams.width == LayoutParams.FILL_PARENT);
+                matchParentHeight = childParams.height == LayoutParams.MATCH_PARENT;
+                matchParentWidth = childParams.width == LayoutParams.MATCH_PARENT;
             }
 
             if (matchParentHeight) {

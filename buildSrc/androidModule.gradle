@@ -1,0 +1,100 @@
+//plugins {
+//    id "com.jfrog.bintray" version "1.7.3"
+//}
+
+apply from: "$rootDir/buildSrc/deploy.gradle"
+apply from: "$rootDir/buildSrc/config.gradle"
+
+apply plugin: 'com.android.library'
+apply plugin: 'kotlin-android'
+apply plugin: 'kotlin-android-extensions'
+apply plugin: 'kotlin-kapt'
+
+androidExtensions {
+    // to enable @Parcelize feature
+    experimental = true
+}
+
+
+android {
+    signingConfigs {
+        release {
+            def propsFile = new File("$rootDir/buildSrc/keystore.properties")
+            def props = new Properties()
+            props.load(new FileInputStream(propsFile))
+
+            storeFile file("${System.getenv('ANDROID_HOME')}/release.keystore")
+            storePassword props['signingPassword']
+            keyAlias props['alias']
+            keyPassword props['signingPassword']
+        }
+    }
+
+    compileSdkVersion rootProject.ext.sdkVersion
+    buildToolsVersion rootProject.ext.buildToolsVersion
+
+    defaultConfig {
+        minSdkVersion rootProject.ext.minSdkVersion
+        targetSdkVersion rootProject.ext.sdkVersion
+        versionCode project.getModuleVersionCode(project.path)
+        versionName project.getModuleVersionName(project.path)
+        vectorDrawables.useSupportLibrary = true
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+    }
+
+    compileOptions {
+        sourceCompatibility sourceCompatibilityVersion
+        targetCompatibility sourceCompatibilityVersion
+    }
+
+    lintOptions {
+        checkReleaseBuilds false
+        abortOnError false
+    }
+
+    buildTypes {
+        degug {
+            debuggable true
+            minifyEnabled false
+        }
+        release {
+            signingConfig signingConfigs.release
+            minifyEnabled false
+//            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+
+    testOptions {
+        unitTests.returnDefaultValues = true
+    }
+
+    sourceSets {
+        main {
+            java.srcDirs += 'src/main/kotlin/'
+            test.java.srcDirs += 'src/test/kotlin'
+            androidTest.java.srcDirs += 'src/androidTest/kotlin'
+        }
+    }
+}
+
+dependencies {
+
+    // libs/*.jar
+    api fileTree(dir: 'libs', include: ['*.jar'])
+
+    // Kotlin
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlinVersion"
+    implementation "org.jetbrains.kotlin:kotlin-reflect:$kotlinVersion"
+
+    // Tests
+    testImplementation "androidx.test:core:$testCoreVersion"
+    testImplementation "androidx.test.ext:junit:$jUnitExtVersion"
+    testImplementation "androidx.test:rules:$testCoreVersion"
+    testImplementation "junit:junit:$jUnitVersion"
+    androidTestImplementation "androidx.test:runner:$testCoreVersion"
+
+}
+
+configurations {
+    javadocDependencies
+}

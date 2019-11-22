@@ -1,6 +1,5 @@
 package net.maxsmr.android.recyclerview.adapters;
 
-
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;

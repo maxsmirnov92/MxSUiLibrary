@@ -9,7 +9,7 @@ import android.support.v7.widget.RecyclerView;
 import android.view.View;
 
 import net.maxsmr.android.recyclerview.adapters.BaseRecyclerViewAdapter;
-import net.maxsmr.android.recyclerview.adapters.scroll.RecyclerScrollableController;
+import net.maxsmr.android.recyclerview.scroll.RecyclerScrollableController;
 import net.maxsmr.commonutils.android.gui.GuiUtils;
 import net.maxsmr.commonutils.data.CompareUtils;
 import net.maxsmr.jugglerhelper.R;

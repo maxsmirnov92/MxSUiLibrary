@@ -1,7 +1,8 @@
-package net.maxsmr.android.recyclerview.adapters.scroll;
+package net.maxsmr.android.recyclerview.scroll;
 
-import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.RecyclerView;
+
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import org.jetbrains.annotations.NotNull;
 

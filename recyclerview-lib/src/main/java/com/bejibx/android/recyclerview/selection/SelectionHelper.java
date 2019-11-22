@@ -1,8 +1,9 @@
 package com.bejibx.android.recyclerview.selection;
 
 import android.database.Observable;
-import android.support.v7.widget.RecyclerView;
 import android.view.View;
+
+import androidx.recyclerview.widget.RecyclerView;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -208,6 +209,7 @@ public final class SelectionHelper {
     }
 
     private class HolderClickObservable extends Observable<HolderClickListener> {
+
         public final void notifyOnHolderClick(RecyclerView.ViewHolder holder) {
             synchronized (mObservers) {
                 for (HolderClickListener observer : mObservers) {
