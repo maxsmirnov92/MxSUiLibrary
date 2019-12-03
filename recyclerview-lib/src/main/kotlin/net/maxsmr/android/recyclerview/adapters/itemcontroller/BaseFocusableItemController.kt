@@ -25,6 +25,10 @@ abstract class BaseFocusableItemController<T, VH : BaseFocusableItemController.F
      * (невозможно получить напрямую из EasyAdapter)
      */
     var items: List<T> = listOf()
+    set(value) {
+        field = value
+        onItemsChanged()
+    }
 
     /**
      * Кол-во элементов, которые не имеют отношения к этому [BaseFocusableItemController],
@@ -113,6 +117,13 @@ abstract class BaseFocusableItemController<T, VH : BaseFocusableItemController.F
      * @return найденный индекс или [NO_POSITION]
      */
     protected open fun indexOf(item: T?): Int = items.indexOfFirst { getItemId(it) == getItemId(item) }
+
+    /**
+     * Вызывается при изменении поля [items]
+     */
+    protected open fun onItemsChanged() {
+        // do nothing
+    }
 
     /**
      * [LoadableViewHolder] с возможностью фокуса

@@ -14,28 +14,25 @@ abstract class BaseSelectionRecyclerViewAdapter<I, VH : BaseRecyclerViewAdapter.
         context: Context,
         @LayoutRes
         baseItemLayoutId: Int = 0,
-        items: Collection<I>? = null,
-        selectModes: Collection<SelectMode>
+        items: Collection<I>? = null
 ) : BaseRecyclerViewAdapter<I, VH>(context, baseItemLayoutId, items) {
 
-    protected abstract val itemSelectedObservable: BaseItemSelectedObservable<L>;
-
-    protected abstract var isSelectable: Boolean
+    protected abstract val itemSelectedObservable: BaseItemSelectedObservable<L>
 
     // notify required here
     val selectModes = mutableSetOf<SelectMode>()
-        get() = field.toMutableSet()
+//        get() = field.toMutableSet()
 
-    init {
-        setSelectModes(selectModes)
-    }
+    abstract var isSelectable: Boolean
 
     override fun allowSetClickListener(item: I?, position: Int): Boolean =
-            super.allowSetClickListener(item, position) && !selectModes.contains(CLICK)
+            super.allowSetClickListener(item, position)
+                    && !getSelectModesForItem(item, position).contains(CLICK)
 
 
     override fun allowSetLongClickListener(item: I?, position: Int): Boolean =
-            super.allowSetLongClickListener(item, position) && !selectModes.contains(LONG_CLICK)
+            super.allowSetLongClickListener(item, position)
+                    && !getSelectModesForItem(item, position).contains(LONG_CLICK)
 
     @CallSuper
     override fun bindItem(holder: VH, item: I?, position: Int) {

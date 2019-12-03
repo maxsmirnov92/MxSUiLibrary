@@ -22,7 +22,7 @@ public final class SelectionHelper {
     private final HolderClickObservable mHolderClickObservable = new HolderClickObservable();
     private final SelectionObservable mSelectionObservable = new SelectionObservable();
 
-    private boolean mIsSelectable = false;
+    private boolean mIsSelectable = true;
 
     private boolean mAllowTogglingSelection = true;
 

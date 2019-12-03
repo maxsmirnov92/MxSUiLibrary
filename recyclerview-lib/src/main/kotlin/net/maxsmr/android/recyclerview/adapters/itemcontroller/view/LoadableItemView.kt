@@ -7,5 +7,5 @@ interface LoadableItemView {
 
     var loading : Boolean
 
-    fun post(action: () -> Unit)
+    fun post(action: () -> Unit) {}
 }

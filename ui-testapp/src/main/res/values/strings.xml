@@ -1,3 +1,14 @@
 <resources>
     <string name="app_name">ui-testapp</string>
+    <string name="activity_recycler_test">RecyclerTest</string>
+    <string name="recycler_test_type_none_radio_text">None</string>
+    <string name="recycler_test_type_single_radio_text">Single</string>
+    <string name="recycler_test_type_multi_radio_text">Multi</string>
+    <string name="recycler_test_type_switch_btn_text">Switch type</string>
+    <string name="recycler_test_current_selected_btn_text">Current selected</string>
+    <string name="recycler_test_generate_data_btn_text">Generate</string>
+    <string name="recycler_test_clear_data_btn_text">Clear</string>
+    <string name="recycler_test_selected_items_message">Selected items is: %s</string>
+    <string name="recycler_test_selected_items_empty_message">No selected items</string>
+    <string name="recycler_test_adapter_type_changed_message">RecyclerView adapter type changed from %s to %s</string>
 </resources>

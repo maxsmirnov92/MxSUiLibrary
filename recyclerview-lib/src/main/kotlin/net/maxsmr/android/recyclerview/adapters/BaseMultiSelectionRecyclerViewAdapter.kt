@@ -12,10 +12,9 @@ import java.util.*
 abstract class BaseMultiSelectionRecyclerViewAdapter<I, VH : BaseRecyclerViewAdapter.ViewHolder<*>>(
         context: Context,
         @LayoutRes baseItemLayoutId: Int = 0,
-        items: Collection<I>? = null,
-        selectModes: Collection<SelectionHelper.SelectMode>
+        items: Collection<I>? = null
 ) : BaseSelectionRecyclerViewAdapter<I, VH, BaseMultiSelectionRecyclerViewAdapter.ItemSelectedChangeListener>(
-        context, baseItemLayoutId, items, selectModes
+        context, baseItemLayoutId, items
 ), HolderClickListener, SelectionListener {
 
     override val itemSelectedObservable = ItemSelectedObservable()

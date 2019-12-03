@@ -41,8 +41,8 @@ abstract class BaseRecyclerViewAdapter<I, VH : BaseRecyclerViewAdapter.ViewHolde
     val isNotEmpty: Boolean
         get() = !isEmpty
 
-    protected val items = mutableListOf<I?>()
-        get() = field.toMutableList()
+    val items = mutableListOf<I?>()
+//        get() = field.toMutableList()
 
     protected val itemsEventsObservable = ItemsEventsObservable<I, VH>()
 
@@ -70,7 +70,7 @@ abstract class BaseRecyclerViewAdapter<I, VH : BaseRecyclerViewAdapter.ViewHolde
     private var lastItemsInfo = listOf<ItemInfo>()
 
     init {
-        setItems(items)
+        setItems(items, false)
     }
 
     abstract override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): VH
@@ -165,13 +165,15 @@ abstract class BaseRecyclerViewAdapter<I, VH : BaseRecyclerViewAdapter.ViewHolde
     /**
      * @param items null for reset adapter
      */
-    fun setItems(items: Collection<I>?) {
+    fun setItems(items: Collection<I>?, shouldNotify: Boolean = true) {
         if (shouldSetItems(items)) {
             clearItems()
             if (items != null) {
                 this.items.addAll(items)
             }
-            onItemsSet()
+            if (shouldNotify) {
+                onItemsSet()
+            }
         }
     }
 

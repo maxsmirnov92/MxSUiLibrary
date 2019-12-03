@@ -12,10 +12,9 @@ import com.bejibx.android.recyclerview.selection.SelectionHelper.SelectMode.LONG
 abstract class BaseSingleSelectionRecyclerViewAdapter<I, VH : BaseRecyclerViewAdapter.ViewHolder<I>> @JvmOverloads constructor(
         context: Context,
         @LayoutRes baseItemLayoutId: Int = 0,
-        items: Collection<I>? = null,
-        selectModes: Collection<SelectionHelper.SelectMode>
+        items: Collection<I>? = null
 ) : BaseSelectionRecyclerViewAdapter<I, VH, BaseSingleSelectionRecyclerViewAdapter.OnItemSelectedChangeListener>(
-        context, baseItemLayoutId, items, selectModes
+        context, baseItemLayoutId, items
 ) {
 
     override val itemSelectedObservable = ItemSelectedObservable()
@@ -40,7 +39,7 @@ abstract class BaseSingleSelectionRecyclerViewAdapter<I, VH : BaseRecyclerViewAd
             }
         }
 
-    override var isSelectable = false
+    override var isSelectable = true
         set(value) {
             if (value != field) {
                 field = value
@@ -76,15 +75,15 @@ abstract class BaseSingleSelectionRecyclerViewAdapter<I, VH : BaseRecyclerViewAd
 
         if (clickableView != null) {
             val selectModes = getSelectModesForItem(item, position)
-            clickableView.setOnClickListener { v ->
-                if (selectModes.contains(CLICK)) {
+            if (selectModes.contains(CLICK)) {
+                clickableView.setOnClickListener { v ->
                     changeSelectedStateFromUiNotify(position, isSelected, selectableView)
                     itemsEventsObservable.notifyItemClick(position, item)
                 }
 
             }
-            clickableView.setOnLongClickListener { v ->
-                if (selectModes.contains(LONG_CLICK)) {
+            if (selectModes.contains(LONG_CLICK)) {
+                clickableView.setOnLongClickListener { v ->
                     changeSelectedStateFromUiNotify(position, isSelected, selectableView)
                     return@setOnLongClickListener itemsEventsObservable.notifyItemLongClick(position, item)
                 }
@@ -334,7 +333,7 @@ abstract class BaseSingleSelectionRecyclerViewAdapter<I, VH : BaseRecyclerViewAd
         }
     }
 
-    interface OnItemSelectedChangeListener: BaseItemSelectedChangeListener {
+    interface OnItemSelectedChangeListener : BaseItemSelectedChangeListener {
 
         fun onItemSetSelection(fromIndex: Int, toIndex: Int, fromUser: Boolean)
 

@@ -6,12 +6,15 @@ import android.widget.Checkable
 import androidx.annotation.CallSuper
 import androidx.annotation.LayoutRes
 import androidx.recyclerview.widget.RecyclerView.NO_POSITION
+import net.maxsmr.android.recyclerview.adapters.BaseMultiSelectionRecyclerViewAdapter
 import net.maxsmr.android.recyclerview.adapters.itemcontroller.BaseFocusableItemController
 import ru.surfstudio.android.utilktx.data.wrapper.selectable.SelectableData
 
 /**
  * Базовый item controller для реализации
- * selectable-свойства
+ * selectable-свойства;
+ * в отличие от [BaseMultiSelectionRecyclerViewAdapter]
+ * не учитывает порядок, в котором менялся isSelectable
  */
 abstract class BaseSelectableItemController<T, VH : BaseSelectableItemController.SelectableViewHolder<T>> :
         BaseFocusableItemController<SelectableData<T>, VH>() {
@@ -27,17 +30,33 @@ abstract class BaseSelectableItemController<T, VH : BaseSelectableItemController
      * за правильность исходных данных контроллер не отвечает)
      */
     var selectMode = SelectMode.SINGLE
+        set(value) {
+            if (field != value) {
+                field = value
+                if (value == SelectMode.SINGLE) {
+                    resetAllButFirstSelected()
+                }
+            }
+        }
 
     /**
      * Вкл/выкл возможность менять selected state
      */
     var isSelectable = true
+        set(value) {
+            if (field != value) {
+                field = value
+                if (!value) {
+                    resetAllSelected()
+                }
+            }
+        }
 
     /**
      * Разрешить сброс isSelected для элемента из UI
      * (false может быть применимо для radiobutton)
      */
-    var allowResetSelection = false
+    var allowResetSelection = true
 
     var onSelectedListener: ((position: Int, item: T) -> Unit)? = null
 
@@ -54,6 +73,12 @@ abstract class BaseSelectableItemController<T, VH : BaseSelectableItemController
 
     override fun getItemId(item: SelectableData<T>?): String? = item?.data?.hashCode().toString()
 
+    override fun onItemsChanged() {
+        if (selectMode == SelectMode.SINGLE) {
+            resetAllButFirstSelected()
+        }
+    }
+
     /**
      * @return найденная [SelectableData] или null
      */
@@ -69,12 +94,22 @@ abstract class BaseSelectableItemController<T, VH : BaseSelectableItemController
     fun getFirstUnselectedItem(): T? = getUnselectedItems().firstOrNull()
 
     /**
-     * [T] в selected состоянии
+     * Элементы и их позиции в выбранном состоянии
+     */
+    fun getSelectedItemsMap(): Map<Int, T> = getSelectedItemsMap(true)
+
+    /**
+     * Элементы и их позиции в невыбранном состоянии
+     */
+    fun getUnselectedItemPositions(): Map<Int, T> = getSelectedItemsMap(false)
+
+    /**
+     * [T] в выбранном состоянии
      */
     fun getSelectedItems(): List<T> = getSelectedItems(true)
 
     /**
-     * [T] в non-selected состоянии
+     * [T] в невыбранном состоянии
      */
     fun getUnselectedItems(): List<T> = getSelectedItems(false)
 
@@ -123,15 +158,10 @@ abstract class BaseSelectableItemController<T, VH : BaseSelectableItemController
      * @return true, если состояние было изменено, false - в противном случае
      */
     fun setSelectedByIndex(targetIndex: Int, toggle: Boolean): Boolean {
-        if (isSelectable) {
+        if (isSelectable || !toggle) {
             if (setSelectedInternal(targetIndex, toggle)) {
                 if (toggle && selectMode == SelectMode.SINGLE) {
-                    // для SINGLE режима все остальные сбрасываем
-                    items.forEachIndexed { index, _ ->
-                        if (index != targetIndex) {
-                            setSelectedInternal(index, false)
-                        }
-                    }
+                    setSelectedExclude(false, listOf(targetIndex))
                 }
                 return true
             }
@@ -139,20 +169,7 @@ abstract class BaseSelectableItemController<T, VH : BaseSelectableItemController
         return false
     }
 
-    /**
-     * Сбросить selection у всех выставленных
-     */
-    fun resetSelectedAll() = resetSelected(items.map { it.data })
 
-    /**
-     * Инвертировать selection у всех выставленных
-     */
-    fun toggleSelectedAll() = toggleSelected(items)
-
-    /**
-     * Изменить selection на [toggle] у всех выставленных
-     */
-    fun setSelectedAll(toggle: Boolean) = setSelected(items.map { it.data }, toggle)
 
     fun resetSelected(targetItems: Collection<T>): Set<T> {
         val changedItems: MutableSet<T> = mutableSetOf()
@@ -214,6 +231,28 @@ abstract class BaseSelectableItemController<T, VH : BaseSelectableItemController
     }
 
     /**
+     * Сбросить выбор у всех выставленных
+     */
+    fun resetAllSelected() {
+        setAllSelected(false)
+    }
+
+
+    /**
+     * Выставить выбранными все
+     */
+    fun setAllSelected() {
+        setAllSelected(true)
+    }
+
+    /**
+     * Инвертировать selection у всех выставленных
+     */
+    fun toggleAllSelections() {
+        toggleSelected(items)
+    }
+
+    /**
      * Выставить [source] в целевом состоянии [toggle]
      * @return новый выставленный список
      */
@@ -251,6 +290,16 @@ abstract class BaseSelectableItemController<T, VH : BaseSelectableItemController
      * @return найденный индекс или [NO_POSITION]
      */
     protected open fun internalIndexOf(item: T): Int = items.indexOfFirst { getInnerItemId(it.data) == getInnerItemId(item) }
+
+    private fun getSelectedItemsMap(isSelected: Boolean): Map<Int, T> {
+        val result = mutableMapOf<Int, T>()
+        items.forEachIndexed { index, selectableData ->
+            if (selectableData.isSelected == isSelected) {
+                result[index] = selectableData.data
+            }
+        }
+        return result
+    }
 
     private fun getSelectedItems(isSelected: Boolean): List<T> = items
             .filter { it.isSelected == isSelected }
@@ -293,6 +342,42 @@ abstract class BaseSelectableItemController<T, VH : BaseSelectableItemController
             }
         }
         return false
+    }
+
+    /**
+     * Сброс в текущих [items] всех, кроме первого выбранного
+     */
+    private fun resetAllButFirstSelected(reverse: Boolean = false) {
+        var targetIndex = NO_POSITION
+        val items = if (reverse) items.reversed() else items
+        for (index in items.indices) {
+            val selectableData = items[index]
+            if (selectableData.isSelected) {
+                targetIndex = index
+                break
+            }
+        }
+        if (targetIndex != NO_POSITION) {
+            setSelectedExclude(false, listOf(targetIndex))
+        }
+    }
+
+    private fun setSelectedExclude(toggle: Boolean = false, excludeIndexes: Collection<Int>) {
+        // для SINGLE режима все остальные сбрасываем
+        items.forEachIndexed { index, _ ->
+            if (!excludeIndexes.contains(index)) {
+                setSelectedInternal(index, toggle)
+            }
+        }
+    }
+
+    /**
+     * Изменить selection на [toggle] у всех выставленных
+     */
+    private fun setAllSelected(toggle: Boolean) {
+        items.forEachIndexed { index, _ ->
+            setSelectedByIndex(index, toggle)
+        }
     }
 
     /**
