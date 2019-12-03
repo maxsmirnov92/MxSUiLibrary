@@ -1,6 +1,7 @@
 [
   {
     "id": ":jugglerhelper",
+    "type": "lib",
     "versionName": "1.0.8.4",
     "versionCode": 1,
     "stable": true,
@@ -9,10 +10,21 @@
   },
   {
     "id": ":recyclerview-lib",
+    "type": "lib",
     "versionName": "1.0.6.1",
     "versionCode": 1,
     "stable": true,
     "unstableVersion": 0,
     "dir": "recyclerview-lib"
+  },
+  {
+    "id": ":ui-testapp",
+    "type": "app",
+    "versionName": "1.0",
+    "versionCode": 1,
+    "stable": true,
+    "unstableVersion": 0,
+    "dir": "ui-testapp",
+    "appId": "net.maxsmr.ui_testapp"
   }
 ]

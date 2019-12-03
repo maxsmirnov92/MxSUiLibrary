@@ -504,7 +504,7 @@ abstract class BaseRecyclerViewAdapter<I, VH : BaseRecyclerViewAdapter.ViewHolde
         }
     }
 
-    protected class ItemsEventsObservable<I, VH : BaseRecyclerViewAdapter.ViewHolder<*>> : Observable<ItemsEventsListener<I>>() {
+    protected class ItemsEventsObservable<I, VH : ViewHolder<*>> : Observable<ItemsEventsListener<I>>() {
 
         fun notifyItemClick(position: Int, item: I?) {
             synchronized(mObservers) {

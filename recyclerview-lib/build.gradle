@@ -1,4 +1,4 @@
-apply from: "$rootDir/buildSrc/baseBuild.gradle"
+apply from: "$rootDir/buildSrc/androidLib.gradle"
 
 dependencies {
 

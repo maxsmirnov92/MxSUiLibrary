@@ -1,9 +1,9 @@
-apply from: "$rootDir/buildSrc/baseBuild.gradle"
+apply from: "$rootDir/buildSrc/androidLib.gradle"
 
 dependencies {
 
     api "net.maxsmr:commonutils:$commonUtilsVersion"
-    api "net.maxsmr:recyclerview-lib:${project.getModuleVersionName(":recyclerview-lib")}"
+    api "net.maxsmr:recyclerview-lib:${project.getModuleVersionNameByPath(":recyclerview-lib")}"
 
     api "me.ilich:juggler:$jugglerVersion"
     api(group: 'me.ilich', name: 'NestableViewPager', version: "$nestableViewPagerVersion")

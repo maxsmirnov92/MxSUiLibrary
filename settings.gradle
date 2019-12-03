@@ -1,3 +1,3 @@
-include ':recyclerview-lib'
+include ':recyclerview-lib', ':ui-testapp'
 // ':recyclerview-lib'
 // ':jugglerhelper'

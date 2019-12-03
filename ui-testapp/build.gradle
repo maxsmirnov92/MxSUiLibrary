@@ -1,0 +1,12 @@
+apply from: "$rootDir/buildSrc/androidApp.gradle"
+
+ext {
+    constraintLayoutVersion = '1.1.3'
+}
+
+dependencies {
+
+    implementation "androidx.constraintlayout:constraintlayout:$constraintLayoutVersion"
+    implementation project(':recyclerview-lib')
+//    implementation "net.maxsmr:recyclerview-lib:${project.getModuleVersionNameByPath(":recyclerview-lib")}"
+}
