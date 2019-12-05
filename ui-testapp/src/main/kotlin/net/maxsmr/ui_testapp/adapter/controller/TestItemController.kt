@@ -1,5 +1,6 @@
 package net.maxsmr.ui_testapp.adapter.controller
 
+import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
 import com.example.ui_testapp.R
@@ -14,7 +15,9 @@ class TestItemController : BaseFocusableItemController<TestItem, TestItemControl
 
     class Holder(parent: ViewGroup) : BaseFocusableItemController.FocusableViewHolder<TestItem>(parent, R.layout.item_test) {
 
-        override val clickableView = itemView.findViewById<TextView>(R.id.test_tv)
+        override val clickableView = itemView as TextView
+
+        override val longClickableView: View = clickableView
 
         override val loadableView: LoadableItemView? = null
 

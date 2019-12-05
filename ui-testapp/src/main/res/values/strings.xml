@@ -11,4 +11,13 @@
     <string name="recycler_test_selected_items_message">Selected items is: %s</string>
     <string name="recycler_test_selected_items_empty_message">No selected items</string>
     <string name="recycler_test_adapter_type_changed_message">RecyclerView adapter type changed from %s to %s</string>
+    <string name="recycler_test_action_toggle_selectable_text">Toggle selectable</string>
+    <string name="recycler_test_action_toggle_selected_text">Toggle selected</string>
+    <string name="recycler_test_action_select_all_text">Set all selected</string>
+    <string name="recycler_test_action_clear_all_selected_text">Clear all selected</string>
+    <string name="recycler_test_action_btn_text">Do this</string>
+    <string name="recycler_test_unable_to_toggle_selectable">Unable to toggle selectable: None type is now selected.</string>
+    <string name="recycler_test_unable_to_toggle_selected">Unable to toggle selected: None type is now selected.</string>
+    <string name="recycler_test_unable_to_set_all_selection">Unable to set selections to all: Non-multi type is now selected.</string>
+    <string name="recycler_test_unable_to_clear_all_selection">Unable to clear selection(s) to all: None type is now selected.</string>
 </resources>

@@ -2,6 +2,8 @@ package net.maxsmr.ui_testapp
 
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.view.Menu
+import android.view.MenuItem
 import android.widget.RadioButton
 import android.widget.RadioGroup
 import android.widget.Toast
@@ -13,10 +15,11 @@ import com.example.ui_testapp.R
 import kotlinx.android.synthetic.main.activity_recycler_test.*
 import net.maxsmr.android.recyclerview.adapters.BaseMultiSelectionRecyclerViewAdapter
 import net.maxsmr.android.recyclerview.adapters.BaseRecyclerViewAdapter
+import net.maxsmr.android.recyclerview.adapters.BaseSelectionRecyclerViewAdapter
 import net.maxsmr.android.recyclerview.adapters.BaseSingleSelectionRecyclerViewAdapter
 import net.maxsmr.android.recyclerview.adapters.itemcontroller.BaseFocusableItemController
+import net.maxsmr.android.recyclerview.adapters.itemcontroller.BaseSelectableItemController
 import net.maxsmr.ui_testapp.AdapterType.BASE
-import net.maxsmr.ui_testapp.AdapterType.EASY
 import net.maxsmr.ui_testapp.adapter.TestItem
 import net.maxsmr.ui_testapp.adapter.base.TestMultiAdapter
 import net.maxsmr.ui_testapp.adapter.base.TestNoneAdapter
@@ -27,11 +30,11 @@ import ru.surfstudio.android.easyadapter.EasyAdapter
 import ru.surfstudio.android.easyadapter.ItemList
 import ru.surfstudio.android.utilktx.data.wrapper.selectable.SelectableData
 import ru.surfstudio.android.utilktx.ktx.text.EMPTY_STRING
-import ru.zenit.android.ui.common.controller.BaseSelectableItemController.SelectMode.*
+import net.maxsmr.android.recyclerview.adapters.itemcontroller.BaseSelectableItemController.SelectMode.*
 import java.util.*
 
 @Suppress("UNCHECKED_CAST")
-class RecyclerTestActivity : AppCompatActivity() {
+class RecyclerTestActivity : AppCompatActivity(), BaseRecyclerViewAdapter.ItemsEventsListener<TestItem> {
 
     private val defaultData = listOf(
             TestItem("test1"),
@@ -58,16 +61,19 @@ class RecyclerTestActivity : AppCompatActivity() {
     private val easyAdapter = EasyAdapter()
 
     private val noneItemController = TestItemController()
-    private val multiItemController = TestMultiItemController()
+    private val multiItemController = TestMultiItemController().apply {
+        isSelectable = false
+        selectTriggerModes = setOf(BaseSelectableItemController.SelectTriggerMode.CLICK)
+    }
 
     private val noneAdapter = TestNoneAdapter(this)
     private val singleAdapter = TestSingleAdapter(this).apply {
-        allowResettingSelection = true
-        setSelectModes(listOf(SelectionHelper.SelectMode.CLICK))
+        isSelectable = false
+        selectModes = setOf(SelectionHelper.SelectTriggerMode.CLICK)
     }
     private val multiAdapter = TestMultiAdapter(this).apply {
-        setAllowTogglingSelection(true)
-        setSelectModes(listOf(SelectionHelper.SelectMode.CLICK))
+        isSelectable = false
+        selectModes =  setOf(SelectionHelper.SelectTriggerMode.CLICK)
     }
 
     private var isMultiItemControllerInUse = false
@@ -89,13 +95,75 @@ class RecyclerTestActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_recycler_test)
 
+        initToolbar()
         initListeners()
         initRecycler()
 
         recycler_type_select_rg.check(R.id.recycler_type_none_rb)
     }
 
+    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
+        menuInflater.inflate(R.menu.menu_recycler_test, menu)
+        return true
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem?): Boolean {
+        item?.let {
+            when (item.itemId) {
+                R.id.action_recycler_toggle_selectable -> toggleSelectable()
+                R.id.action_recycler_toggle_selected -> toggleSelected()
+                R.id.action_recycler_action_select_all -> setAllSelected()
+                R.id.action_recycler_action_clear_all -> clearAllSelected()
+            }
+        }
+        return true
+    }
+
+    override fun onItemClick(position: Int, item: TestItem?) {
+    }
+
+    override fun onItemLongClick(position: Int, item: TestItem?): Boolean {
+        with(currentBaseAdapter) {
+            if (this is BaseSelectionRecyclerViewAdapter<*,*,*>) {
+                isSelectable = true
+            }
+        }
+        return true
+    }
+
+    override fun onItemFocusChanged(position: Int, item: TestItem?) {
+    }
+
+    override fun onItemAdded(to: Int, item: TestItem?) {
+    }
+
+    override fun onItemsAdded(to: Int, items: Collection<TestItem>) {
+    }
+
+    override fun onItemSet(to: Int, item: TestItem?) {
+    }
+
+    override fun onItemsSet(items: List<TestItem?>) {
+    }
+
+    override fun onItemRemoved(from: Int, item: TestItem?) {
+    }
+
+    override fun onItemsRangeRemoved(from: Int, to: Int, previousSize: Int) {
+    }
+
+    private fun initToolbar() {
+        setSupportActionBar(recycler_test_toolbar)
+    }
+
     private fun initListeners() {
+        singleAdapter.registerItemsEventsListener(this)
+        multiAdapter.registerItemsEventsListener(this)
+        multiItemController.onItemLongClickListener = { _, _ ->
+            multiItemController.isSelectable = true
+            true
+        }
+
         recycler_type_select_rg.setOnCheckedChangeListener { group, checkedId ->
             refreshRecyclerByAdapterType()
         }
@@ -114,12 +182,12 @@ class RecyclerTestActivity : AppCompatActivity() {
     }
 
     private fun initRecycler() {
-        recycler_test.layoutManager = LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false)
+        recycler_test_rv.layoutManager = LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false)
     }
 
     private fun toggleAdapterType() {
         adapterType = if (adapterType == BASE) {
-            EASY
+            AdapterType.EASY
         } else {
             BASE
         }
@@ -159,7 +227,7 @@ class RecyclerTestActivity : AppCompatActivity() {
                 }
                 resultAdapter = easyAdapter
             }
-            recycler_test.adapter = resultAdapter
+            recycler_test_rv.adapter = resultAdapter
         }
     }
 
@@ -167,8 +235,8 @@ class RecyclerTestActivity : AppCompatActivity() {
         var text: String = EMPTY_STRING
         if (adapterType == BASE) {
             with(currentBaseAdapter) {
-                when {
-                    this is BaseSingleSelectionRecyclerViewAdapter<*, *> -> {
+                when (this) {
+                    is BaseSingleSelectionRecyclerViewAdapter<*, *> -> {
                         selectedPosition.let {
                             if (it != NO_POSITION) {
                                 val selectedItem = Pair(selectedItem, it)
@@ -176,7 +244,7 @@ class RecyclerTestActivity : AppCompatActivity() {
                             }
                         }
                     }
-                    this is BaseMultiSelectionRecyclerViewAdapter<*, *> -> {
+                    is BaseMultiSelectionRecyclerViewAdapter<*, *> -> {
                         selectedItems.let {
                             if (it.isNotEmpty()) {
                                 val selectedItems = it
@@ -216,11 +284,70 @@ class RecyclerTestActivity : AppCompatActivity() {
     }
 
     private fun setAdapterData(data: List<TestItem>) {
-        currentBaseAdapter.setItems(data)
-        noneItemController.items = data
-        multiItemController.items = data.map { SelectableData(it, false) }
-        if (adapterType == EASY) {
-            refreshRecyclerByAdapterType()
+        when (adapterType) {
+            BASE -> currentBaseAdapter.setItems(data)
+            else -> {
+                noneItemController.items = data
+                multiItemController.items = data.map { SelectableData(it, false) }
+                refreshRecyclerByAdapterType()
+            }
+        }
+    }
+
+    private fun toggleSelectable() {
+        with(currentBaseAdapter) {
+            if (this is BaseSelectionRecyclerViewAdapter<*, *, *>) {
+                when (adapterType) {
+                    BASE -> toggleSelectable()
+                    else -> multiItemController.toggleSelectable()
+                }
+            } else {
+                Toast.makeText(this@RecyclerTestActivity, R.string.recycler_test_unable_to_toggle_selectable, Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
+    private fun toggleSelected() {
+        when (adapterType) {
+            BASE -> {
+                with(currentBaseAdapter) {
+                    when (this) {
+                        is BaseMultiSelectionRecyclerViewAdapter<*, *> -> toggleAllItemsSelected()
+                        is BaseSingleSelectionRecyclerViewAdapter<*, *> -> toggleCurrentSelection()
+                        else -> {
+                            Toast.makeText(this@RecyclerTestActivity, R.string.recycler_test_unable_to_toggle_selected, Toast.LENGTH_SHORT).show()
+                        }
+                    }
+                }
+            }
+            else -> multiItemController.toggleAllSelections()
+        }
+    }
+
+    private fun setAllSelected() {
+        when (adapterType) {
+            BASE -> with(currentBaseAdapter) {
+                when (this) {
+                    is BaseMultiSelectionRecyclerViewAdapter<*, *> -> setAllItemsSelected()
+                    else -> Toast.makeText(this@RecyclerTestActivity, R.string.recycler_test_unable_to_set_all_selection, Toast.LENGTH_SHORT).show()
+                }
+            }
+            else -> multiItemController.setAllSelected()
+        }
+    }
+
+    private fun clearAllSelected() {
+        when (adapterType) {
+            BASE -> with(currentBaseAdapter) {
+                    when (this) {
+                        is BaseMultiSelectionRecyclerViewAdapter<*, *> -> resetAllItemsSelection()
+                        is BaseSingleSelectionRecyclerViewAdapter<*, *> -> resetSelection()
+                        else -> {
+                            Toast.makeText(this@RecyclerTestActivity, R.string.recycler_test_unable_to_clear_all_selection, Toast.LENGTH_SHORT).show()
+                        }
+                    }
+                }
+            else -> multiItemController.resetAllSelected()
         }
     }
 

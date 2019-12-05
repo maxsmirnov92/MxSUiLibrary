@@ -25,11 +25,11 @@ public class HolderWrapperTracker {
             final RecyclerView.ViewHolder holder = wrapper.getHolder();
             if (holder != null && holder.isRecyclable()) {
                 if (wrapper instanceof SelectionHelper.ViewHolderMultiSelectionWrapper) {
-                    Set<SelectionHelper.SelectMode> selectModes = ((SelectionHelper.ViewHolderMultiSelectionWrapper) wrapper).getSelectModes();
-                    if (selectModes.contains(SelectionHelper.SelectMode.CLICK)) {
+                    Set<SelectionHelper.SelectTriggerMode> selectTriggerModes = ((SelectionHelper.ViewHolderMultiSelectionWrapper) wrapper).getSelectModes();
+                    if (selectTriggerModes.contains(SelectionHelper.SelectTriggerMode.CLICK)) {
                         holder.itemView.setOnClickListener(null);
                     }
-                    if (selectModes.contains(SelectionHelper.SelectMode.LONG_CLICK)) {
+                    if (selectTriggerModes.contains(SelectionHelper.SelectTriggerMode.LONG_CLICK)) {
                         holder.itemView.setOnLongClickListener(null);
                     }
                 } else if (wrapper instanceof SelectionHelper.ViewHolderClickWrapper) {

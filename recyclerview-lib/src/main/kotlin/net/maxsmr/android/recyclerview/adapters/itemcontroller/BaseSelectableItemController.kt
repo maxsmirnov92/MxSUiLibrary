@@ -1,4 +1,4 @@
-package ru.zenit.android.ui.common.controller
+package net.maxsmr.android.recyclerview.adapters.itemcontroller
 
 import android.view.View
 import android.view.ViewGroup
@@ -7,7 +7,6 @@ import androidx.annotation.CallSuper
 import androidx.annotation.LayoutRes
 import androidx.recyclerview.widget.RecyclerView.NO_POSITION
 import net.maxsmr.android.recyclerview.adapters.BaseMultiSelectionRecyclerViewAdapter
-import net.maxsmr.android.recyclerview.adapters.itemcontroller.BaseFocusableItemController
 import ru.surfstudio.android.utilktx.data.wrapper.selectable.SelectableData
 
 /**
@@ -22,7 +21,13 @@ abstract class BaseSelectableItemController<T, VH : BaseSelectableItemController
     /**
      * UI-ивенты, по которым будет срабатывать смена selected-состояния
      */
-    var selectTriggerModes: Set<SelectTriggerMode> = setOf(SelectTriggerMode.CLICK)
+    var selectTriggerModes: Set<SelectTriggerMode> = setOf()
+        set(value) {
+            if (field != value) {
+                field = value.toSet()
+                onSelectTriggerModesChanged(selectTriggerModes)
+            }
+        }
 
     /**
      * Множественный или одиночный select
@@ -33,9 +38,7 @@ abstract class BaseSelectableItemController<T, VH : BaseSelectableItemController
         set(value) {
             if (field != value) {
                 field = value
-                if (value == SelectMode.SINGLE) {
-                    resetAllButFirstSelected()
-                }
+                onSelectModeChanged(value)
             }
         }
 
@@ -46,9 +49,7 @@ abstract class BaseSelectableItemController<T, VH : BaseSelectableItemController
         set(value) {
             if (field != value) {
                 field = value
-                if (!value) {
-                    resetAllSelected()
-                }
+                onSelectableChanged(value)
             }
         }
 
@@ -57,21 +58,43 @@ abstract class BaseSelectableItemController<T, VH : BaseSelectableItemController
      * (false может быть применимо для radiobutton)
      */
     var allowResetSelection = true
+        set(value) {
+            if (field != value) {
+                field = value
+                onAllowResetSelectionChanged(value)
+            }
+        }
 
-    var onSelectedListener: ((position: Int, item: T) -> Unit)? = null
+    var onSelectedListener: ((position: Int, item: T?) -> Unit)? = null
 
-    var onReselectedListener: ((position: Int, item: T) -> Unit)? = null
+    var onReselectedListener: ((position: Int, item: T?) -> Unit)? = null
 
-    var onResetSelectionListener: ((position: Int, item: T) -> Unit)? = null
+    var onResetSelectionListener: ((position: Int, item: T?) -> Unit)? = null
 
+    var onSelectTriggerModesChangedListener: ((selectModes: Set<SelectTriggerMode>) -> Unit)? = null
+
+    var onSelectModeChangedListener: ((selectMode: SelectMode) -> Unit)? = null
+
+    var onSelectableChangedListener: ((isSelectable: Boolean) -> Unit)? = null
+
+    var onAllowResetSelectionChangedListener: ((isSelectable: Boolean) -> Unit)? = null
 
     override fun bind(holder: VH, data: SelectableData<T>?) {
         // актуализируем текущий контроллер на случай реюза холдера
         holder.selectableController = this
+        holder.selectTriggerModes = selectTriggerModes
         super.bind(holder, data)
     }
 
     override fun getItemId(item: SelectableData<T>?): String? = item?.data?.hashCode().toString()
+
+    override fun transformItems(newItems: List<SelectableData<T>>): List<SelectableData<T>> {
+        val copyItems = mutableListOf<SelectableData<T>>()
+        newItems.forEach {
+            copyItems.add(SelectableData(it.data, it.isSelected))
+        }
+        return copyItems
+    }
 
     override fun onItemsChanged() {
         if (selectMode == SelectMode.SINGLE) {
@@ -96,31 +119,40 @@ abstract class BaseSelectableItemController<T, VH : BaseSelectableItemController
     /**
      * Элементы и их позиции в выбранном состоянии
      */
-    fun getSelectedItemsMap(): Map<Int, T> = getSelectedItemsMap(true)
+    fun getSelectedItemsMap(): Map<Int, T?> = getSelectedItemsMap(true)
 
     /**
      * Элементы и их позиции в невыбранном состоянии
      */
-    fun getUnselectedItemPositions(): Map<Int, T> = getSelectedItemsMap(false)
+    fun getUnselectedItemPositions(): Map<Int, T?> = getSelectedItemsMap(false)
 
     /**
      * [T] в выбранном состоянии
      */
-    fun getSelectedItems(): List<T> = getSelectedItems(true)
+    fun getSelectedItems(): List<T?> = getSelectedItems(true)
 
     /**
      * [T] в невыбранном состоянии
      */
-    fun getUnselectedItems(): List<T> = getSelectedItems(false)
+    fun getUnselectedItems(): List<T?> = getSelectedItems(false)
 
-    fun resetSelected(targetItem: T) =
-            setSelected(targetItem, false)
+    fun toggleSelectable() {
+        isSelectable = !isSelectable
+    }
+
+    fun resetSelected(targetItem: T?) =
+            setSelected(targetItem, false, false)
 
     fun resetSelectedByIndex(targetIndex: Int) =
-            setSelectedByIndex(targetIndex, false)
+            setSelectedByIndex(targetIndex, false, false)
 
-    fun toggleSelected(targetItem: SelectableData<T>) =
-            setSelected(targetItem.data, !targetItem.isSelected)
+    fun toggleSelected(targetItem: SelectableData<T>, shouldInvalidateOthers: Boolean = true) =
+            setSelected(targetItem.data, !targetItem.isSelected, shouldInvalidateOthers)
+
+    fun toggleSelectedByIndex(targetIndex: Int, shouldInvalidateOthers: Boolean = true): Boolean {
+        checkRange(targetIndex)
+        return setSelectedByIndex(targetIndex, !items[targetIndex].isSelected, shouldInvalidateOthers)
+    }
 
     /**
      * @return true, если selected-состояние было изменено в найденном элементе
@@ -128,8 +160,8 @@ abstract class BaseSelectableItemController<T, VH : BaseSelectableItemController
      * @param targetItem элемент, selected-состояние которого необходимо изменить
      * @return true, если состояние было изменено, false - в противном случае
      */
-    fun setSelected(targetItem: T, toggle: Boolean): Boolean =
-            setSelectedByIndexNoThrow(internalIndexOf(targetItem), toggle)
+    fun setSelected(targetItem: T?, toggle: Boolean, shouldInvalidateOthers: Boolean = true): Boolean =
+            setSelectedByIndexNoThrow(internalIndexOf(targetItem), toggle, shouldInvalidateOthers)
 
     /**
      * Сменить selected-состояние 0-го
@@ -137,7 +169,7 @@ abstract class BaseSelectableItemController<T, VH : BaseSelectableItemController
      */
     fun setFirstSelected(toggle: Boolean) {
         if (isNotEmpty()) {
-            setSelectedByIndex(0, toggle)
+            setSelectedByIndex(0, toggle, true)
         }
     }
 
@@ -147,7 +179,7 @@ abstract class BaseSelectableItemController<T, VH : BaseSelectableItemController
      */
     fun setLastSelected(toggle: Boolean) {
         if (isNotEmpty()) {
-            setSelectedByIndex(getCount() - 1, toggle)
+            setSelectedByIndex(getCount() - 1, toggle, true)
         }
     }
 
@@ -157,10 +189,14 @@ abstract class BaseSelectableItemController<T, VH : BaseSelectableItemController
      * @param targetIndex индекс элемента, selected-состояние которого необходимо изменить
      * @return true, если состояние было изменено, false - в противном случае
      */
-    fun setSelectedByIndex(targetIndex: Int, toggle: Boolean): Boolean {
+    fun setSelectedByIndex(
+            targetIndex: Int,
+            toggle: Boolean,
+            shouldInvalidateOthers: Boolean = true
+    ): Boolean {
         if (isSelectable || !toggle) {
             if (setSelectedInternal(targetIndex, toggle)) {
-                if (toggle && selectMode == SelectMode.SINGLE) {
+                if (toggle && selectMode == SelectMode.SINGLE && shouldInvalidateOthers) {
                     setSelectedExclude(false, listOf(targetIndex))
                 }
                 return true
@@ -170,12 +206,11 @@ abstract class BaseSelectableItemController<T, VH : BaseSelectableItemController
     }
 
 
-
     fun resetSelected(targetItems: Collection<T>): Set<T> {
         val changedItems: MutableSet<T> = mutableSetOf()
-        targetItems.forEach {
-            if (resetSelected(it)) {
-                changedItems.add(it)
+        targetItems.forEachIndexed { indexOfIndex, index ->
+            if (resetSelected(index/*, indexOfIndex == targetItems.size - 1*/)) {
+                changedItems.add(index)
             }
         }
         return changedItems
@@ -183,9 +218,9 @@ abstract class BaseSelectableItemController<T, VH : BaseSelectableItemController
 
     fun resetSelectedByIndexes(targetIndexes: Collection<Int>): Set<Int> {
         val changedIndexes: MutableSet<Int> = mutableSetOf()
-        targetIndexes.forEach {
-            if (resetSelectedByIndex(it)) {
-                changedIndexes.add(it)
+        targetIndexes.forEachIndexed { indexOfIndex, index ->
+            if (resetSelectedByIndex(index /*, indexOfIndex == targetIndexes.size - 1*/)) {
+                changedIndexes.add(index)
             }
         }
         return changedIndexes
@@ -193,12 +228,27 @@ abstract class BaseSelectableItemController<T, VH : BaseSelectableItemController
 
     fun toggleSelected(targetItems: Collection<SelectableData<T>>): Set<T> {
         val changedItems: MutableSet<T> = mutableSetOf()
-        targetItems.forEach {
-            if (toggleSelected(it)) {
-                changedItems.add(it.data)
+        targetItems.forEachIndexed { index, item ->
+            val result = if (selectMode == SelectMode.SINGLE) {
+                resetSelected(item.data)
+            } else {
+                toggleSelected(item, index == targetItems.size - 1)
+            }
+            if (result) {
+                changedItems.add(item.data)
             }
         }
         return changedItems
+    }
+
+    fun toggleSelectedByIndexes(targetIndexes: Collection<Int>): Set<Int> {
+        val changedIndexes: MutableSet<Int> = mutableSetOf()
+        targetIndexes.forEachIndexed { indexOfIndex, index ->
+            if (toggleSelectedByIndex(index, indexOfIndex == targetIndexes.size - 1)) {
+                changedIndexes.add(index)
+            }
+        }
+        return changedIndexes
     }
 
     /**
@@ -221,9 +271,9 @@ abstract class BaseSelectableItemController<T, VH : BaseSelectableItemController
     fun setSelectedByIndexes(targetIndexes: Collection<Int>, toggle: Boolean): Set<Int> {
         val result: MutableSet<Int> = mutableSetOf()
         if (!toggle || selectMode == SelectMode.MULTI || targetIndexes.size == 1) {
-            targetIndexes.forEach {
-                if (setSelectedByIndex(it, toggle)) {
-                    result.add(it)
+            targetIndexes.forEachIndexed { indexOfIndex, index ->
+                if (setSelectedByIndex(index, toggle, indexOfIndex == targetIndexes.size - 1)) {
+                    result.add(index)
                 }
             }
         }
@@ -249,7 +299,13 @@ abstract class BaseSelectableItemController<T, VH : BaseSelectableItemController
      * Инвертировать selection у всех выставленных
      */
     fun toggleAllSelections() {
-        toggleSelected(items)
+        if (selectMode == SelectMode.SINGLE) {
+            resetAllSelected()
+        } else {
+            items.forEachIndexed { index, item ->
+                toggleSelectedByIndex(index, index == items.size - 1)
+            }
+        }
     }
 
     /**
@@ -281,6 +337,35 @@ abstract class BaseSelectableItemController<T, VH : BaseSelectableItemController
     fun setNewItemsWithSelectIndexCheck(source: Collection<T>, selectedIndex: Int): List<SelectableData<T>> =
             setNewItemsWithSelectIndexCheck(source, setOf(selectedIndex))
 
+    @CallSuper
+    protected open fun onSelectTriggerModesChanged(selectModes: Set<SelectTriggerMode>) {
+        onSelectTriggerModesChangedListener?.invoke(selectModes)
+        if (allowNotifyOnChange) {
+            notifyDataSetChanged()
+        }
+    }
+
+    @CallSuper
+    protected open fun onSelectModeChanged(selectMode: SelectMode) {
+        if (selectMode == SelectMode.SINGLE) {
+            resetAllButFirstSelected()
+        }
+        onSelectModeChangedListener?.invoke(selectMode)
+    }
+
+    @CallSuper
+    protected open fun onSelectableChanged(isSelectable: Boolean) {
+        if (!isSelectable) {
+            resetAllSelected()
+        }
+        onSelectableChangedListener?.invoke(isSelectable)
+    }
+
+    @CallSuper
+    protected open fun onAllowResetSelectionChanged(isAllowed: Boolean) {
+        onAllowResetSelectionChangedListener?.invoke(isAllowed)
+    }
+
     /**
      * @return id нижележащего элемента
      */
@@ -289,10 +374,10 @@ abstract class BaseSelectableItemController<T, VH : BaseSelectableItemController
     /**
      * @return найденный индекс или [NO_POSITION]
      */
-    protected open fun internalIndexOf(item: T): Int = items.indexOfFirst { getInnerItemId(it.data) == getInnerItemId(item) }
+    protected open fun internalIndexOf(item: T?): Int = items.indexOfFirst { getInnerItemId(it.data) == getInnerItemId(item) }
 
-    private fun getSelectedItemsMap(isSelected: Boolean): Map<Int, T> {
-        val result = mutableMapOf<Int, T>()
+    private fun getSelectedItemsMap(isSelected: Boolean): Map<Int, T?> {
+        val result = mutableMapOf<Int, T?>()
         items.forEachIndexed { index, selectableData ->
             if (selectableData.isSelected == isSelected) {
                 result[index] = selectableData.data
@@ -301,13 +386,13 @@ abstract class BaseSelectableItemController<T, VH : BaseSelectableItemController
         return result
     }
 
-    private fun getSelectedItems(isSelected: Boolean): List<T> = items
+    private fun getSelectedItems(isSelected: Boolean): List<T?> = items
             .filter { it.isSelected == isSelected }
             .map { it.data }
 
-    private fun setSelectedByIndexNoThrow(targetIndex: Int, toggle: Boolean): Boolean {
+    private fun setSelectedByIndexNoThrow(targetIndex: Int, toggle: Boolean, shouldInvalidateOthers: Boolean = true): Boolean {
         if (targetIndex >= 0 && targetIndex < items.size) {
-            return setSelectedByIndex(targetIndex, toggle)
+            return setSelectedByIndex(targetIndex, toggle, shouldInvalidateOthers)
         }
         return false
     }
@@ -375,8 +460,14 @@ abstract class BaseSelectableItemController<T, VH : BaseSelectableItemController
      * Изменить selection на [toggle] у всех выставленных
      */
     private fun setAllSelected(toggle: Boolean) {
-        items.forEachIndexed { index, _ ->
-            setSelectedByIndex(index, toggle)
+        if (toggle && selectMode == SelectMode.SINGLE) {
+            if (isNotEmpty()) {
+                setSelectedByIndex(0, toggle, true)
+            }
+        } else {
+            items.forEachIndexed { index, _ ->
+                setSelectedByIndex(index, toggle, index == items.size - 1)
+            }
         }
     }
 
@@ -409,9 +500,7 @@ abstract class BaseSelectableItemController<T, VH : BaseSelectableItemController
     }
 
     private fun checkRange(index: Int) {
-        if (index < 0 || index >= items.size) {
-            throw IllegalArgumentException("Incorrect index: $index")
-        }
+        require(!(index < 0 || index >= items.size)) { "Incorrect index: $index" }
     }
 
     abstract class SelectableViewHolder<T>(
@@ -424,9 +513,13 @@ abstract class BaseSelectableItemController<T, VH : BaseSelectableItemController
          */
         protected abstract val selectableView: View?
 
-        final override val allowSetBaseClickListener: Boolean = false
+        override val allowSetBaseClickListener: Boolean
+            get() = !selectTriggerModes.contains(SelectTriggerMode.CLICK)
 
-        final override val allowSetBaseLongClickListener: Boolean = false
+        override val allowSetBaseLongClickListener: Boolean
+            get() = !selectTriggerModes.contains(SelectTriggerMode.LONG_CLICK)
+
+        lateinit var selectTriggerModes: Set<SelectTriggerMode>
 
         lateinit var selectableController: BaseSelectableItemController<T, out SelectableViewHolder<T>>
 
@@ -458,25 +551,29 @@ abstract class BaseSelectableItemController<T, VH : BaseSelectableItemController
 
         override fun bindListeners(item: SelectableData<T>?) {
             super.bindListeners(item)
-            clickableView?.let { view ->
-                item?.let {
-                    view.setOnClickListener {
-                        if (selectableController.selectTriggerModes.contains(SelectTriggerMode.CLICK)) {
-                            val position = adapterPosition - selectableController.preItemsCount
-                            changeSelectedStateFromUiNotify(position)
-                            selectableController.onItemClickListener?.invoke(position, item)
-                        }
-                    }
-                    view.setOnLongClickListener {
-                        if (selectableController.selectTriggerModes.contains(SelectTriggerMode.LONG_CLICK)) {
-                            val position = adapterPosition - selectableController.preItemsCount
-                            changeSelectedStateFromUiNotify(position)
-                            selectableController.onItemLongClickListener?.let { listener ->
-                                return@setOnLongClickListener listener.invoke(position, item)
+            if (selectTriggerModes.contains(SelectTriggerMode.CLICK)) {
+                clickableView?.let { view ->
+                    item?.let {
+                        view.setOnClickListener {
+                            if (selectableController.selectTriggerModes.contains(SelectTriggerMode.CLICK)) {
+                                val position = adapterPosition - selectableController.preItemsCount
+                                changeSelectedStateFromUiNotify(position)
                             }
+                            selectableController.onItemClickListener?.invoke(adapterPosition, item)
                         }
-                        return@setOnLongClickListener false
                     }
+                }
+            }
+            if (selectTriggerModes.contains(SelectTriggerMode.LONG_CLICK)) {
+                longClickableView?.setOnLongClickListener {
+                    if (selectableController.selectTriggerModes.contains(SelectTriggerMode.LONG_CLICK)) {
+                        val position = adapterPosition - selectableController.preItemsCount
+                        changeSelectedStateFromUiNotify(position)
+                    }
+                    selectableController.onItemLongClickListener?.let { listener ->
+                        return@setOnLongClickListener listener.invoke(adapterPosition, item)
+                    }
+                    return@setOnLongClickListener false
                 }
             }
         }
@@ -514,11 +611,11 @@ abstract class BaseSelectableItemController<T, VH : BaseSelectableItemController
                     } else {
                         // current state is selected, triggering reselect, state must be not changed
                         // (for e.g. like checkbox)
-                        selectableController.setSelectedByIndex(itemIndex, true)
+                        selectableController.setSelectedByIndex(itemIndex, true, true)
                         return false
                     }
                 } else {
-                    selectableController.setSelectedByIndex(itemIndex, true)
+                    selectableController.setSelectedByIndex(itemIndex, true, true)
                 }
                 return true
             }

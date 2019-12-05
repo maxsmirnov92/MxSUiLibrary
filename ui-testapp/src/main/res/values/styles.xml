@@ -1,11 +1,31 @@
 <resources>
 
     <!-- Base application theme. -->
-    <style name="AppTheme" parent="Theme.AppCompat.Light.DarkActionBar">
+    <style name="AppTheme" parent="Theme.AppCompat.Light.NoActionBar">
         <!-- Customize your theme here. -->
         <item name="colorPrimary">@color/colorPrimary</item>
         <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
         <item name="colorAccent">@color/colorAccent</item>
+    </style>
+
+    <style name="Selectable">
+        <item name="android:clickable">true</item>
+        <item name="android:longClickable">true</item>
+        <item name="android:focusable">true</item>
+    </style>
+
+    <style name="Selectable.Normal">
+        <item name="android:background">?attr/selectableItemBackground</item>
+    </style>
+
+    <style name="Selectable.Borderless">
+        <item name="android:background">?attr/selectableItemBackgroundBorderless</item>
+    </style>
+
+    <style name="NonSelectable">
+        <item name="android:clickable">false</item>
+        <item name="android:longClickable">false</item>
+        <item name="android:focusable">false</item>
     </style>
 
 </resources>

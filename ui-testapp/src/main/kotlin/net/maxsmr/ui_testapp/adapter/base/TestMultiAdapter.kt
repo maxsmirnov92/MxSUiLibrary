@@ -1,8 +1,11 @@
 package net.maxsmr.ui_testapp.adapter.base
 
 import android.content.Context
+import android.view.View
 import android.view.ViewGroup
 import android.widget.CheckBox
+import android.widget.TextView
+import androidx.core.view.isVisible
 import com.example.ui_testapp.R
 import net.maxsmr.android.recyclerview.adapters.BaseMultiSelectionRecyclerViewAdapter
 import net.maxsmr.android.recyclerview.adapters.BaseRecyclerViewAdapter
@@ -16,15 +19,24 @@ class TestMultiAdapter(
 
     override fun isItemEmpty(item: TestItem?, position: Int) = item == null || item.data.isEmpty()
 
-    class ViewHolder(
+    override fun onSelectableChanged(isSelectable: Boolean) {
+        super.onSelectableChanged(isSelectable)
+        if (allowNotifyOnChange) {
+            notifyDataSetChanged()
+        }
+    }
+
+    inner class ViewHolder(
             parent: ViewGroup
     ) : BaseRecyclerViewAdapter.ViewHolder<TestItem>(parent, R.layout.item_test_multi) {
 
-        private val testView = itemView.findViewById<CheckBox>(R.id.test_cb)
+        private val testCheck = itemView.findViewById<CheckBox>(R.id.test_cb)
+        private val testText = itemView.findViewById<TextView>(R.id.test_tv)
 
         override fun bindData(position: Int, item: TestItem, count: Int) {
             super.bindData(position, item, count)
-            testView.text = item.data
+            testCheck.isVisible = isSelectable
+            testText.text = item.data
         }
     }
 }

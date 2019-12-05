@@ -313,14 +313,15 @@ abstract class BaseRecyclerViewAdapter<I, VH : BaseRecyclerViewAdapter.ViewHolde
 
     @CallSuper
     protected open fun onItemSet(`in`: Int, item: I?) {
+        itemsEventsObservable.notifyItemSet(`in`, item)
         if (allowNotifyOnChange) {
             notifyItemChanged(`in`)
         }
-        itemsEventsObservable.notifyItemSet(`in`, item)
     }
 
     @CallSuper
     protected open fun onItemsAdded(to: Int, items: Collection<I>) {
+        itemsEventsObservable.notifyItemsAdded(to, items)
         if (allowNotifyOnChange) {
             if (to == 0) {
                 notifyDataSetChanged()
@@ -328,12 +329,11 @@ abstract class BaseRecyclerViewAdapter<I, VH : BaseRecyclerViewAdapter.ViewHolde
                 notifyItemRangeInserted(to, items.size)
             }
         }
-        itemsEventsObservable.notifyItemsAdded(to, items)
-
     }
 
     @CallSuper
     protected open fun onItemAdded(to: Int, item: I?) {
+        itemsEventsObservable.notifyItemAdded(to, item)
         if (allowNotifyOnChange) {
             if (to == 0) {
                 notifyDataSetChanged()
@@ -341,16 +341,14 @@ abstract class BaseRecyclerViewAdapter<I, VH : BaseRecyclerViewAdapter.ViewHolde
                 notifyItemInserted(to)
             }
         }
-        itemsEventsObservable.notifyItemAdded(to, item)
-
     }
 
     @CallSuper
     protected open fun onItemsRangeRemoved(from: Int, to: Int, previousSize: Int) {
+        itemsEventsObservable.notifyItemsRangeRemoved(from, to, previousSize)
         if (allowNotifyOnChange) {
             notifyItemRangeRemoved(from, to - from)
         }
-        itemsEventsObservable.notifyItemsRangeRemoved(from, to, previousSize)
         if (from == 0 && to == previousSize - 1) {
             onItemsCleared(previousSize)
         }
@@ -358,10 +356,10 @@ abstract class BaseRecyclerViewAdapter<I, VH : BaseRecyclerViewAdapter.ViewHolde
 
     @CallSuper
     protected open fun onItemRemoved(from: Int, item: I?) {
+        itemsEventsObservable.notifyItemRemoved(from, item)
         if (allowNotifyOnChange) {
             notifyItemRemoved(from)
         }
-        itemsEventsObservable.notifyItemRemoved(from, item)
     }
 
     protected open fun onItemsCleared(previousSize: Int) {
@@ -369,6 +367,7 @@ abstract class BaseRecyclerViewAdapter<I, VH : BaseRecyclerViewAdapter.ViewHolde
     }
 
     protected open fun onItemsSet() {
+        itemsEventsObservable.notifyItemsSet(items)
         if (allowNotifyOnChange) {
             if (allowDiffNotifyOnChange) {
                 diffNotifyDataSetChanged()
@@ -376,7 +375,6 @@ abstract class BaseRecyclerViewAdapter<I, VH : BaseRecyclerViewAdapter.ViewHolde
                 notifyDataSetChanged()
             }
         }
-        itemsEventsObservable.notifyItemsSet(items)
     }
 
     protected fun rangeCheck(position: Int) {

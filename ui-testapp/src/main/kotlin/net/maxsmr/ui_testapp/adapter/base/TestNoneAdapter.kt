@@ -19,7 +19,7 @@ class TestNoneAdapter(
             parent: ViewGroup
     ) : BaseRecyclerViewAdapter.ViewHolder<TestItem>(parent, R.layout.item_test) {
 
-        private val testView = itemView.findViewById<TextView>(R.id.test_tv)
+        private val testView = itemView as TextView
 
         override fun bindData(position: Int, item: TestItem, count: Int) {
             super.bindData(position, item, count)

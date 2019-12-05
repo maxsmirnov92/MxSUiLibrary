@@ -26,7 +26,7 @@ abstract class BaseFocusableItemController<T, VH : BaseFocusableItemController.F
      */
     var items: List<T> = listOf()
     set(value) {
-        field = value
+        field = transformItems(value)
         onItemsChanged()
     }
 
@@ -74,6 +74,10 @@ abstract class BaseFocusableItemController<T, VH : BaseFocusableItemController.F
 
     override fun getItemId(item: T?): String? = item?.hashCode().toString()
 
+    open fun notifyDataSetChanged() {
+        adapter?.notifyDataSetChanged()
+    }
+
     /**
      * Оповестить об изменении элемента в позиции [position]
      */
@@ -109,10 +113,6 @@ abstract class BaseFocusableItemController<T, VH : BaseFocusableItemController.F
 
     fun isNotEmpty() = isEmpty().not()
 
-    fun clearItems() {
-        items = listOf()
-    }
-
     /**
      * @return найденный индекс или [NO_POSITION]
      */
@@ -124,6 +124,8 @@ abstract class BaseFocusableItemController<T, VH : BaseFocusableItemController.F
     protected open fun onItemsChanged() {
         // do nothing
     }
+
+    protected open fun transformItems(newItems: List<T>): List<T> = newItems
 
     /**
      * [LoadableViewHolder] с возможностью фокуса
@@ -139,6 +141,8 @@ abstract class BaseFocusableItemController<T, VH : BaseFocusableItemController.F
          * view, на которую навешивается листенер смены selected-состояния
          */
         protected abstract val clickableView: View?
+
+        protected abstract val longClickableView: View?
 
         /**
          * разрешить выставление базового клик листенера
@@ -185,7 +189,7 @@ abstract class BaseFocusableItemController<T, VH : BaseFocusableItemController.F
                 }
             }
             if (allowSetBaseLongClickListener) {
-                clickableView?.let {
+                longClickableView?.let {
                     it.setOnLongClickListener {
                         baseController.onItemLongClickListener?.invoke(adapterPosition - baseController.preItemsCount, item) ?: false
                     }
