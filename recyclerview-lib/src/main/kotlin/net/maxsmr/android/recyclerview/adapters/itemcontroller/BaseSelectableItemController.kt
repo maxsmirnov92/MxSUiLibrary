@@ -18,6 +18,54 @@ import ru.surfstudio.android.utilktx.data.wrapper.selectable.SelectableData
 abstract class BaseSelectableItemController<T, VH : BaseSelectableItemController.SelectableViewHolder<T>> :
         BaseFocusableItemController<SelectableData<T>, VH>() {
 
+    val firstSelectedItem: T?
+        get() = selectedItems.firstOrNull()
+
+    val firstUnselectedItem: T?
+        get() = unselectedItems.firstOrNull()
+
+    val lastSelectedItem: T?
+        get() = selectedItems.lastOrNull()
+
+    val lastUnselectedItem: T?
+        get() = unselectedItems.lastOrNull()
+
+    val hasSelectedItems: Boolean
+        get() = selectedItems.isNotEmpty()
+
+    val hasUnselectedItems: Boolean
+        get() = unselectedItems.isNotEmpty()
+
+    /**
+     * Элементы и их позиции в выбранном состоянии
+     */
+    val selectedItemsMap: Map<Int, T?>
+        get() = getSelectedItemsMap(true)
+
+    /**
+     * Элементы и их позиции в невыбранном состоянии
+     */
+    val unselectedItemsMap: Map<Int, T?>
+        get() = getSelectedItemsMap(false)
+
+    val selectedItemsPositions: Set<Int>
+        get() = selectedItemsMap.keys
+
+    val unselectedItemsPositions: Set<Int>
+        get() = unselectedItemsMap.keys
+
+    /**
+     * [T] в выбранном состоянии
+     */
+    val selectedItems: List<T?>
+        get() = getSelectedItems(true)
+
+    /**
+     * [T] в невыбранном состоянии
+     */
+    val unselectedItems: List<T?>
+        get() = getSelectedItems(false)
+
     /**
      * UI-ивенты, по которым будет срабатывать смена selected-состояния
      */
@@ -82,7 +130,7 @@ abstract class BaseSelectableItemController<T, VH : BaseSelectableItemController
     override fun bind(holder: VH, data: SelectableData<T>?) {
         // актуализируем текущий контроллер на случай реюза холдера
         holder.selectableController = this
-        holder.selectTriggerModes = selectTriggerModes
+        holder.selectTriggerModes = getSelectTriggerModesForItem(data?.data, holder.adapterPosition)
         super.bind(holder, data)
     }
 
@@ -108,33 +156,6 @@ abstract class BaseSelectableItemController<T, VH : BaseSelectableItemController
     fun getItemByIndexNoThrow(index: Int): SelectableData<T>? =
             if (index >= 0 && index < items.size) items[index] else null
 
-    fun hasSelectedItems() = getSelectedItems().isNotEmpty()
-
-    fun hasUnselectedItems() = getUnselectedItems().isNotEmpty()
-
-    fun getFirstSelectedItem(): T? = getSelectedItems().firstOrNull()
-
-    fun getFirstUnselectedItem(): T? = getUnselectedItems().firstOrNull()
-
-    /**
-     * Элементы и их позиции в выбранном состоянии
-     */
-    fun getSelectedItemsMap(): Map<Int, T?> = getSelectedItemsMap(true)
-
-    /**
-     * Элементы и их позиции в невыбранном состоянии
-     */
-    fun getUnselectedItemPositions(): Map<Int, T?> = getSelectedItemsMap(false)
-
-    /**
-     * [T] в выбранном состоянии
-     */
-    fun getSelectedItems(): List<T?> = getSelectedItems(true)
-
-    /**
-     * [T] в невыбранном состоянии
-     */
-    fun getUnselectedItems(): List<T?> = getSelectedItems(false)
 
     fun toggleSelectable() {
         isSelectable = !isSelectable
@@ -336,6 +357,9 @@ abstract class BaseSelectableItemController<T, VH : BaseSelectableItemController
      */
     fun setNewItemsWithSelectIndexCheck(source: Collection<T>, selectedIndex: Int): List<SelectableData<T>> =
             setNewItemsWithSelectIndexCheck(source, setOf(selectedIndex))
+
+    // override if need various for each position
+    protected open fun getSelectTriggerModesForItem(item: T?, position: Int): Set<SelectTriggerMode> = selectTriggerModes
 
     @CallSuper
     protected open fun onSelectTriggerModesChanged(selectModes: Set<SelectTriggerMode>) {

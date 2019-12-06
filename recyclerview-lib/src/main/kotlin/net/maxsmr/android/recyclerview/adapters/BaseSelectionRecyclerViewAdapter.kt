@@ -20,12 +20,11 @@ abstract class BaseSelectionRecyclerViewAdapter<I, VH : BaseRecyclerViewAdapter.
     protected abstract val itemsSelectedObservable: BaseItemSelectedObservable<L>
 
     // notify required here
-    var selectModes = setOf<SelectTriggerMode>()
-        //        get() = field.toMutableSet()
+    var selectTriggerModes = setOf<SelectTriggerMode>()
         set(value) {
             if (field != value) {
                 field = value
-                onSelectModesChanged(value)
+                onSelectTriggerModesChanged(value)
             }
         }
 
@@ -35,12 +34,12 @@ abstract class BaseSelectionRecyclerViewAdapter<I, VH : BaseRecyclerViewAdapter.
 
     override fun allowSetClickListener(item: I?, position: Int): Boolean =
             !isItemEmpty(item, position)
-                    && !getSelectModesForItem(item, position).contains(CLICK)
+                    && !getSelectTriggerModesForItem(item, position).contains(CLICK)
 
 
     override fun allowSetLongClickListener(item: I?, position: Int): Boolean =
             !isItemEmpty(item, position)
-                    && !getSelectModesForItem(item, position).contains(LONG_CLICK)
+                    && !getSelectTriggerModesForItem(item, position).contains(LONG_CLICK)
 
     @CallSuper
     override fun bindItem(holder: VH, item: I?, position: Int) {
@@ -107,10 +106,10 @@ abstract class BaseSelectionRecyclerViewAdapter<I, VH : BaseRecyclerViewAdapter.
     protected open fun getSelectableView(holder: VH): View? = getClickableView(holder)
 
     // override if need various for each position
-    protected open fun getSelectModesForItem(item: I?, position: Int): Set<SelectTriggerMode> = selectModes
+    protected open fun getSelectTriggerModesForItem(item: I?, position: Int): Set<SelectTriggerMode> = selectTriggerModes
 
     @CallSuper
-    protected open fun onSelectModesChanged(selectTriggerModes: Set<SelectTriggerMode>) {
+    protected open fun onSelectTriggerModesChanged(selectTriggerModes: Set<SelectTriggerMode>) {
         itemsSelectedObservable.notifySelectModesChanged(selectTriggerModes)
         if (allowNotifyOnChange) {
             notifyDataSetChanged()

@@ -89,9 +89,10 @@ abstract class BaseSingleSelectionRecyclerViewAdapter<I, VH : BaseRecyclerViewAd
         val clickableView = getClickableView(holder)
         val longClickableView = getLongClickableView(holder)
 
+        val selectTriggerModes = getSelectTriggerModesForItem(item, position)
+
         clickableView?.let {
-            val selectModes = getSelectModesForItem(item, position)
-            if (selectModes.contains(CLICK)) {
+            if (selectTriggerModes.contains(CLICK)) {
                 it.setOnClickListener {
                     changeSelectedStateFromUiNotify(position, isSelected, selectableView)
                     itemsEventsObservable.notifyItemClick(holder.adapterPosition, item)
@@ -101,7 +102,7 @@ abstract class BaseSingleSelectionRecyclerViewAdapter<I, VH : BaseRecyclerViewAd
         }
 
         longClickableView?.let {
-            if (selectModes.contains(LONG_CLICK)) {
+            if (selectTriggerModes.contains(LONG_CLICK)) {
                 it.setOnLongClickListener {
                     changeSelectedStateFromUiNotify(position, isSelected, selectableView)
                     return@setOnLongClickListener itemsEventsObservable.notifyItemLongClick(holder.adapterPosition, item)

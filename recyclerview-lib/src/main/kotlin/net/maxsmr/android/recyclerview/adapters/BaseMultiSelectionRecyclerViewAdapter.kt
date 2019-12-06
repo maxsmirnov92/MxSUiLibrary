@@ -20,6 +20,68 @@ abstract class BaseMultiSelectionRecyclerViewAdapter<I, VH : BaseRecyclerViewAda
 
     override val itemsSelectedObservable = ItemSelectedObservable()
 
+    val firstSelectedItem: I?
+        get() = selectedItems.firstOrNull()
+
+    val firstUnselectedItem: I?
+        get() = unselectedItems.firstOrNull()
+
+    val lastSelectedItem: I?
+        get() = selectedItems.lastOrNull()
+
+    val lastUnselectedItem: I?
+        get() = unselectedItems.lastOrNull()
+
+    val hasSelectedItems: Boolean
+        get() = selectedItemsMap.isNotEmpty()
+
+    val hasUnselectedItems: Boolean
+        get() = unselectedItemsMap.isNotEmpty()
+
+    val selectedItemsMap: Map<Int, I?>
+        get() {
+            val selectedItems = mutableMapOf<Int, I?>()
+            val selectedPositions = selectedItemsPositions
+            for (pos in selectedPositions) {
+                selectedItems[pos] = getItem(pos)
+            }
+            return selectedItems
+        }
+
+    val unselectedItemsMap: Map<Int, I?>
+        get() {
+            val unselectedItems = mutableMapOf<Int, I?>()
+            val unselectedPositions = unselectedItemsPositions
+            for (pos in unselectedPositions) {
+                unselectedItems[pos] = getItem(pos)
+            }
+            return unselectedItems
+        }
+
+    val selectedItemsPositions: Set<Int>
+        get() = selectionHelper.selectedItems
+
+    val unselectedItemsPositions: Set<Int>
+        get() {
+            val unselectedPositions = mutableSetOf<Int>()
+            val selectedPositions = selectedItemsPositions
+            for (pos in 0 until itemCount) {
+                if (!selectedPositions.contains(pos)) {
+                    unselectedPositions.add(pos)
+                }
+            }
+            return unselectedPositions
+        }
+
+    val selectedItems: Collection<I?>
+        get() = selectedItemsMap.values
+
+    val unselectedItems: Collection<I?>
+        get() = unselectedItemsMap.values
+
+    val selectedItemsCount: Int
+        get() = if (itemCount > 0) selectionHelper.selectedItemsCount else 0
+
     private val selectionHelper: SelectionHelper by lazy {
         SelectionHelper().apply {
             registerSelectionObserver(this@BaseMultiSelectionRecyclerViewAdapter)
@@ -39,50 +101,10 @@ abstract class BaseMultiSelectionRecyclerViewAdapter<I, VH : BaseRecyclerViewAda
             selectionHelper.setAllowTogglingSelection(toggle)
         }
 
-    val isTogglingSelectionAllowed: Boolean =
-            selectionHelper.isTogglingSelectionAllowed
-
-    val selectedItems: Map<Int, I?>
-        get() {
-            val selectedItems = mutableMapOf<Int, I?>()
-            val selectedPositions = selectedItemsPositions
-            for (pos in selectedPositions) {
-                selectedItems[pos] = getItem(pos)
-            }
-            return selectedItems
-        }
-
-    val unselectedItems: Map<Int, I?>
-        get() {
-            val unselectedItems = mutableMapOf<Int, I?>()
-            val unselectedPositions = unselectedItemsPositions
-            for (pos in unselectedPositions) {
-                unselectedItems[pos] = getItem(pos)
-            }
-            return unselectedItems
-        }
-
-    val selectedItemsPositions: Set<Int>
-        get() = selectionHelper.selectedItems
-
-    val unselectedItemsPositions: Set<Int>
-        get() {
-            val unselectedPositions = LinkedHashSet<Int>()
-            val selectedPositions = selectedItemsPositions
-            for (pos in 0 until itemCount) {
-                if (!selectedPositions.contains(pos)) {
-                    unselectedPositions.add(pos)
-                }
-            }
-            return unselectedPositions
-        }
-
-    val selectedItemsCount: Int
-        get() = if (itemCount > 0) selectionHelper.selectedItemsCount else 0
 
     @CallSuper
     override fun bindSelection(holder: VH, item: I?, position: Int) {
-        selectionHelper.wrapSelectable(holder, getClickableView(holder), getLongClickableView(holder), getSelectModesForItem(item, position))
+        selectionHelper.wrapSelectable(holder, getClickableView(holder), getLongClickableView(holder), getSelectTriggerModesForItem(item, position))
 
         val isSelected = isItemPositionSelected(position)
         handleSelected(getSelectableView(holder), isSelected)
@@ -149,8 +171,8 @@ abstract class BaseMultiSelectionRecyclerViewAdapter<I, VH : BaseRecyclerViewAda
     }
 
     override fun invalidateSelectionIndexOnAdd(to: Int, count: Int) {
-        val targetSelected = LinkedHashSet<Int>()
-        val targetUnselected = LinkedHashSet<Int>()
+        val targetSelected = mutableSetOf<Int>()
+        val targetUnselected = mutableSetOf<Int>()
         if (count >= 1) {
             for (selection in selectedItemsPositions) {
                 if (selection != NO_POSITION && selection >= to) {
@@ -176,8 +198,8 @@ abstract class BaseMultiSelectionRecyclerViewAdapter<I, VH : BaseRecyclerViewAda
 
     override fun invalidateSelectionIndexOnRemove(from: Int, count: Int) {
         if (count >= 1) {
-            val targetSelected = LinkedHashSet<Int>()
-            val targetUnselected = LinkedHashSet<Int>()
+            val targetSelected = mutableSetOf<Int>()
+            val targetUnselected = mutableSetOf<Int>()
             for (selection in selectedItemsPositions) {
                 if (selection != NO_POSITION) {
                     if (selection >= from && selection < from + count) {
@@ -295,7 +317,7 @@ abstract class BaseMultiSelectionRecyclerViewAdapter<I, VH : BaseRecyclerViewAda
 
 
     protected fun invalidateSelections() {
-        val targetUnselected = LinkedHashSet<Int>()
+        val targetUnselected = mutableSetOf<Int>()
         for (selection in selectedItemsPositions) {
             if (selection != NO_POSITION
                     && selection !in 0 until itemCount) {

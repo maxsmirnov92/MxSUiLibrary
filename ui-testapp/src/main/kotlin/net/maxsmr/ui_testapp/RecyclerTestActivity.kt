@@ -31,6 +31,7 @@ import ru.surfstudio.android.easyadapter.ItemList
 import ru.surfstudio.android.utilktx.data.wrapper.selectable.SelectableData
 import ru.surfstudio.android.utilktx.ktx.text.EMPTY_STRING
 import net.maxsmr.android.recyclerview.adapters.itemcontroller.BaseSelectableItemController.SelectMode.*
+import net.maxsmr.ui_testapp.AdapterType.EASY
 import java.util.*
 
 @Suppress("UNCHECKED_CAST")
@@ -69,11 +70,11 @@ class RecyclerTestActivity : AppCompatActivity(), BaseRecyclerViewAdapter.ItemsE
     private val noneAdapter = TestNoneAdapter(this)
     private val singleAdapter = TestSingleAdapter(this).apply {
         isSelectable = false
-        selectModes = setOf(SelectionHelper.SelectTriggerMode.CLICK)
+        selectTriggerModes = setOf(SelectionHelper.SelectTriggerMode.CLICK)
     }
     private val multiAdapter = TestMultiAdapter(this).apply {
         isSelectable = false
-        selectModes =  setOf(SelectionHelper.SelectTriggerMode.CLICK)
+        selectTriggerModes =  setOf(SelectionHelper.SelectTriggerMode.CLICK)
     }
 
     private var isMultiItemControllerInUse = false
@@ -120,6 +121,7 @@ class RecyclerTestActivity : AppCompatActivity(), BaseRecyclerViewAdapter.ItemsE
     }
 
     override fun onItemClick(position: Int, item: TestItem?) {
+        // do nothing
     }
 
     override fun onItemLongClick(position: Int, item: TestItem?): Boolean {
@@ -132,24 +134,31 @@ class RecyclerTestActivity : AppCompatActivity(), BaseRecyclerViewAdapter.ItemsE
     }
 
     override fun onItemFocusChanged(position: Int, item: TestItem?) {
+        // do nothing
     }
 
     override fun onItemAdded(to: Int, item: TestItem?) {
+        // do nothing
     }
 
     override fun onItemsAdded(to: Int, items: Collection<TestItem>) {
+        // do nothing
     }
 
     override fun onItemSet(to: Int, item: TestItem?) {
+        // do nothing
     }
 
     override fun onItemsSet(items: List<TestItem?>) {
+        // do nothing
     }
 
     override fun onItemRemoved(from: Int, item: TestItem?) {
+        // do nothing
     }
 
     override fun onItemsRangeRemoved(from: Int, to: Int, previousSize: Int) {
+        // do nothing
     }
 
     private fun initToolbar() {
@@ -187,7 +196,7 @@ class RecyclerTestActivity : AppCompatActivity(), BaseRecyclerViewAdapter.ItemsE
 
     private fun toggleAdapterType() {
         adapterType = if (adapterType == BASE) {
-            AdapterType.EASY
+            EASY
         } else {
             BASE
         }
@@ -245,7 +254,7 @@ class RecyclerTestActivity : AppCompatActivity(), BaseRecyclerViewAdapter.ItemsE
                         }
                     }
                     is BaseMultiSelectionRecyclerViewAdapter<*, *> -> {
-                        selectedItems.let {
+                        selectedItemsMap.let {
                             if (it.isNotEmpty()) {
                                 val selectedItems = it
                                 text = selectedItems.toString()
@@ -256,7 +265,7 @@ class RecyclerTestActivity : AppCompatActivity(), BaseRecyclerViewAdapter.ItemsE
             }
         } else {
             if (isMultiItemControllerInUse) {
-                multiItemController.getSelectedItemsMap().let {
+                multiItemController.selectedItemsMap.let {
                     if (it.isNotEmpty()) {
                         text = it.toString()
                     }
@@ -357,7 +366,7 @@ class RecyclerTestActivity : AppCompatActivity(), BaseRecyclerViewAdapter.ItemsE
         fun RadioGroup.getSelectedIndexInRadioGroup(): Int {
             val radioButtonId = checkedRadioButtonId
             val radioButton = findViewById<RadioButton>(radioButtonId) ?: null
-            return radioButton?.let { indexOfChild(radioButton) } ?: RecyclerView.NO_POSITION
+            return radioButton?.let { indexOfChild(radioButton) } ?: NO_POSITION
         }
 
         fun generateData(size: Int): List<TestItem> {
