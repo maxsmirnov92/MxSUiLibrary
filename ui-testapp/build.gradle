@@ -1,12 +1,13 @@
 apply from: "$rootDir/buildSrc/androidApp.gradle"
 
 ext {
-    constraintLayoutVersion = '1.1.3'
+    constraintLayoutVersion = '2.0.0-beta3'
 }
 
 dependencies {
 
     implementation "androidx.constraintlayout:constraintlayout:$constraintLayoutVersion"
     implementation project(':recyclerview-lib')
+    implementation ("net.maxsmr:commonutils:$commonUtilsVersion")
 //    implementation "net.maxsmr:recyclerview-lib:${project.getModuleVersionNameByPath(":recyclerview-lib")}"
 }

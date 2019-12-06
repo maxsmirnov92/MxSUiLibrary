@@ -31,6 +31,7 @@ import ru.surfstudio.android.easyadapter.ItemList
 import ru.surfstudio.android.utilktx.data.wrapper.selectable.SelectableData
 import ru.surfstudio.android.utilktx.ktx.text.EMPTY_STRING
 import net.maxsmr.android.recyclerview.adapters.itemcontroller.BaseSelectableItemController.SelectMode.*
+import net.maxsmr.commonutils.android.gui.getSelectedIndexInRadioGroup
 import net.maxsmr.ui_testapp.AdapterType.EASY
 import java.util.*
 
@@ -361,13 +362,6 @@ class RecyclerTestActivity : AppCompatActivity(), BaseRecyclerViewAdapter.ItemsE
     }
 
     companion object {
-
-        // TODO move
-        fun RadioGroup.getSelectedIndexInRadioGroup(): Int {
-            val radioButtonId = checkedRadioButtonId
-            val radioButton = findViewById<RadioButton>(radioButtonId) ?: null
-            return radioButton?.let { indexOfChild(radioButton) } ?: NO_POSITION
-        }
 
         fun generateData(size: Int): List<TestItem> {
             val result = mutableListOf<TestItem>()
