@@ -1,8 +1,10 @@
 package net.maxsmr.android.recyclerview.adapters;
 
+import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import androidx.annotation.LayoutRes;
 import androidx.viewpager.widget.PagerAdapter;
 
 import org.jetbrains.annotations.NotNull;
@@ -12,7 +14,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-public abstract class BasePagerAdapter<I, VH extends BaseRecyclerViewAdapter.ViewHolder<I>> extends PagerAdapter {
+public abstract class BasePagerAdapter<I, VH extends BasePagerAdapter.ViewHolder<I>> extends PagerAdapter {
 
     @NotNull
     private final List<I> items = new ArrayList<>();
@@ -102,6 +104,28 @@ public abstract class BasePagerAdapter<I, VH extends BaseRecyclerViewAdapter.Vie
     private void rangeCheck(int position) {
         if (position < 0 || position >= getCount()) {
             throw new IllegalArgumentException("Incorrect position: " + position);
+        }
+    }
+
+    public static abstract class ViewHolder<I>{
+
+        public final View itemView;
+
+        public ViewHolder(View itemView) {
+            this.itemView = itemView;
+        }
+
+        public ViewHolder(ViewGroup parent, @LayoutRes int layoutId) {
+            this(LayoutInflater.from(parent.getContext()).inflate(layoutId, parent, false));
+        }
+
+
+        public void bindData(int position, I item, int count) {
+            itemView.setVisibility(View.VISIBLE);
+        }
+
+        public void bindEmptyData(int position, I item, int count) {
+            itemView.setVisibility(View.GONE);
         }
     }
 }

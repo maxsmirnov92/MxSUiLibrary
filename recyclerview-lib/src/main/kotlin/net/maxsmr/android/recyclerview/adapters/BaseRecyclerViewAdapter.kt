@@ -7,6 +7,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.annotation.CallSuper
 import androidx.annotation.LayoutRes
+import androidx.core.view.isVisible
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.RecyclerView.NO_ID
@@ -492,11 +493,11 @@ abstract class BaseRecyclerViewAdapter<I, VH : BaseRecyclerViewAdapter.ViewHolde
         protected val context: Context = view.context
 
         open fun bindData(position: Int, item: I, count: Int) {
-            itemView.visibility = View.VISIBLE
+            itemView.isVisible = true
         }
 
         open fun bindEmptyData(position: Int, item: I?, count: Int) {
-            itemView.visibility = View.GONE
+            itemView.isVisible = false
         }
 
         open fun onViewRecycled() {
