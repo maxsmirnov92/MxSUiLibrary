@@ -1,6 +1,5 @@
 package net.maxsmr.jugglerhelper.fragments.loading;
 
-
 import android.annotation.SuppressLint;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -11,16 +10,17 @@ import android.content.res.ColorStateList;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Bundle;
-import android.support.annotation.CallSuper;
-import android.support.annotation.IdRes;
-import android.support.v4.content.ContextCompat;
-import android.support.v4.widget.SwipeRefreshLayout;
 import android.text.TextUtils;
 import android.view.View;
 import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
+
+import androidx.annotation.CallSuper;
+import androidx.annotation.IdRes;
+import androidx.core.content.ContextCompat;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import net.maxsmr.commonutils.android.gui.GuiUtils;
 import net.maxsmr.commonutils.android.gui.fonts.FontsHolder;
@@ -95,23 +95,23 @@ public abstract class BaseLoadingJugglerFragment<I> extends BaseJugglerFragment 
     protected void onBindViews(@NotNull View rootView) {
         final int swipeRefreshLayoutId = getSwipeRefreshLayoutId();
         if (swipeRefreshLayoutId != 0) {
-            swipeRefreshLayout = GuiUtils.findViewById(rootView, swipeRefreshLayoutId);
+            swipeRefreshLayout = rootView.findViewById(swipeRefreshLayoutId);
         }
         final int emptyTextId = getEmptyTextId();
         if (emptyTextId != 0) {
-            placeholder = GuiUtils.findViewById(rootView, emptyTextId);
+            placeholder = rootView.findViewById(emptyTextId);
         }
         final int loadingLayoutId = getLoadingLayoutId();
         if (loadingLayoutId != 0) {
-            loadingLayout = GuiUtils.findViewById(rootView, loadingLayoutId);
+            loadingLayout = rootView.findViewById(loadingLayoutId);
         }
         final int loadingMessageViewId = getLoadingMessageViewId();
         if (loadingMessageViewId != 0) {
-            loadingMessageView = GuiUtils.findViewById(rootView, loadingMessageViewId);
+            loadingMessageView = rootView.findViewById(loadingMessageViewId);
         }
         final int retryButtonId = getRetryButtonId();
         if (retryButtonId != 0) {
-            retryButton = GuiUtils.findViewById(rootView, retryButtonId);
+            retryButton = rootView.findViewById(retryButtonId);
         }
     }
 

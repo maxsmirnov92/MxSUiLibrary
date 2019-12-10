@@ -1,10 +1,11 @@
 package net.maxsmr.jugglerhelper.navigation;
 
 import android.content.res.ColorStateList;
-import android.support.annotation.ColorRes;
-import android.support.annotation.DrawableRes;
+
+import androidx.annotation.DrawableRes;
+import androidx.annotation.StringRes;
+
 import org.jetbrains.annotations.Nullable;
-import android.support.annotation.StringRes;
 
 import java.io.Serializable;
 

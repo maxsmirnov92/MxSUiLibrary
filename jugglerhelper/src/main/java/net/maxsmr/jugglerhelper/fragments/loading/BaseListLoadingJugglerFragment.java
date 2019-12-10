@@ -1,12 +1,13 @@
 package net.maxsmr.jugglerhelper.fragments.loading;
 
 import android.os.Bundle;
-import android.support.annotation.CallSuper;
-import android.support.annotation.IdRes;
-import android.support.v4.widget.SwipeRefreshLayout;
-import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.RecyclerView;
 import android.view.View;
+
+import androidx.annotation.CallSuper;
+import androidx.annotation.IdRes;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import net.maxsmr.android.recyclerview.adapters.BaseRecyclerViewAdapter;
 import net.maxsmr.android.recyclerview.scroll.RecyclerScrollableController;
@@ -65,7 +66,7 @@ public abstract class BaseListLoadingJugglerFragment<I, Adapter extends BaseRecy
     @CallSuper
     protected void onBindViews(@NotNull View rootView) {
         super.onBindViews(rootView);
-        recycler = GuiUtils.findViewById(rootView, getRecyclerId());
+        recycler = rootView.findViewById(getRecyclerId());
     }
 
     @NotNull
@@ -136,7 +137,7 @@ public abstract class BaseListLoadingJugglerFragment<I, Adapter extends BaseRecy
             if (!allowDuplicateItems()) {
                 removeDuplicateItemsFromList(items);
             }
-            adapter.setItems(items);
+            adapter.setItems(items, true);
         }
     }
 
@@ -293,15 +294,22 @@ public abstract class BaseListLoadingJugglerFragment<I, Adapter extends BaseRecy
     }
 
     @Override
-    public void onItemsAdded(int to, @NotNull Collection<I> items) {
+    public void onItemFocusChanged(int i, @Nullable I i1) {
+
+    }
+
+    @Override
+    public void onItemsAdded(int i, @NotNull Collection<? extends I> collection) {
+
+    }
+
+    @Override
+    public void onItemsSet(@NotNull List<? extends I> list) {
+
     }
 
     @Override
     public void onItemSet(int to, I item) {
-    }
-
-    @Override
-    public void onItemsSet(@NotNull List<I> items) {
     }
 
     @Override

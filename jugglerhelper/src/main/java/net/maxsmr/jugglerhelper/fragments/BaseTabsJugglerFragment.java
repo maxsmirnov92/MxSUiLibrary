@@ -3,15 +3,17 @@ package net.maxsmr.jugglerhelper.fragments;
 import android.content.Intent;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
-import android.support.annotation.CallSuper;
-import android.support.annotation.IdRes;
-import android.support.design.widget.TabLayout;
-import android.support.v4.app.Fragment;
-import android.support.v4.util.Pair;
-import android.support.v4.view.ViewPager;
-import android.support.v7.widget.RecyclerView;
+import androidx.annotation.CallSuper;
+import androidx.annotation.IdRes;
+import androidx.core.util.Pair;
+import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.RecyclerView;
+import androidx.viewpager.widget.ViewPager;
+
 import android.text.TextUtils;
 import android.view.View;
+
+import com.google.android.material.tabs.TabLayout;
 
 import net.maxsmr.commonutils.android.gui.GuiUtils;
 import net.maxsmr.commonutils.android.gui.fonts.FontsHolder;
@@ -50,9 +52,9 @@ public abstract class BaseTabsJugglerFragment<PagerAdapter
     protected void onBindViews(@NotNull View rootView) {
         final int tabLayoutId = getTabLayoutId();
         if (tabLayoutId != 0) {
-            tabLayout = GuiUtils.findViewById(rootView, tabLayoutId);
+            tabLayout = rootView.findViewById(tabLayoutId);
         }
-        viewPager = GuiUtils.findViewById(rootView, getPagerId());
+        viewPager = rootView.findViewById(getPagerId());
     }
 
     @SuppressWarnings("WrongConstant")

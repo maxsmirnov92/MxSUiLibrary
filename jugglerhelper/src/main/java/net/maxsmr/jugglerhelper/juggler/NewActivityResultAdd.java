@@ -3,9 +3,8 @@ package net.maxsmr.jugglerhelper.juggler;
 import android.content.ComponentName;
 import android.content.Intent;
 import android.os.Bundle;
-import android.support.annotation.AnimRes;
 
-import net.maxsmr.jugglerhelper.juggler.Juggler2;
+import androidx.annotation.AnimRes;
 
 import java.util.Stack;
 

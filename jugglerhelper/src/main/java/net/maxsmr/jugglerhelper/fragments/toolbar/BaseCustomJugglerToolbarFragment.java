@@ -1,11 +1,12 @@
 package net.maxsmr.jugglerhelper.fragments.toolbar;
 
 import android.graphics.drawable.Drawable;
-import android.support.annotation.IdRes;
 import android.text.TextUtils;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
+
+import androidx.annotation.IdRes;
 
 import org.jetbrains.annotations.Nullable;
 

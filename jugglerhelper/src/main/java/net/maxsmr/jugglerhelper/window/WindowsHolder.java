@@ -1,12 +1,13 @@
 package net.maxsmr.jugglerhelper.window;
 
 import android.content.Context;
-import android.support.annotation.MainThread;
-import android.support.v4.util.Pair;
 import android.text.TextUtils;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
+
+import androidx.annotation.MainThread;
+import androidx.core.util.Pair;
 
 import net.maxsmr.commonutils.data.CompareUtils;
 import net.maxsmr.commonutils.data.Predicate;

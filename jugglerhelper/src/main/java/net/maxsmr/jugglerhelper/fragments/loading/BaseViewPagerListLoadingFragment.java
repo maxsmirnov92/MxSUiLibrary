@@ -1,10 +1,11 @@
 package net.maxsmr.jugglerhelper.fragments.loading;
 
 import android.os.Bundle;
-import android.support.annotation.CallSuper;
-import android.support.annotation.IdRes;
-import android.support.v4.view.ViewPager;
 import android.view.View;
+
+import androidx.annotation.CallSuper;
+import androidx.annotation.IdRes;
+import androidx.viewpager.widget.ViewPager;
 
 import net.maxsmr.android.recyclerview.adapters.BasePagerAdapter;
 import net.maxsmr.commonutils.android.gui.views.ViewPagerIndicator;

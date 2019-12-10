@@ -1,9 +1,10 @@
 package net.maxsmr.jugglerhelper.fragments.alert;
 
 import android.os.Bundle;
-import android.support.v7.app.AlertDialog;
 import android.widget.ProgressBar;
 import android.widget.TextView;
+
+import androidx.appcompat.app.AlertDialog;
 
 import net.maxsmr.jugglerhelper.R;
 

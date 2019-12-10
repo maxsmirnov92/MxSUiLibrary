@@ -1,10 +1,10 @@
 package net.maxsmr.jugglerhelper.fragments.alert.holder;
 
-import android.support.annotation.CallSuper;
-import android.support.annotation.MainThread;
-import android.support.v4.app.FragmentManager;
-import android.support.v4.util.Pair;
-import android.support.v7.app.AlertDialog;
+import androidx.annotation.CallSuper;
+import androidx.annotation.MainThread;
+import androidx.appcompat.app.AlertDialog;
+import androidx.core.util.Pair;
+import androidx.fragment.app.FragmentManager;
 import android.text.TextUtils;
 import android.view.KeyEvent;
 

@@ -3,18 +3,17 @@ package net.maxsmr.jugglerhelper.fragments.toolbar;
 import android.app.Activity;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
-import android.support.annotation.CallSuper;
-import android.support.annotation.LayoutRes;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import android.support.annotation.StringRes;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentManager;
-import android.support.v7.app.ActionBar;
-import android.support.v7.widget.Toolbar;
-import android.text.TextUtils;
+import androidx.annotation.CallSuper;
+import androidx.annotation.LayoutRes;
+import androidx.annotation.StringRes;
+import androidx.appcompat.app.ActionBar;
+import androidx.appcompat.widget.Toolbar;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -53,7 +52,7 @@ public abstract class BaseJugglerToolbarFragment extends JugglerToolbarFragment 
             throw new IllegalStateException("root view was not created");
         }
 
-        Toolbar toolbar = GuiUtils.findViewById(rootView, getToolbarId());
+        Toolbar toolbar = rootView.findViewById(getToolbarId());
 
         if (toolbar == null) {
             throw new IllegalStateException("toolbar was not found");

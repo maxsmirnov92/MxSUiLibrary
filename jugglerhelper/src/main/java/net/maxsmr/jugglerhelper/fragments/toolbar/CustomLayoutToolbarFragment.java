@@ -2,10 +2,11 @@ package net.maxsmr.jugglerhelper.fragments.toolbar;
 
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
-import android.support.annotation.DrawableRes;
-import android.support.annotation.IdRes;
-import android.support.annotation.LayoutRes;
-import android.support.v4.content.ContextCompat;
+
+import androidx.annotation.DrawableRes;
+import androidx.annotation.IdRes;
+import androidx.annotation.LayoutRes;
+import androidx.core.content.ContextCompat;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -33,10 +34,12 @@ public class CustomLayoutToolbarFragment extends BaseCustomJugglerToolbarFragmen
     }
 
     @NotNull
-    public static CustomLayoutToolbarFragment newInstance(@NotNull NavigationMode navigationMode,
-                                                          @LayoutRes int toolbarLayoutId,
-                                                          @IdRes int toolbarId, @IdRes int toolbarTitleId, @IdRes int toolbarLogoId,
-                                                          @DrawableRes int toolbarLogoDrawableResId) {
+    public static CustomLayoutToolbarFragment newInstance(
+            @NotNull NavigationMode navigationMode,
+            @LayoutRes int toolbarLayoutId,
+            @IdRes int toolbarId, @IdRes int toolbarTitleId, @IdRes int toolbarLogoId,
+            @DrawableRes int toolbarLogoDrawableResId
+    ) {
         Bundle args = new Bundle();
         args.putSerializable(ARG_NAVIGATION_MODE, navigationMode);
         args.putInt(ARG_TOOLBAR_LAYOUT_ID, toolbarLayoutId);
@@ -100,5 +103,4 @@ public class CustomLayoutToolbarFragment extends BaseCustomJugglerToolbarFragmen
         final int drawableResId = args != null ? args.getInt(ARG_TOOLBAR_LOGO_DRAWABLE_RES_ID) : 0;
         return drawableResId != 0 ? ContextCompat.getDrawable(getContext(), drawableResId) : null;
     }
-
 }

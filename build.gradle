@@ -36,8 +36,8 @@ allprojects {
 }
 
 ext {
-    commonUtilsVersion = "1.0.8"
-    jugglerVersion = "0.1.20"
+    commonUtilsVersion = "1.0.8.1"
+    jugglerVersion = "0.1.23"
     nestableViewPagerVersion = "0.2.0"
     surfCoreMviVersion = "0.5.0-alpha.2"
     surfEasyAdapterVersion = "1.0.0-alpha.2"
