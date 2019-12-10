@@ -3,7 +3,6 @@ package net.maxsmr.android.recyclerview.adapters;
 import android.view.View;
 import android.view.ViewGroup;
 
-import androidx.annotation.NonNull;
 import androidx.viewpager.widget.PagerAdapter;
 
 import org.jetbrains.annotations.NotNull;
@@ -50,7 +49,7 @@ public abstract class BasePagerAdapter<I, VH extends BaseRecyclerViewAdapter.Vie
     }
 
     @Override
-    public int getItemPosition(@NonNull Object object) {
+    public int getItemPosition(@NotNull Object object) {
         return POSITION_NONE;
     }
 
