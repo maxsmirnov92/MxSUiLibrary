@@ -9,7 +9,6 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.RecyclerView.NO_POSITION
 import com.bejibx.android.recyclerview.selection.SelectionHelper
-import com.example.ui_testapp.R
 import kotlinx.android.synthetic.main.activity_recycler_test.*
 import net.maxsmr.android.recyclerview.adapters.BaseMultiSelectionRecyclerViewAdapter
 import net.maxsmr.android.recyclerview.adapters.BaseRecyclerViewAdapter

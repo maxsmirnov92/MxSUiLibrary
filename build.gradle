@@ -40,5 +40,5 @@ ext {
     jugglerVersion = "0.1.23"
     nestableViewPagerVersion = "0.2.0"
     surfCoreMviVersion = "0.5.0-alpha.2"
-    surfEasyAdapterVersion = "1.0.0-alpha.2"
+    surfEasyAdapterVersion = "1.1.0-alpha.2"
 }
