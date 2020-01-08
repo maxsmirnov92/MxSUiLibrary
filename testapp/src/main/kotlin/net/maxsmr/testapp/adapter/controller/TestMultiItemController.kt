@@ -5,12 +5,12 @@ import android.view.ViewGroup
 import android.widget.CheckBox
 import android.widget.TextView
 import androidx.core.view.isVisible
-import com.example.ui_testapp.R
 import net.maxsmr.android.recyclerview.adapters.itemcontroller.view.LoadableItemView
 import net.maxsmr.testapp.adapter.TestItem
 import ru.surfstudio.android.utilktx.data.wrapper.selectable.SelectableData
 import ru.surfstudio.android.utilktx.ktx.text.EMPTY_STRING
 import net.maxsmr.android.recyclerview.adapters.itemcontroller.BaseSelectableItemController
+import net.maxsmr.testapp.R
 
 class TestMultiItemController : BaseSelectableItemController<TestItem, TestMultiItemController.Holder>() {
 

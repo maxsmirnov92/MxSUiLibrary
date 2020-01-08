@@ -5,9 +5,9 @@ import android.view.ViewGroup
 import android.widget.RadioButton
 import android.widget.TextView
 import androidx.core.view.isVisible
-import com.example.ui_testapp.R
 import net.maxsmr.android.recyclerview.adapters.BaseRecyclerViewAdapter
 import net.maxsmr.android.recyclerview.adapters.BaseSingleSelectionRecyclerViewAdapter
+import net.maxsmr.testapp.R
 import net.maxsmr.testapp.adapter.TestItem
 
 class TestSingleAdapter(

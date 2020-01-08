@@ -3,9 +3,9 @@ package net.maxsmr.testapp.adapter.controller
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
-import com.example.ui_testapp.R
 import net.maxsmr.android.recyclerview.adapters.itemcontroller.BaseFocusableItemController
 import net.maxsmr.android.recyclerview.adapters.itemcontroller.view.LoadableItemView
+import net.maxsmr.testapp.R
 import net.maxsmr.testapp.adapter.TestItem
 import ru.surfstudio.android.utilktx.ktx.text.EMPTY_STRING
 
