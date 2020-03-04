@@ -18,7 +18,7 @@ abstract class BaseSingleSelectionRecyclerViewAdapter<I, VH : BaseRecyclerViewAd
 
     override val itemsSelectedObservable = ItemSelectedObservable()
 
-    val isSelected: Boolean
+    val hasSelected: Boolean
         get() = selectedPosition != NO_POSITION
 
     val selectedPosition: Int
@@ -46,11 +46,11 @@ abstract class BaseSingleSelectionRecyclerViewAdapter<I, VH : BaseRecyclerViewAd
             }
         }
 
-    override var allowTogglingSelection: Boolean = true
+    override var allowResetSelection: Boolean = true
         set(value) {
             if (field != value) {
                 field = value
-                onAllowTogglingSelectionChanged(value)
+                onAllowResetSelectionChanged(value)
             }
         }
 
@@ -110,7 +110,9 @@ abstract class BaseSingleSelectionRecyclerViewAdapter<I, VH : BaseRecyclerViewAd
             }
         }
 
-        handleSelected(selectableView, isSelected)
+        selectableView?.let {
+            handleSelected(it, isSelected)
+        }
         if (isSelected) {
             onHandleItemSelected(holder, item, position)
         } else {
@@ -251,8 +253,8 @@ abstract class BaseSingleSelectionRecyclerViewAdapter<I, VH : BaseRecyclerViewAd
     }
 
     @CallSuper
-    protected open fun onAllowTogglingSelectionChanged(isAllowed: Boolean) {
-        itemsSelectedObservable.notifyAllowTogglingSelectionChanged(isAllowed)
+    protected open fun onAllowResetSelectionChanged(isAllowed: Boolean) {
+        itemsSelectedObservable.notifyAllowResetSelectionChanged(isAllowed)
     }
 
     /**
@@ -273,18 +275,17 @@ abstract class BaseSingleSelectionRecyclerViewAdapter<I, VH : BaseRecyclerViewAd
 
     protected fun changeSelectedStateFromUi(position: Int): Boolean {
         if (isSelectable) {
-            if (position == targetSelectionPosition) {
-                if (allowTogglingSelection) {
+            return if (position == targetSelectionPosition) {
+                if (allowResetSelection) {
                     resetSelection(true)
                 } else {
                     // current state is selected, triggering reselect, state must be not changed
                     setSelection(position, true)
-                    return false
+                    false
                 }
             } else {
                 setSelection(position, true)
             }
-            return true
         }
         return false
     }
@@ -296,7 +297,9 @@ abstract class BaseSingleSelectionRecyclerViewAdapter<I, VH : BaseRecyclerViewAd
     ) {
         if (!changeSelectedStateFromUi(position)) {
             // если результат отрицательный - возвращаем в исходное состояние view (isSelected не изменился)
-            handleSelected(selectableView, wasSelected)
+            selectableView?.let {
+                handleSelected(it, wasSelected)
+            }
         }
     }
 
@@ -304,7 +307,7 @@ abstract class BaseSingleSelectionRecyclerViewAdapter<I, VH : BaseRecyclerViewAd
      * @return true if was resetted, false - it was already not selected
      */
     private fun resetSelection(fromUser: Boolean): Boolean {
-        if (isSelected) {
+        if (hasSelected) {
             var previousSelection = targetSelectionPosition
             targetSelectionPosition = NO_POSITION
             if (previousSelection < 0 || previousSelection >= itemCount) {

@@ -215,7 +215,7 @@ abstract class BaseSelectableItemController<T, VH : BaseSelectableItemController
             toggle: Boolean,
             shouldInvalidateOthers: Boolean = true
     ): Boolean {
-        if (isSelectable || !toggle) {
+        if (isSelectable) {
             if (setSelectedInternal(targetIndex, toggle)) {
                 if (toggle && selectMode == SelectMode.SINGLE && shouldInvalidateOthers) {
                     setSelectedExclude(false, listOf(targetIndex))

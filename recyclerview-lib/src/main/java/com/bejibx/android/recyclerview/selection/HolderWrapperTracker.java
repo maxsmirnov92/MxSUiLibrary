@@ -9,7 +9,6 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 
 public class HolderWrapperTracker {
 
@@ -24,16 +23,11 @@ public class HolderWrapperTracker {
         if (wrapper != null) {
             final RecyclerView.ViewHolder holder = wrapper.getHolder();
             if (holder != null && holder.isRecyclable()) {
-                if (wrapper instanceof SelectionHelper.ViewHolderMultiSelectionWrapper) {
-                    Set<SelectionHelper.SelectTriggerMode> selectTriggerModes = ((SelectionHelper.ViewHolderMultiSelectionWrapper) wrapper).getSelectModes();
-                    if (selectTriggerModes.contains(SelectionHelper.SelectTriggerMode.CLICK)) {
-                        holder.itemView.setOnClickListener(null);
-                    }
-                    if (selectTriggerModes.contains(SelectionHelper.SelectTriggerMode.LONG_CLICK)) {
-                        holder.itemView.setOnLongClickListener(null);
-                    }
-                } else if (wrapper instanceof SelectionHelper.ViewHolderClickWrapper) {
-                    holder.itemView.setOnClickListener(null);
+                if (wrapper.shouldSetClickListener() && wrapper.clickableView != null) {
+                    wrapper.clickableView.setOnClickListener(null);
+                }
+                if (wrapper.shouldSetLongClickListener() && wrapper.longClickableView != null) {
+                    wrapper.longClickableView.setOnClickListener(null);
                 }
                 mWrappersByPosition.remove(position);
             }

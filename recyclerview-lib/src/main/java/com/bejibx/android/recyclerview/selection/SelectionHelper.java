@@ -10,7 +10,6 @@ import org.jetbrains.annotations.Nullable;
 
 import java.lang.ref.WeakReference;
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
@@ -24,7 +23,7 @@ public final class SelectionHelper {
 
     private boolean isSelectable = true;
 
-    private boolean allowTogglingSelection = true;
+    private boolean allowResetSelection = true;
 
     public boolean isSelectable() {
         return isSelectable;
@@ -43,17 +42,17 @@ public final class SelectionHelper {
         return false;
     }
 
-    public boolean isTogglingSelectionAllowed() {
-        return allowTogglingSelection;
+    public boolean isResetSelectionAllowed() {
+        return allowResetSelection;
     }
 
     /**
      * @return true if changed
      */
-    public boolean setAllowTogglingSelection(boolean isAllowTogglingSelection) {
-        if (this.allowTogglingSelection != isAllowTogglingSelection) {
-            this.allowTogglingSelection = isAllowTogglingSelection;
-            selectionObservable.notifyAllowTogglingSelectionChanged(isAllowTogglingSelection);
+    public boolean setAllowResetSelection(boolean toggle) {
+        if (this.allowResetSelection != toggle) {
+            this.allowResetSelection = toggle;
+            selectionObservable.notifyAllowResetSelectionChanged(toggle);
             return true;
         }
         return false;
@@ -63,9 +62,15 @@ public final class SelectionHelper {
             @NotNull H holder,
             @Nullable View clickableView,
             @Nullable View longClickableView,
+            @Nullable View selectableView,
             @NotNull Set<SelectTriggerMode> selectTriggerModes
     ) {
-        bindWrapper(new ViewHolderMultiSelectionWrapper(holder, clickableView, longClickableView, selectTriggerModes));
+        bindWrapper(new ViewHolderMultiSelectionWrapper(holder,
+                clickableView,
+                longClickableView,
+                selectableView,
+                selectTriggerModes)
+        );
         return holder;
     }
 
@@ -179,7 +184,10 @@ public final class SelectionHelper {
             selectedItems.clear();
             for (ViewHolderWrapper wrapper : tracker.getTrackedWrappers()) {
                 if (wrapper != null) {
-                    selectionObservable.notifySelectionChanged(wrapper.getHolder(), false, fromUser);
+                    final RecyclerView.ViewHolder holder = wrapper.getHolder();
+                    if (holder != null) {
+                        selectionObservable.notifySelectionChanged(holder, false, fromUser);
+                    }
                 }
             }
         }
@@ -201,6 +209,11 @@ public final class SelectionHelper {
         return selectedItems.size();
     }
 
+    public void clear() {
+        tracker.clear();
+        selectedItems.clear();
+    }
+
     public final void registerHolderClickObserver(@NotNull HolderClickListener observer) {
         holderClickObservable.registerObserver(observer);
     }
@@ -215,6 +228,166 @@ public final class SelectionHelper {
 
     public final void unregisterHolderClickObserver(@NotNull HolderClickListener observer) {
         holderClickObservable.unregisterObserver(observer);
+    }
+
+    public enum SelectTriggerMode {
+        CLICK, LONG_CLICK
+    }
+
+    abstract class ViewHolderWrapper implements View.OnClickListener, View.OnLongClickListener {
+
+        protected final WeakReference<RecyclerView.ViewHolder> mWrappedHolderRef;
+
+        @Nullable
+        final View clickableView;
+        @Nullable
+        final View longClickableView;
+
+        protected ViewHolderWrapper(RecyclerView.ViewHolder holder, @Nullable View clickableView, @Nullable View longClickableView) {
+            mWrappedHolderRef = new WeakReference<>(holder);
+            this.clickableView = clickableView;
+            this.longClickableView = longClickableView;
+            if (shouldSetClickListener() && clickableView != null) {
+                clickableView.setOnClickListener(this);
+            }
+            if (shouldSetLongClickListener() && longClickableView != null) {
+                longClickableView.setOnClickListener(this);
+            }
+        }
+
+        @Nullable
+        public RecyclerView.ViewHolder getHolder() {
+            return mWrappedHolderRef.get();
+        }
+
+        abstract boolean shouldSetClickListener();
+
+        abstract boolean shouldSetLongClickListener();
+    }
+
+    class ViewHolderMultiSelectionWrapper extends ViewHolderWrapper
+            implements View.OnLongClickListener {
+
+        @Nullable
+        private final View selectableView;
+
+        @NotNull
+        private final Set<SelectTriggerMode> selectTriggerModes;
+
+        @NotNull
+        public Set<SelectTriggerMode> getSelectModes() {
+            return new LinkedHashSet<>(selectTriggerModes);
+        }
+
+        ViewHolderMultiSelectionWrapper(
+                RecyclerView.ViewHolder holder,
+                @Nullable View clickableView,
+                @Nullable View longClickableView,
+                @Nullable View selectableView,
+                @NotNull Set<SelectTriggerMode> selectTriggerModes) {
+            super(holder, clickableView, longClickableView);
+
+            this.selectableView = selectableView;
+            this.selectTriggerModes = selectTriggerModes;
+        }
+
+        @Override
+        boolean shouldSetClickListener() {
+            return selectTriggerModes.contains(SelectTriggerMode.CLICK);
+        }
+
+        @Override
+        boolean shouldSetLongClickListener() {
+            return selectTriggerModes.contains(SelectTriggerMode.LONG_CLICK);
+        }
+
+        @Override
+        public final void onClick(View v) {
+            RecyclerView.ViewHolder holder = mWrappedHolderRef.get();
+            if (holder != null) {
+                changeSelectedStateFromUiNotify(holder, () -> holderClickObservable.notifyOnHolderClick(holder));
+            }
+        }
+
+        @Override
+        public final boolean onLongClick(View v) {
+            RecyclerView.ViewHolder holder = mWrappedHolderRef.get();
+            if (holder != null) {
+                changeSelectedStateFromUiNotify(holder, () -> holderClickObservable.notifyOnHolderLongClick(holder));
+            }
+            return true;
+        }
+
+        private void changeSelectedStateFromUiNotify(
+                @NotNull RecyclerView.ViewHolder holder,
+                @Nullable Runnable nonSelectableAction
+        ) {
+            final boolean wasSelected = isItemSelected(holder.getAdapterPosition());
+            if (!changeSelectedStateFromUi(holder, nonSelectableAction)) {
+                if (selectableView != null) {
+                    selectionObservable.notifyHandleSelected(selectableView, wasSelected);
+                }
+            }
+        }
+
+        private boolean changeSelectedStateFromUi(@NotNull RecyclerView.ViewHolder holder, @Nullable Runnable nonSelectableAction) {
+            if (isSelectable()) {
+                if (isItemSelected(holder)) {
+                    if (isResetSelectionAllowed()) {
+                        return setItemSelectedByHolder(holder, false, true);
+                    } else {
+                        // current state is selected, triggering reselect, state must be not changed
+                        setItemSelectedByHolder(holder, true, true);
+                        return false;
+                    }
+                } else {
+                    return toggleItemSelectedByHolder(holder, true);
+                }
+            } else {
+                if (nonSelectableAction != null) {
+                    nonSelectableAction.run();
+                }
+            }
+            return false;
+        }
+    }
+
+    class ViewHolderClickWrapper extends ViewHolderWrapper {
+
+        ViewHolderClickWrapper(
+                RecyclerView.ViewHolder holder,
+                @Nullable View clickableView,
+                @Nullable View longClickableView
+        ) {
+            super(holder, clickableView, longClickableView);
+        }
+
+        @Override
+        boolean shouldSetClickListener() {
+            return true;
+        }
+
+        @Override
+        boolean shouldSetLongClickListener() {
+            return true;
+        }
+
+        @Override
+        public final void onClick(View v) {
+            RecyclerView.ViewHolder holder = mWrappedHolderRef.get();
+            if (holder != null) {
+                holderClickObservable.notifyOnHolderClick(holder);
+            }
+        }
+
+        @Override
+        public boolean onLongClick(View v) {
+            RecyclerView.ViewHolder holder = mWrappedHolderRef.get();
+            if (holder != null) {
+                return holderClickObservable.notifyOnHolderLongClick(holder);
+            }
+            return false;
+        }
     }
 
     private class HolderClickObservable extends Observable<HolderClickListener> {
@@ -264,146 +437,20 @@ public final class SelectionHelper {
             }
         }
 
-        private void notifyAllowTogglingSelectionChanged(boolean isAllowed) {
+        private void notifyAllowResetSelectionChanged(boolean isAllowed) {
             synchronized (mObservers) {
                 for (SelectionListener observer : mObservers) {
-                    observer.onAllowTogglingSelectionChanged(isAllowed);
-                }
-            }
-        }
-    }
-
-    abstract class ViewHolderWrapper implements View.OnClickListener, View.OnLongClickListener {
-        protected final WeakReference<RecyclerView.ViewHolder> mWrappedHolderRef;
-
-        protected ViewHolderWrapper(RecyclerView.ViewHolder holder) {
-            mWrappedHolderRef = new WeakReference<>(holder);
-        }
-
-        @Nullable
-        public RecyclerView.ViewHolder getHolder() {
-            return mWrappedHolderRef.get();
-        }
-    }
-
-    public enum SelectTriggerMode {
-        CLICK, LONG_CLICK
-    }
-
-    class ViewHolderMultiSelectionWrapper extends ViewHolderWrapper
-            implements View.OnLongClickListener {
-
-        @Nullable
-        Set<SelectTriggerMode> selectTriggerModes;
-
-        @NotNull
-        public Set<SelectTriggerMode> getSelectModes() {
-            return selectTriggerModes != null ? new HashSet<>(selectTriggerModes) : new HashSet<>();
-        }
-
-        private ViewHolderMultiSelectionWrapper(
-                RecyclerView.ViewHolder holder,
-                @Nullable View clickableView,
-                @Nullable View longClickableView,
-                @Nullable Set<SelectTriggerMode> selectTriggerModes) {
-            super(holder);
-
-            this.selectTriggerModes = selectTriggerModes;
-
-            if (selectTriggerModes != null && !selectTriggerModes.isEmpty()) {
-
-                for (SelectTriggerMode mode : selectTriggerModes) {
-                    if (mode != null) {
-                        switch (mode) {
-                            case CLICK:
-                                if (clickableView != null) {
-                                    clickableView.setOnClickListener(this);
-                                }
-                                break;
-                            case LONG_CLICK:
-                                if (longClickableView != null) {
-                                    longClickableView.setOnLongClickListener(this);
-                                }
-                                break;
-                        }
-                    }
+                    observer.onAllowResetSelectionChanged(isAllowed);
                 }
             }
         }
 
-        @Override
-        public final void onClick(View v) {
-            RecyclerView.ViewHolder holder = mWrappedHolderRef.get();
-            if (holder != null) {
-                if (isSelectable()) {
-                    if (isTogglingSelectionAllowed() || !isItemSelected(holder)) {
-                        toggleItemSelectedByHolder(holder, true);
-                    } else {
-                        // current state is selected, triggering reselect
-                        setItemSelectedByHolder(holder, true, true);
-                    }
-                } else {
-                    holderClickObservable.notifyOnHolderClick(holder);
+        private void notifyHandleSelected(@NotNull View selectableView, boolean isSelected) {
+            synchronized (mObservers) {
+                for (SelectionListener observer : mObservers) {
+                    observer.handleSelected(selectableView, isSelected);
                 }
             }
         }
-
-        @Override
-        public final boolean onLongClick(View v) {
-            RecyclerView.ViewHolder holder = mWrappedHolderRef.get();
-            if (holder != null) {
-                if (isSelectable()) {
-                    if (isTogglingSelectionAllowed() || !isItemSelected(holder)) {
-                        toggleItemSelectedByHolder(holder, true);
-                    } else {
-                        // current state is selected, triggering reselect
-                        setItemSelectedByHolder(holder, true, true);
-                    }
-                    return true;
-                } else {
-                    return holderClickObservable.notifyOnHolderLongClick(holder);
-                }
-            }
-            return true;
-        }
-    }
-
-    class ViewHolderClickWrapper extends ViewHolderWrapper {
-
-        private ViewHolderClickWrapper(
-                RecyclerView.ViewHolder holder,
-                @Nullable View clickableView,
-                @Nullable View longClickableView
-        ) {
-            super(holder);
-            if (clickableView != null) {
-                clickableView.setOnClickListener(this);
-            }
-            if (longClickableView != null) {
-                longClickableView.setOnLongClickListener(this);
-            }
-        }
-
-        @Override
-        public final void onClick(View v) {
-            RecyclerView.ViewHolder holder = mWrappedHolderRef.get();
-            if (holder != null) {
-                holderClickObservable.notifyOnHolderClick(holder);
-            }
-        }
-
-        @Override
-        public boolean onLongClick(View v) {
-            RecyclerView.ViewHolder holder = mWrappedHolderRef.get();
-            if (holder != null) {
-                return holderClickObservable.notifyOnHolderLongClick(holder);
-            }
-            return false;
-        }
-    }
-
-    public void clear() {
-        tracker.clear();
-        selectedItems.clear();
     }
 }

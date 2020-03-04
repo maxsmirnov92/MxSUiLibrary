@@ -1,6 +1,7 @@
 package net.maxsmr.android.recyclerview.adapters
 
 import android.content.Context
+import android.view.View
 import androidx.annotation.CallSuper
 import androidx.annotation.LayoutRes
 import androidx.recyclerview.widget.RecyclerView
@@ -95,24 +96,33 @@ abstract class BaseMultiSelectionRecyclerViewAdapter<I, VH : BaseRecyclerViewAda
             selectionHelper.isSelectable = toggle
         }
 
-    override var allowTogglingSelection: Boolean
-        get() = selectionHelper.isTogglingSelectionAllowed
+    override var allowResetSelection: Boolean
+        get() = selectionHelper.isResetSelectionAllowed
         set(toggle) {
-            selectionHelper.setAllowTogglingSelection(toggle)
+            selectionHelper.setAllowResetSelection(toggle)
         }
 
 
     @CallSuper
     override fun bindSelection(holder: VH, item: I?, position: Int) {
-        selectionHelper.wrapSelectable(holder, getClickableView(holder), getLongClickableView(holder), getSelectTriggerModesForItem(item, position))
+        getSelectableView(holder).let {
+            selectionHelper.wrapSelectable(
+                    holder,
+                    getClickableView(holder),
+                    getLongClickableView(holder),
+                    it,
+                    getSelectTriggerModesForItem(item, position)
+            )
 
-        val isSelected = isItemPositionSelected(position)
-        handleSelected(getSelectableView(holder), isSelected)
-
-        if (isSelected) {
-            onHandleItemSelected(holder, item, position)
-        } else {
-            onHandleItemNotSelected(holder, item, position)
+            val isSelected = isItemPositionSelected(position)
+            it?.let {
+                handleSelected(it, isSelected)
+            }
+            if (isSelected) {
+                onHandleItemSelected(holder, item, position)
+            } else {
+                onHandleItemNotSelected(holder, item, position)
+            }
         }
     }
 
@@ -157,8 +167,12 @@ abstract class BaseMultiSelectionRecyclerViewAdapter<I, VH : BaseRecyclerViewAda
     }
 
     @CallSuper
-    override fun onAllowTogglingSelectionChanged(isAllowed: Boolean) {
-        itemsSelectedObservable.notifyAllowTogglingSelectionChanged(isAllowed)
+    override fun onAllowResetSelectionChanged(isAllowed: Boolean) {
+        itemsSelectedObservable.notifyAllowResetSelectionChanged(isAllowed)
+    }
+
+    override fun handleSelected(selectableView: View, isSelected: Boolean) {
+        super.handleSelected(selectableView, isSelected)
     }
 
     override fun onHolderClick(holder: RecyclerView.ViewHolder) {
@@ -311,10 +325,9 @@ abstract class BaseMultiSelectionRecyclerViewAdapter<I, VH : BaseRecyclerViewAda
 
     protected fun releaseSelectionHelper() {
         selectionHelper.clear()
-//        selectionHelper.unregisterSelectionObserver(this)
-//        selectionHelper.unregisterHolderClickObserver(this)
+        selectionHelper.unregisterSelectionObserver(this)
+        selectionHelper.unregisterHolderClickObserver(this)
     }
-
 
     protected fun invalidateSelections() {
         val targetUnselected = mutableSetOf<Int>()

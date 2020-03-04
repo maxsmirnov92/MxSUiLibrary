@@ -30,7 +30,7 @@ abstract class BaseSelectionRecyclerViewAdapter<I, VH : BaseRecyclerViewAdapter.
 
     abstract var isSelectable: Boolean
 
-    abstract var allowTogglingSelection: Boolean
+    abstract var allowResetSelection: Boolean
 
     override fun allowSetClickListener(item: I?, position: Int): Boolean =
             !isItemEmpty(item, position)
@@ -116,14 +116,12 @@ abstract class BaseSelectionRecyclerViewAdapter<I, VH : BaseRecyclerViewAdapter.
         }
     }
 
-    protected open fun handleSelected(selectableView: View?, isSelected: Boolean) {
-        selectableView?.apply {
-            if (this is Checkable) {
-                this.isChecked = isSelected
+    protected open fun handleSelected(selectableView: View, isSelected: Boolean) {
+            if (selectableView is Checkable) {
+                selectableView.isChecked = isSelected
             } else {
-                this.isSelected = isSelected
+                selectableView.isSelected = isSelected
             }
-        }
     }
 
     protected open fun onHandleItemSelected(holder: VH, item: I?, position: Int) {
@@ -152,10 +150,10 @@ abstract class BaseSelectionRecyclerViewAdapter<I, VH : BaseRecyclerViewAdapter.
             }
         }
 
-        fun notifyAllowTogglingSelectionChanged(isAllowed: Boolean) {
+        fun notifyAllowResetSelectionChanged(isAllowed: Boolean) {
             synchronized(mObservers) {
                 for (l in mObservers) {
-                    l.onAllowTogglingSelectionChanged(isAllowed)
+                    l.onAllowResetSelectionChanged(isAllowed)
                 }
             }
         }
@@ -167,6 +165,6 @@ abstract class BaseSelectionRecyclerViewAdapter<I, VH : BaseRecyclerViewAdapter.
 
         fun onSelectableChanged(isSelectable: Boolean)
 
-        fun onAllowTogglingSelectionChanged(isAllowed: Boolean)
+        fun onAllowResetSelectionChanged(isAllowed: Boolean)
     }
 }
