@@ -11,8 +11,6 @@ import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import net.maxsmr.android.recyclerview.adapters.BaseRecyclerViewAdapter;
 import net.maxsmr.android.recyclerview.scroll.RecyclerScrollableController;
-import net.maxsmr.commonutils.android.gui.GuiUtils;
-import net.maxsmr.commonutils.data.CompareUtils;
 import net.maxsmr.jugglerhelper.R;
 
 import org.jetbrains.annotations.NotNull;
@@ -29,6 +27,9 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
+import static net.maxsmr.commonutils.data.CompareUtilsKt.objectsEqual;
+
+@Deprecated
 public abstract class BaseListLoadingJugglerFragment<I, Adapter extends BaseRecyclerViewAdapter<I, ?>>
         extends BaseLoadingJugglerFragment<List<I>>
         implements BaseRecyclerViewAdapter.ItemsEventsListener<I>, RecyclerScrollableController.OnLastItemVisibleListener, SwipeRefreshLayout.OnRefreshListener, View.OnClickListener {
@@ -216,7 +217,7 @@ public abstract class BaseListLoadingJugglerFragment<I, Adapter extends BaseRecy
     }
 
     protected boolean isDuplicateItems(@Nullable I one, @Nullable I another) {
-        return CompareUtils.objectsEqual(one, another); // TODO default
+        return objectsEqual(one, another); // TODO default
     }
 
     /**

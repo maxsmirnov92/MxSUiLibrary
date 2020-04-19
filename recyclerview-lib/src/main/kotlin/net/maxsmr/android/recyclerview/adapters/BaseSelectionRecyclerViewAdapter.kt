@@ -48,15 +48,15 @@ abstract class BaseSelectionRecyclerViewAdapter<I, VH : BaseRecyclerViewAdapter.
     }
 
     @CallSuper
-    override fun onItemAdded(to: Int, item: I?) {
+    override fun onItemAdded(to: Int, item: I?, previousSize: Int) {
         invalidateSelectionIndexOnAdd(to, 1)
-        super.onItemAdded(to, item)
+        super.onItemAdded(to, item, previousSize)
     }
 
     @CallSuper
-    override fun onItemsAdded(to: Int, items: Collection<I>) {
+    override fun onItemsAdded(to: Int, items: Collection<I?>, previousSize: Int) {
         invalidateSelectionIndexOnAdd(to, items.size)
-        super.onItemsAdded(to, items)
+        super.onItemsAdded(to, items, previousSize)
     }
 
     @CallSuper
@@ -72,9 +72,9 @@ abstract class BaseSelectionRecyclerViewAdapter<I, VH : BaseRecyclerViewAdapter.
     }
 
     @CallSuper
-    override fun onItemsRangeRemoved(from: Int, to: Int, previousSize: Int) {
+    override fun onItemsRangeRemoved(from: Int, to: Int, previousSize: Int, removedItems: List<I?>) {
         invalidateSelectionIndexOnRemove(from, if (from == to) 1 else to - from)
-        super.onItemsRangeRemoved(from, to, previousSize)
+        super.onItemsRangeRemoved(from, to, previousSize, removedItems)
     }
 
     fun registerItemSelectedChangeListener(listener: L) {

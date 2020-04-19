@@ -21,11 +21,11 @@ import androidx.annotation.CallSuper;
 import androidx.annotation.ColorInt;
 import androidx.annotation.LayoutRes;
 import androidx.core.content.ContextCompat;
-import androidx.core.util.Pair;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentActivity;
 
-import net.maxsmr.commonutils.android.gui.FragmentFinder;
+import net.maxsmr.commonutils.android.gui.fragments.FragmentFinder;
+import net.maxsmr.commonutils.data.Pair;
 import net.maxsmr.jugglerhelper.R;
 import net.maxsmr.jugglerhelper.activities.BaseJugglerActivity;
 import net.maxsmr.jugglerhelper.fragments.toolbar.BaseJugglerToolbarFragment;

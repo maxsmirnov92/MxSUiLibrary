@@ -8,10 +8,10 @@ import android.view.KeyEvent;
 import android.view.MotionEvent;
 
 import androidx.annotation.AnimRes;
-import androidx.core.util.Pair;
 import androidx.fragment.app.Fragment;
 
-import net.maxsmr.commonutils.android.gui.FragmentFinder;
+import net.maxsmr.commonutils.android.gui.fragments.FragmentFinder;
+import net.maxsmr.commonutils.data.Pair;
 import net.maxsmr.jugglerhelper.fragments.BaseJugglerFragment;
 
 import org.jetbrains.annotations.NotNull;

@@ -5,6 +5,7 @@ import android.content.res.ColorStateList;
 import androidx.annotation.DrawableRes;
 import androidx.annotation.StringRes;
 
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.Serializable;
@@ -36,6 +37,7 @@ public class NavigationMenuItem implements Serializable {
         this.textColorStateList = textColorStateList;
     }
 
+    @NotNull
     @Override
     public String toString() {
         return "NavigationMenuItem{" +

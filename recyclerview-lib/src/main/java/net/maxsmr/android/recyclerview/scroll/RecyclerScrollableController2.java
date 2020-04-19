@@ -1,6 +1,5 @@
 package net.maxsmr.android.recyclerview.scroll;
 
-
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 

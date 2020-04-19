@@ -5,7 +5,6 @@ import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import androidx.annotation.CallSuper;
 import androidx.annotation.IdRes;
-import androidx.core.util.Pair;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.viewpager.widget.ViewPager;
@@ -15,12 +14,11 @@ import android.view.View;
 
 import com.google.android.material.tabs.TabLayout;
 
-import net.maxsmr.commonutils.android.gui.GuiUtils;
 import net.maxsmr.commonutils.android.gui.fonts.FontsHolder;
-import net.maxsmr.commonutils.data.CompareUtils;
+import net.maxsmr.commonutils.android.gui.fragments.adapters.CustomFragmentStatePagerAdapter;
+import net.maxsmr.commonutils.data.Pair;
 import net.maxsmr.commonutils.data.Predicate;
 import net.maxsmr.jugglerhelper.R;
-import net.maxsmr.jugglerhelper.fragments.adapters.CustomFragmentStatePagerAdapter;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -32,6 +30,8 @@ import java.util.Map;
 import me.ilich.juggler.gui.JugglerActivity;
 import me.ilich.juggler.states.State;
 import me.ilich.nestableviewpager.NestablePagerItem;
+
+import static net.maxsmr.commonutils.data.CompareUtilsKt.stringsEqual;
 
 public abstract class BaseTabsJugglerFragment<PagerAdapter
         extends CustomFragmentStatePagerAdapter> extends BaseJugglerFragment implements ViewPager.OnPageChangeListener, View.OnClickListener, NestablePagerItem {
@@ -246,7 +246,7 @@ public abstract class BaseTabsJugglerFragment<PagerAdapter
         if (TextUtils.isEmpty(tag)) {
             return null;
         }
-        return Predicate.Methods.find(customViewTabsMap.entrySet(), element -> CompareUtils.stringsEqual(element.getValue(), tag, false));
+        return Predicate.Methods.find(customViewTabsMap.entrySet(), element -> stringsEqual(element.getValue(), tag, false));
     }
 
     @Nullable
@@ -422,7 +422,7 @@ public abstract class BaseTabsJugglerFragment<PagerAdapter
                     final Fragment fragment = adapter.getFragmentInstance(index);
                     if (fragment != null) {
                         final String tag = getTagForPagerFragment(fragment);
-                        if (!TextUtils.isEmpty(tag) && CompareUtils.stringsEqual(entry.getValue(), tag, false)) {
+                        if (!TextUtils.isEmpty(tag) && stringsEqual(entry.getValue(), tag, false)) {
                             selectedIndex = index;
                             break;
                         }

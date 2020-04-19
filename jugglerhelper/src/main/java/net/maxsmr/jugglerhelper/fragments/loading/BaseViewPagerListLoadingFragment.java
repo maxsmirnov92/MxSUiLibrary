@@ -16,6 +16,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Collection;
 import java.util.List;
 
+@Deprecated
 public abstract class BaseViewPagerListLoadingFragment<I, Adapter extends BasePagerAdapter<I, ?>>
         extends BaseLoadingJugglerFragment<List<I>> implements ViewPager.OnPageChangeListener {
 

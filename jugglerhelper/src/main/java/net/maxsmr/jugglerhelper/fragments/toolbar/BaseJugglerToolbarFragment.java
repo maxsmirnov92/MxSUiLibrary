@@ -18,8 +18,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
-import net.maxsmr.commonutils.android.gui.GuiUtils;
-import net.maxsmr.jugglerhelper.R;
 import net.maxsmr.jugglerhelper.fragments.BaseJugglerFragment;
 import net.maxsmr.jugglerhelper.navigation.NavigationMode;
 

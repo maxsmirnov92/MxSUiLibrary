@@ -1,10 +1,10 @@
 package net.maxsmr.testapp.adapter.base
 
 import android.content.Context
+import android.view.View
 import android.view.ViewGroup
 import android.widget.RadioButton
 import android.widget.TextView
-import androidx.core.view.isVisible
 import net.maxsmr.android.recyclerview.adapters.BaseRecyclerViewAdapter
 import net.maxsmr.android.recyclerview.adapters.BaseSingleSelectionRecyclerViewAdapter
 import net.maxsmr.testapp.R
@@ -39,7 +39,7 @@ class TestSingleAdapter(
         override fun bindData(position: Int, item: TestItem, count: Int) {
             super.bindData(position, item, count)
             with(isSelectable) {
-                testRadio.isVisible = this
+                testRadio.visibility = if (this) View.VISIBLE else View.GONE
 //                testText.isClickable = !this
 //                testText.isFocusable = !this
             }

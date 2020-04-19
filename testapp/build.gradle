@@ -1,7 +1,7 @@
 apply from: "$rootDir/buildSrc/androidApp.gradle"
 
 ext {
-    constraintLayoutVersion = '2.0.0-beta3'
+    constraintLayoutVersion = '2.0.0-beta4'
 }
 
 dependencies {

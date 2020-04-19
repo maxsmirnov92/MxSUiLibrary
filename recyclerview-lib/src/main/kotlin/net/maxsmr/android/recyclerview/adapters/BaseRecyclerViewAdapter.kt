@@ -7,7 +7,6 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.annotation.CallSuper
 import androidx.annotation.LayoutRes
-import androidx.core.view.isVisible
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.RecyclerView.NO_ID
@@ -140,14 +139,13 @@ abstract class BaseRecyclerViewAdapter<I, VH : BaseRecyclerViewAdapter.ViewHolde
 
     fun indexOf(item: I?): Int =
             synchronized(items) {
-            return items.indexOf(item)
-        }
+                return items.indexOf(item)
+            }
 
     fun lastIndexOf(item: I): Int =
             synchronized(items) {
-            items.lastIndexOf(item)
-        }
-
+                items.lastIndexOf(item)
+            }
 
     /**
      * Запросить фокус в указанном [index];
@@ -181,8 +179,9 @@ abstract class BaseRecyclerViewAdapter<I, VH : BaseRecyclerViewAdapter.ViewHolde
     fun clearItems() {
         if (isNotEmpty) {
             val previousSize = itemCount
+            val clearedItems = items.toList()
             items.clear()
-            onItemsRangeRemoved(0, previousSize - 1, previousSize)
+            onItemsRangeRemoved(0, previousSize - 1, previousSize, clearedItems)
         }
     }
 
@@ -190,8 +189,9 @@ abstract class BaseRecyclerViewAdapter<I, VH : BaseRecyclerViewAdapter.ViewHolde
     fun addItem(to: Int, item: I?) {
         synchronized(items) {
             rangeCheckForAdd(to)
+            val previousSize = items.size
             items.add(to, item)
-            onItemAdded(to, item)
+            onItemAdded(to, item, previousSize)
         }
     }
 
@@ -204,12 +204,13 @@ abstract class BaseRecyclerViewAdapter<I, VH : BaseRecyclerViewAdapter.ViewHolde
         addItem(0, item)
     }
 
-    fun addItems(to: Int, items: Collection<I>?) {
+    fun addItems(to: Int, items: Collection<I?>?) {
         synchronized(this.items) {
             rangeCheckForAdd(to)
             if (items != null) {
+                val previousSize = items.size
                 this.items.addAll(to, items)
-                onItemsAdded(to, items)
+                onItemsAdded(to, items, previousSize)
             }
         }
     }
@@ -279,7 +280,7 @@ abstract class BaseRecyclerViewAdapter<I, VH : BaseRecyclerViewAdapter.ViewHolde
             position++
         }
         if (removed.isNotEmpty()) {
-            onItemsRangeRemoved(from, to, previousSize)
+            onItemsRangeRemoved(from, to, previousSize, removed)
         }
         return removed
     }
@@ -321,22 +322,10 @@ abstract class BaseRecyclerViewAdapter<I, VH : BaseRecyclerViewAdapter.ViewHolde
     }
 
     @CallSuper
-    protected open fun onItemsAdded(to: Int, items: Collection<I>) {
-        itemsEventsObservable.notifyItemsAdded(to, items)
+    protected open fun onItemAdded(to: Int, item: I?, previousSize: Int) {
+        itemsEventsObservable.notifyItemAdded(to, item, previousSize)
         if (allowNotifyOnChange) {
-            if (to == 0) {
-                notifyDataSetChanged()
-            } else {
-                notifyItemRangeInserted(to, items.size)
-            }
-        }
-    }
-
-    @CallSuper
-    protected open fun onItemAdded(to: Int, item: I?) {
-        itemsEventsObservable.notifyItemAdded(to, item)
-        if (allowNotifyOnChange) {
-            if (to == 0) {
+            if (to == 0 && previousSize == 0) {
                 notifyDataSetChanged()
             } else {
                 notifyItemInserted(to)
@@ -345,12 +334,25 @@ abstract class BaseRecyclerViewAdapter<I, VH : BaseRecyclerViewAdapter.ViewHolde
     }
 
     @CallSuper
-    protected open fun onItemsRangeRemoved(from: Int, to: Int, previousSize: Int) {
-        itemsEventsObservable.notifyItemsRangeRemoved(from, to, previousSize)
+    protected open fun onItemsAdded(to: Int, items: Collection<I?>, previousSize: Int) {
+        itemsEventsObservable.notifyItemsAdded(to, items, previousSize)
+        if (allowNotifyOnChange) {
+            if (to == 0 && previousSize == 0) {
+                notifyDataSetChanged()
+            } else {
+                notifyItemRangeInserted(to, items.size)
+            }
+        }
+    }
+
+    @CallSuper
+    protected open fun onItemsRangeRemoved(from: Int, to: Int, previousSize: Int, removedItems: List<I?>) {
+        itemsEventsObservable.notifyItemsRangeRemoved(from, to, previousSize, removedItems)
         if (allowNotifyOnChange) {
             notifyItemRangeRemoved(from, to - from)
         }
-        if (from == 0 && to == previousSize - 1) {
+        val isCleared = from == 0 && to == previousSize - 1
+        if (isCleared) {
             onItemsCleared(previousSize)
         }
     }
@@ -493,11 +495,11 @@ abstract class BaseRecyclerViewAdapter<I, VH : BaseRecyclerViewAdapter.ViewHolde
         protected val context: Context = view.context
 
         open fun bindData(position: Int, item: I, count: Int) {
-            itemView.isVisible = true
+            itemView.visibility = View.VISIBLE
         }
 
         open fun bindEmptyData(position: Int, item: I?, count: Int) {
-            itemView.isVisible = false
+            itemView.visibility = View.GONE
         }
 
         open fun onViewRecycled() {
@@ -535,18 +537,18 @@ abstract class BaseRecyclerViewAdapter<I, VH : BaseRecyclerViewAdapter.ViewHolde
             }
         }
 
-        fun notifyItemAdded(to: Int, item: I?) {
+        fun notifyItemAdded(to: Int, item: I?, previousSize: Int) {
             synchronized(mObservers) {
                 for (l in mObservers) {
-                    l.onItemAdded(to, item)
+                    l.onItemAdded(to, item, previousSize)
                 }
             }
         }
 
-        fun notifyItemsAdded(to: Int, items: Collection<I>) {
+        fun notifyItemsAdded(to: Int, items: Collection<I?>, previousSize: Int) {
             synchronized(mObservers) {
                 for (l in mObservers) {
-                    l.onItemsAdded(to, items)
+                    l.onItemsAdded(to, items, previousSize)
                 }
             }
         }
@@ -575,10 +577,10 @@ abstract class BaseRecyclerViewAdapter<I, VH : BaseRecyclerViewAdapter.ViewHolde
             }
         }
 
-        fun notifyItemsRangeRemoved(from: Int, to: Int, previousSize: Int) {
+        fun notifyItemsRangeRemoved(from: Int, to: Int, previousSize: Int, removedItems: List<I?>) {
             synchronized(mObservers) {
                 for (l in mObservers) {
-                    l.onItemsRangeRemoved(from, to, previousSize)
+                    l.onItemsRangeRemoved(from, to, previousSize, removedItems)
                 }
             }
         }
@@ -598,9 +600,9 @@ abstract class BaseRecyclerViewAdapter<I, VH : BaseRecyclerViewAdapter.ViewHolde
          */
         fun onItemFocusChanged(position: Int, item: I?)
 
-        fun onItemAdded(to: Int, item: I?)
+        fun onItemAdded(to: Int, item: I?, previousSize: Int)
 
-        fun onItemsAdded(to: Int, items: Collection<I>)
+        fun onItemsAdded(to: Int, items: Collection<I?>, previousSize: Int)
 
         fun onItemSet(to: Int, item: I?)
 
@@ -608,6 +610,6 @@ abstract class BaseRecyclerViewAdapter<I, VH : BaseRecyclerViewAdapter.ViewHolde
 
         fun onItemRemoved(from: Int, item: I?)
 
-        fun onItemsRangeRemoved(from: Int, to: Int, previousSize: Int)
+        fun onItemsRangeRemoved(from: Int, to: Int, previousSize: Int, removedItems: List<I?>)
     }
 }

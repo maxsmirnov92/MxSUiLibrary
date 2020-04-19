@@ -4,12 +4,11 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.CheckBox
 import android.widget.TextView
-import androidx.core.view.isVisible
 import net.maxsmr.android.recyclerview.adapters.itemcontroller.view.LoadableItemView
 import net.maxsmr.testapp.adapter.TestItem
-import ru.surfstudio.android.utilktx.data.wrapper.selectable.SelectableData
-import ru.surfstudio.android.utilktx.ktx.text.EMPTY_STRING
 import net.maxsmr.android.recyclerview.adapters.itemcontroller.BaseSelectableItemController
+import net.maxsmr.android.recyclerview.adapters.itemcontroller.wrapper.SelectableData
+import net.maxsmr.commonutils.data.text.EMPTY_STRING
 import net.maxsmr.testapp.R
 
 class TestMultiItemController : BaseSelectableItemController<TestItem, TestMultiItemController.Holder>() {
@@ -36,7 +35,7 @@ class TestMultiItemController : BaseSelectableItemController<TestItem, TestMulti
 
         override fun bind(item: SelectableData<TestItem>?) {
             super.bind(item)
-            testCheck.isVisible = isSelectable
+            testCheck.visibility = if (isSelectable) View.VISIBLE else View.GONE
             testText.text = item?.data?.data ?: EMPTY_STRING
         }
     }

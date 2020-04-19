@@ -11,9 +11,9 @@ import androidx.annotation.LayoutRes;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 
-import net.maxsmr.commonutils.android.gui.GuiUtils;
-
 import me.ilich.juggler.gui.JugglerNavigationFragment;
+
+import static net.maxsmr.commonutils.android.gui.GuiUtilsKt.hideKeyboard;
 
 public abstract class BaseJugglerNavigationFragment extends JugglerNavigationFragment implements DrawerLayout.DrawerListener {
 
@@ -120,12 +120,12 @@ public abstract class BaseJugglerNavigationFragment extends JugglerNavigationFra
 
     @Override
     public void onDrawerOpened(View drawerView) {
-        GuiUtils.hideKeyboard(getActivity());
+        hideKeyboard(getActivity());
     }
 
     @Override
     public void onDrawerClosed(View drawerView) {
-        GuiUtils.hideKeyboard(getActivity());
+        hideKeyboard(getActivity());
     }
 
     @Override

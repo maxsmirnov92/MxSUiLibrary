@@ -2,8 +2,8 @@ apply from: "$rootDir/buildSrc/androidLib.gradle"
 
 dependencies {
 
+    api "com.google.android.material:material:$androidXMaterialVersion"
     api "androidx.recyclerview:recyclerview:$androidXRecyclerViewVersion"
-    api "ru.surfstudio.android:core-mvi:$surfCoreMviVersion"
-//    api "ru.surfstudio.android:easyadapter:$surfEasyAdapterVersion"
+//    api "androidx.viewpager:viewpager:$androidXViewPagerVersion"
 //    api (name: 'easyadapter', ext:'aar')
 }

@@ -25,10 +25,10 @@ import net.maxsmr.testapp.adapter.controller.TestItemController
 import net.maxsmr.testapp.adapter.controller.TestMultiItemController
 import ru.surfstudio.android.easyadapter.EasyAdapter
 import ru.surfstudio.android.easyadapter.ItemList
-import ru.surfstudio.android.utilktx.data.wrapper.selectable.SelectableData
-import ru.surfstudio.android.utilktx.ktx.text.EMPTY_STRING
 import net.maxsmr.android.recyclerview.adapters.itemcontroller.BaseSelectableItemController.SelectMode.*
+import net.maxsmr.android.recyclerview.adapters.itemcontroller.wrapper.SelectableData
 import net.maxsmr.commonutils.android.gui.getSelectedIndexInRadioGroup
+import net.maxsmr.commonutils.data.text.EMPTY_STRING
 import net.maxsmr.testapp.AdapterType.EASY
 import java.util.*
 
@@ -135,11 +135,11 @@ class RecyclerTestActivity : AppCompatActivity(), BaseRecyclerViewAdapter.ItemsE
         // do nothing
     }
 
-    override fun onItemAdded(to: Int, item: TestItem?) {
+    override fun onItemAdded(to: Int, item: TestItem?, previousSize: Int) {
         // do nothing
     }
 
-    override fun onItemsAdded(to: Int, items: Collection<TestItem>) {
+    override fun onItemsAdded(to: Int, items: Collection<TestItem?>, previousSize: Int) {
         // do nothing
     }
 
@@ -155,7 +155,7 @@ class RecyclerTestActivity : AppCompatActivity(), BaseRecyclerViewAdapter.ItemsE
         // do nothing
     }
 
-    override fun onItemsRangeRemoved(from: Int, to: Int, previousSize: Int) {
+    override fun onItemsRangeRemoved(from: Int, to: Int, previousSize: Int, removedItems: List<TestItem?>) {
         // do nothing
     }
 
@@ -204,7 +204,7 @@ class RecyclerTestActivity : AppCompatActivity(), BaseRecyclerViewAdapter.ItemsE
      * По типу адаптера рефрешнуть [RecyclerView]
      */
     private fun refreshRecyclerByAdapterType() {
-        SelectType.resolveByIndex(recycler_type_select_rg.getSelectedIndexInRadioGroup())?.let {
+        SelectType.resolveByIndex(getSelectedIndexInRadioGroup(recycler_type_select_rg))?.let {
             val resultAdapter: RecyclerView.Adapter<*>
             if (adapterType == BASE) {
                 val previousData = currentBaseAdapter.items as List<TestItem>

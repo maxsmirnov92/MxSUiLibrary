@@ -7,8 +7,10 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.content.res.ColorStateList;
+import android.graphics.PorterDuff;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.os.Build;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.View;
@@ -18,11 +20,11 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import androidx.annotation.CallSuper;
+import androidx.annotation.ColorInt;
 import androidx.annotation.IdRes;
 import androidx.core.content.ContextCompat;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
-import net.maxsmr.commonutils.android.gui.GuiUtils;
 import net.maxsmr.commonutils.android.gui.fonts.FontsHolder;
 import net.maxsmr.commonutils.android.gui.progressable.DialogProgressable;
 import net.maxsmr.commonutils.android.gui.progressable.Progressable;
@@ -37,6 +39,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+@Deprecated
 public abstract class BaseLoadingJugglerFragment<I> extends BaseJugglerFragment implements View.OnClickListener, SwipeRefreshLayout.OnRefreshListener {
 
     protected BroadcastReceiver networkReceiver;
@@ -392,7 +395,7 @@ public abstract class BaseLoadingJugglerFragment<I> extends BaseJugglerFragment 
                 throw new IllegalStateException("fragment is not attached");
             }
             if (loadingLayout != null) {
-                GuiUtils.setProgressBarColor(ContextCompat.getColor(getContext(), R.color.colorProgressBarPrimary), (ProgressBar) loadingLayout.findViewById(R.id.pbLoading));
+                setProgressBarColor(ContextCompat.getColor(getContext(), R.color.colorProgressBarPrimary), (ProgressBar) loadingLayout.findViewById(R.id.pbLoading));
             }
             if (swipeRefreshLayout != null) {
 //                swipeRefreshLayout.setProgressBackgroundColorSchemeResource(R.color.progressBarColor);
@@ -461,5 +464,26 @@ public abstract class BaseLoadingJugglerFragment<I> extends BaseJugglerFragment 
             return activeNetInfo != null && activeNetInfo.isConnected() && activeNetInfo.isAvailable();
         }
         return false;
+    }
+
+    private static void setProgressBarColor(@ColorInt int color, @Nullable ProgressBar progressBar) {
+        if (progressBar != null) {
+            PorterDuff.Mode mode = PorterDuff.Mode.SRC_IN;
+            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
+                if (progressBar.isIndeterminate() && progressBar.getIndeterminateDrawable() != null) {
+                    progressBar.getIndeterminateDrawable().setColorFilter(color, mode);
+                }
+                if (!progressBar.isIndeterminate() && progressBar.getProgressDrawable() != null) {
+                    progressBar.getProgressDrawable().setColorFilter(color, mode);
+                }
+            } else {
+                ColorStateList stateList = ColorStateList.valueOf(color);
+                progressBar.setIndeterminateTintMode(mode);
+                progressBar.setProgressTintList(stateList);
+                progressBar.setSecondaryProgressTintList(stateList);
+                progressBar.setIndeterminateTintList(stateList);
+                // new ColorStateList(new int[][]{new int[]{android.R.attr.state_enabled}}, new int[]{color})
+            }
+        }
     }
 }

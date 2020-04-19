@@ -1,10 +1,10 @@
 package net.maxsmr.testapp.adapter.base
 
 import android.content.Context
+import android.view.View
 import android.view.ViewGroup
 import android.widget.CheckBox
 import android.widget.TextView
-import androidx.core.view.isVisible
 import net.maxsmr.android.recyclerview.adapters.BaseMultiSelectionRecyclerViewAdapter
 import net.maxsmr.android.recyclerview.adapters.BaseRecyclerViewAdapter
 import net.maxsmr.testapp.R
@@ -34,7 +34,7 @@ class TestMultiAdapter(
 
         override fun bindData(position: Int, item: TestItem, count: Int) {
             super.bindData(position, item, count)
-            testCheck.isVisible = isSelectable
+            testCheck.visibility = if (isSelectable) View.VISIBLE else View.GONE
             testText.text = item.data
         }
     }

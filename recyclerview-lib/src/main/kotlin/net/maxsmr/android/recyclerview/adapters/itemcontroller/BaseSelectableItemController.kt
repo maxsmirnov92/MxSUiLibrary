@@ -7,7 +7,7 @@ import androidx.annotation.CallSuper
 import androidx.annotation.LayoutRes
 import androidx.recyclerview.widget.RecyclerView.NO_POSITION
 import net.maxsmr.android.recyclerview.adapters.BaseMultiSelectionRecyclerViewAdapter
-import ru.surfstudio.android.utilktx.data.wrapper.selectable.SelectableData
+import net.maxsmr.android.recyclerview.adapters.itemcontroller.wrapper.SelectableData
 
 /**
  * Базовый item controller для реализации
