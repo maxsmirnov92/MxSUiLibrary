@@ -6,7 +6,7 @@ import android.widget.Checkable
 import androidx.annotation.CallSuper
 import androidx.annotation.LayoutRes
 import androidx.recyclerview.widget.RecyclerView.NO_POSITION
-import net.maxsmr.android.recyclerview.adapters.BaseMultiSelectionRecyclerViewAdapter
+import net.maxsmr.android.recyclerview.adapters.base.selection.BaseMultiSelectionRecyclerViewAdapter
 import net.maxsmr.android.recyclerview.adapters.itemcontroller.wrapper.SelectableData
 
 /**
@@ -15,7 +15,7 @@ import net.maxsmr.android.recyclerview.adapters.itemcontroller.wrapper.Selectabl
  * в отличие от [BaseMultiSelectionRecyclerViewAdapter]
  * не учитывает порядок, в котором менялся isSelectable
  */
-abstract class BaseSelectableItemController<T, VH : BaseSelectableItemController.SelectableViewHolder<T>> :
+abstract class BaseSelectableItemController<T, VH : BaseSelectableItemController.BaseSelectableViewHolder<T>> :
         BaseFocusableItemController<SelectableData<T>, VH>() {
 
     val firstSelectedItem: T?
@@ -527,7 +527,7 @@ abstract class BaseSelectableItemController<T, VH : BaseSelectableItemController
         require(!(index < 0 || index >= items.size)) { "Incorrect index: $index" }
     }
 
-    abstract class SelectableViewHolder<T>(
+    abstract class BaseSelectableViewHolder<T>(
             parent: ViewGroup,
             @LayoutRes layoutResId: Int
     ) : BaseFocusableItemController.FocusableViewHolder<SelectableData<T>>(parent, layoutResId) {
@@ -545,7 +545,7 @@ abstract class BaseSelectableItemController<T, VH : BaseSelectableItemController
 
         lateinit var selectTriggerModes: Set<SelectTriggerMode>
 
-        lateinit var selectableController: BaseSelectableItemController<T, out SelectableViewHolder<T>>
+        lateinit var selectableController: BaseSelectableItemController<T, out BaseSelectableViewHolder<T>>
 
         protected open fun handleItemSelected(item: SelectableData<T>?) {
             val isItemSelected = item?.isSelected ?: false

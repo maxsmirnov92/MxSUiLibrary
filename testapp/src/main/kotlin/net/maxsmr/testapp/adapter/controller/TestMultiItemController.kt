@@ -8,7 +8,7 @@ import net.maxsmr.android.recyclerview.adapters.itemcontroller.view.LoadableItem
 import net.maxsmr.testapp.adapter.TestItem
 import net.maxsmr.android.recyclerview.adapters.itemcontroller.BaseSelectableItemController
 import net.maxsmr.android.recyclerview.adapters.itemcontroller.wrapper.SelectableData
-import net.maxsmr.commonutils.data.text.EMPTY_STRING
+import net.maxsmr.testapp.EMPTY_STRING
 import net.maxsmr.testapp.R
 
 class TestMultiItemController : BaseSelectableItemController<TestItem, TestMultiItemController.Holder>() {
@@ -20,7 +20,7 @@ class TestMultiItemController : BaseSelectableItemController<TestItem, TestMulti
         notifyDataSetChanged()
     }
 
-    inner class Holder(parent: ViewGroup) : BaseSelectableItemController.SelectableViewHolder<TestItem>(parent, R.layout.item_test_multi) {
+    inner class Holder(parent: ViewGroup) : BaseSelectableItemController.BaseSelectableViewHolder<TestItem>(parent, R.layout.item_test_multi) {
 
         private val testCheck = itemView.findViewById<CheckBox>(R.id.test_cb)
         private val testText = itemView.findViewById<TextView>(R.id.test_tv)

@@ -9,7 +9,7 @@ import android.widget.TextView;
 import androidx.annotation.IdRes;
 import androidx.annotation.LayoutRes;
 
-import net.maxsmr.android.recyclerview.adapters.BaseRecyclerViewAdapter;
+import net.maxsmr.android.recyclerview.adapters.base.BaseRecyclerViewAdapter;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;

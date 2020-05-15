@@ -5,7 +5,7 @@ import android.view.ViewGroup
 import android.widget.TextView
 import net.maxsmr.android.recyclerview.adapters.itemcontroller.BaseFocusableItemController
 import net.maxsmr.android.recyclerview.adapters.itemcontroller.view.LoadableItemView
-import net.maxsmr.commonutils.data.text.EMPTY_STRING
+import net.maxsmr.testapp.EMPTY_STRING
 import net.maxsmr.testapp.R
 import net.maxsmr.testapp.adapter.TestItem
 

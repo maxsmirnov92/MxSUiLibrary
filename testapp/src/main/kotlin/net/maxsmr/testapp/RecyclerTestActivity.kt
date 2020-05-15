@@ -4,16 +4,18 @@ import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
+import android.widget.RadioButton
+import android.widget.RadioGroup
 import android.widget.Toast
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.RecyclerView.NO_POSITION
 import com.bejibx.android.recyclerview.selection.SelectionHelper
 import kotlinx.android.synthetic.main.activity_recycler_test.*
-import net.maxsmr.android.recyclerview.adapters.BaseMultiSelectionRecyclerViewAdapter
-import net.maxsmr.android.recyclerview.adapters.BaseRecyclerViewAdapter
-import net.maxsmr.android.recyclerview.adapters.BaseSelectionRecyclerViewAdapter
-import net.maxsmr.android.recyclerview.adapters.BaseSingleSelectionRecyclerViewAdapter
+import net.maxsmr.android.recyclerview.adapters.base.selection.BaseMultiSelectionRecyclerViewAdapter
+import net.maxsmr.android.recyclerview.adapters.base.BaseRecyclerViewAdapter
+import net.maxsmr.android.recyclerview.adapters.base.selection.BaseSelectionRecyclerViewAdapter
+import net.maxsmr.android.recyclerview.adapters.base.selection.BaseSingleSelectionRecyclerViewAdapter
 import net.maxsmr.android.recyclerview.adapters.itemcontroller.BaseFocusableItemController
 import net.maxsmr.android.recyclerview.adapters.itemcontroller.BaseSelectableItemController
 import net.maxsmr.testapp.AdapterType.BASE
@@ -27,10 +29,10 @@ import ru.surfstudio.android.easyadapter.EasyAdapter
 import ru.surfstudio.android.easyadapter.ItemList
 import net.maxsmr.android.recyclerview.adapters.itemcontroller.BaseSelectableItemController.SelectMode.*
 import net.maxsmr.android.recyclerview.adapters.itemcontroller.wrapper.SelectableData
-import net.maxsmr.commonutils.android.gui.getSelectedIndexInRadioGroup
-import net.maxsmr.commonutils.data.text.EMPTY_STRING
 import net.maxsmr.testapp.AdapterType.EASY
 import java.util.*
+
+const val EMPTY_STRING = ""
 
 @Suppress("UNCHECKED_CAST")
 class RecyclerTestActivity : AppCompatActivity(), BaseRecyclerViewAdapter.ItemsEventsListener<TestItem> {
@@ -65,12 +67,16 @@ class RecyclerTestActivity : AppCompatActivity(), BaseRecyclerViewAdapter.ItemsE
         selectTriggerModes = setOf(BaseSelectableItemController.SelectTriggerMode.CLICK)
     }
 
-    private val noneAdapter = TestNoneAdapter(this)
+    private val noneAdapter = TestNoneAdapter(this).apply {
+        allowInfiniteScroll = true
+    }
     private val singleAdapter = TestSingleAdapter(this).apply {
+        allowInfiniteScroll = true
         isSelectable = false
         selectTriggerModes = setOf(SelectionHelper.SelectTriggerMode.CLICK)
     }
     private val multiAdapter = TestMultiAdapter(this).apply {
+        allowInfiniteScroll = true
         isSelectable = false
         selectTriggerModes =  setOf(SelectionHelper.SelectTriggerMode.CLICK)
     }
@@ -94,9 +100,8 @@ class RecyclerTestActivity : AppCompatActivity(), BaseRecyclerViewAdapter.ItemsE
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_recycler_test)
 
-        initToolbar()
+        initViews()
         initListeners()
-        initRecycler()
 
         recycler_type_select_rg.check(R.id.recycler_type_none_rb)
     }
@@ -124,7 +129,7 @@ class RecyclerTestActivity : AppCompatActivity(), BaseRecyclerViewAdapter.ItemsE
 
     override fun onItemLongClick(position: Int, item: TestItem?): Boolean {
         with(currentBaseAdapter) {
-            if (this is BaseSelectionRecyclerViewAdapter<*,*,*>) {
+            if (this is BaseSelectionRecyclerViewAdapter<*, *, *>) {
                 isSelectable = true
             }
         }
@@ -159,8 +164,17 @@ class RecyclerTestActivity : AppCompatActivity(), BaseRecyclerViewAdapter.ItemsE
         // do nothing
     }
 
+    private fun initViews() {
+        initToolbar()
+        initRecycler()
+    }
+
     private fun initToolbar() {
         setSupportActionBar(recycler_test_toolbar)
+    }
+
+    private fun initRecycler() {
+        recycler_test_rv.layoutManager = LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false)
     }
 
     private fun initListeners() {
@@ -186,10 +200,6 @@ class RecyclerTestActivity : AppCompatActivity(), BaseRecyclerViewAdapter.ItemsE
         recycler_clear_data_btn.setOnClickListener {
             clearAdapterData()
         }
-    }
-
-    private fun initRecycler() {
-        recycler_test_rv.layoutManager = LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false)
     }
 
     private fun toggleAdapterType() {
@@ -276,7 +286,7 @@ class RecyclerTestActivity : AppCompatActivity(), BaseRecyclerViewAdapter.ItemsE
     }
 
     private fun generateAdapterData() {
-        val count = currentBaseAdapter.itemCount.let {
+        val count = currentBaseAdapter.getListItemsCount().let {
             if (it > 0) {
                 it
             } else {
@@ -367,6 +377,12 @@ class RecyclerTestActivity : AppCompatActivity(), BaseRecyclerViewAdapter.ItemsE
                 result.add(TestItem("test $random"))
             }
             return result
+        }
+
+        fun getSelectedIndexInRadioGroup(group: RadioGroup): Int {
+            val radioButtonId = group.checkedRadioButtonId
+            val radioButton = group.findViewById<RadioButton>(radioButtonId) ?: null
+            return radioButton?.let { group.indexOfChild(it) } ?: RecyclerView.NO_POSITION
         }
     }
 }

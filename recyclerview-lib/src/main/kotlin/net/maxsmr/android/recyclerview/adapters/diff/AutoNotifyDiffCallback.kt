@@ -16,23 +16,28 @@
 package net.maxsmr.android.recyclerview.adapters.diff
 
 import androidx.recyclerview.widget.DiffUtil
-import ru.surfstudio.android.easyadapter.EasyAdapter.INFINITE_SCROLL_LOOPS_COUNT
+import net.maxsmr.android.recyclerview.adapters.base.DEFAULT_INFINITE_SCROLL_LOOPS_COUNT
 
 /**
  * Implementation of [DiffUtil.Callback].
  * It is used to calculate difference between two lists of data depending on their [ItemInfo].
  */
 class AutoNotifyDiffCallback constructor(
+        private val infiniteScrollLoopsCount: Int,
         private val lastItemsInfo: List<ItemInfo>,
         private val newItemsInfo: List<ItemInfo>,
         private val infiniteScroll: Boolean
 ) : DiffUtil.Callback() {
 
+    init {
+        require(infiniteScrollLoopsCount > 0) { "infiniteScrollLoopsCount cannot be less or equal zero: $infiniteScrollLoopsCount" }
+    }
+
     private val MAGIC_NUMBER = 3578121127L.toString() // used for making ids unique
 
     override fun getOldListSize(): Int {
         return if (infiniteScroll) {
-            lastItemsInfo.size * INFINITE_SCROLL_LOOPS_COUNT
+            lastItemsInfo.size * infiniteScrollLoopsCount
         } else {
             lastItemsInfo.size
         }
@@ -40,7 +45,7 @@ class AutoNotifyDiffCallback constructor(
 
     override fun getNewListSize(): Int {
         return if (infiniteScroll) {
-            newItemsInfo.size * INFINITE_SCROLL_LOOPS_COUNT
+            newItemsInfo.size * infiniteScrollLoopsCount
         } else {
             newItemsInfo.size
         }

@@ -1,7 +1,6 @@
-package net.maxsmr.android.recyclerview.adapters
+package net.maxsmr.android.recyclerview.adapters.base.selection
 
 import android.content.Context
-import android.view.View
 import androidx.annotation.CallSuper
 import androidx.annotation.LayoutRes
 import androidx.recyclerview.widget.RecyclerView
@@ -9,15 +8,18 @@ import androidx.recyclerview.widget.RecyclerView.NO_POSITION
 import com.bejibx.android.recyclerview.selection.HolderClickListener
 import com.bejibx.android.recyclerview.selection.SelectionHelper
 import com.bejibx.android.recyclerview.selection.SelectionListener
+import net.maxsmr.android.recyclerview.adapters.itemcontroller.BaseSelectableItemController
 import java.util.*
 
-abstract class BaseMultiSelectionRecyclerViewAdapter<I, VH : BaseRecyclerViewAdapter.ViewHolder<*>>(
+abstract class BaseMultiSelectionRecyclerViewAdapter<I, VH : BaseSelectionRecyclerViewAdapter.BaseSelectableViewHolder<I>>(
         context: Context,
         @LayoutRes baseItemLayoutId: Int = 0,
         items: Collection<I>? = null
 ) : BaseSelectionRecyclerViewAdapter<I, VH, BaseMultiSelectionRecyclerViewAdapter.ItemSelectedChangeListener>(
         context, baseItemLayoutId, items
 ), HolderClickListener, SelectionListener {
+
+    override val hasSelected: Boolean get() = hasSelectedItems
 
     override val itemsSelectedObservable = ItemSelectedObservable()
 
@@ -84,10 +86,7 @@ abstract class BaseMultiSelectionRecyclerViewAdapter<I, VH : BaseRecyclerViewAda
         get() = if (itemCount > 0) selectionHelper.selectedItemsCount else 0
 
     private val selectionHelper: SelectionHelper by lazy {
-        SelectionHelper().apply {
-            registerSelectionObserver(this@BaseMultiSelectionRecyclerViewAdapter)
-            registerHolderClickObserver(this@BaseMultiSelectionRecyclerViewAdapter)
-        }
+        SelectionHelper(this@BaseMultiSelectionRecyclerViewAdapter, this@BaseMultiSelectionRecyclerViewAdapter)
     }
 
     override var isSelectable: Boolean
@@ -105,25 +104,20 @@ abstract class BaseMultiSelectionRecyclerViewAdapter<I, VH : BaseRecyclerViewAda
 
     @CallSuper
     override fun bindSelection(holder: VH, item: I?, position: Int) {
-        getSelectableView(holder).let {
-            selectionHelper.wrapSelectable(
-                    holder,
-                    getClickableView(holder),
-                    getLongClickableView(holder),
-                    it,
-                    getSelectTriggerModesForItem(item, position)
-            )
 
-            val isSelected = isItemPositionSelected(position)
-            it?.let {
-                handleSelected(it, isSelected)
-            }
-            if (isSelected) {
-                onHandleItemSelected(holder, item, position)
-            } else {
-                onHandleItemNotSelected(holder, item, position)
-            }
-        }
+        val selectableView = holder.selectableView
+        val clickableView = holder.clickableView
+        val longClickableView = holder.longClickableView
+
+        selectionHelper.wrapSelectable(
+                holder,
+                clickableView,
+                longClickableView,
+                selectableView,
+                getSelectTriggerModesForItem(item, position)
+        )
+
+        super.bindSelection(holder, item, position)
     }
 
     override fun onViewRecycled(holder: VH) {
@@ -141,6 +135,14 @@ abstract class BaseMultiSelectionRecyclerViewAdapter<I, VH : BaseRecyclerViewAda
     override fun isItemPositionSelected(position: Int): Boolean {
         rangeCheck(position)
         return selectionHelper.isItemSelected(position)
+    }
+
+    override fun getListPosition(adapterPosition: Int): Int {
+        return super.getListPosition(adapterPosition)
+    }
+
+    override fun isSelectionAtPositionAllowed(position: Int): Boolean {
+        return super.isSelectionAtPositionAllowed(position)
     }
 
     @CallSuper
@@ -171,17 +173,23 @@ abstract class BaseMultiSelectionRecyclerViewAdapter<I, VH : BaseRecyclerViewAda
         itemsSelectedObservable.notifyAllowResetSelectionChanged(isAllowed)
     }
 
-    override fun handleSelected(selectableView: View, isSelected: Boolean) {
-        super.handleSelected(selectableView, isSelected)
+    @Suppress("UNCHECKED_CAST")
+    override fun handleSelected(holder: RecyclerView.ViewHolder, isSelected: Boolean) {
+        if (holder is BaseSelectableItemController.BaseSelectableViewHolder<*>) {
+            handleSelected(holder as VH, isSelected)
+        }
     }
 
     override fun onHolderClick(holder: RecyclerView.ViewHolder) {
-        // do nothing
+        getListPosition(holder.adapterPosition).let {
+            itemsEventsObservable.notifyItemClick(it, getItem(it))
+        }
     }
 
     override fun onHolderLongClick(holder: RecyclerView.ViewHolder): Boolean {
-        // do nothing
-        return false
+        getListPosition(holder.adapterPosition).let {
+            return itemsEventsObservable.notifyItemLongClick(it, getItem(it))
+        }
     }
 
     override fun invalidateSelectionIndexOnAdd(to: Int, count: Int) {
@@ -268,7 +276,6 @@ abstract class BaseMultiSelectionRecyclerViewAdapter<I, VH : BaseRecyclerViewAda
     fun setItemsSelectedByPositions(positions: Collection<Int>?, isSelected: Boolean) =
             setItemsSelectedByPositions(positions, isSelected, true)
 
-
     fun setItemSelectedByPosition(position: Int, isSelected: Boolean): Boolean {
         rangeCheck(position)
         return selectionHelper.setItemSelectedByPosition(position, isSelected, false)
@@ -325,8 +332,6 @@ abstract class BaseMultiSelectionRecyclerViewAdapter<I, VH : BaseRecyclerViewAda
 
     protected fun releaseSelectionHelper() {
         selectionHelper.clear()
-        selectionHelper.unregisterSelectionObserver(this)
-        selectionHelper.unregisterHolderClickObserver(this)
     }
 
     protected fun invalidateSelections() {

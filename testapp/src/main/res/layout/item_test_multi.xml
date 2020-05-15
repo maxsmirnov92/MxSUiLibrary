@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<net.maxsmr.testapp.view.CheckableLinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<net.maxsmr.testapp.views.checkable.CheckableLinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     style="@style/Selectable.Normal"
     android:layout_width="match_parent"
@@ -20,4 +20,4 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         tools:text="Text!" />
-</net.maxsmr.testapp.view.CheckableLinearLayout>
+</net.maxsmr.testapp.views.checkable.CheckableLinearLayout>

@@ -3,7 +3,7 @@ package net.maxsmr.testapp.adapter.base
 import android.content.Context
 import android.view.ViewGroup
 import android.widget.TextView
-import net.maxsmr.android.recyclerview.adapters.BaseRecyclerViewAdapter
+import net.maxsmr.android.recyclerview.adapters.base.BaseRecyclerViewAdapter
 import net.maxsmr.testapp.R
 import net.maxsmr.testapp.adapter.TestItem
 

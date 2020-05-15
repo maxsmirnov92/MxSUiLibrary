@@ -1,14 +1,13 @@
-package net.maxsmr.android.recyclerview.adapters
+package net.maxsmr.android.recyclerview.adapters.base.selection
 
 import android.content.Context
-import android.view.View
 import androidx.annotation.CallSuper
 import androidx.annotation.LayoutRes
 import androidx.recyclerview.widget.RecyclerView.NO_POSITION
 import com.bejibx.android.recyclerview.selection.SelectionHelper.SelectTriggerMode.CLICK
 import com.bejibx.android.recyclerview.selection.SelectionHelper.SelectTriggerMode.LONG_CLICK
 
-abstract class BaseSingleSelectionRecyclerViewAdapter<I, VH : BaseRecyclerViewAdapter.ViewHolder<I>> @JvmOverloads constructor(
+abstract class BaseSingleSelectionRecyclerViewAdapter<I, VH : BaseSelectionRecyclerViewAdapter.BaseSelectableViewHolder<I>> @JvmOverloads constructor(
         context: Context,
         @LayoutRes baseItemLayoutId: Int = 0,
         items: Collection<I>? = null
@@ -16,10 +15,10 @@ abstract class BaseSingleSelectionRecyclerViewAdapter<I, VH : BaseRecyclerViewAd
         context, baseItemLayoutId, items
 ) {
 
-    override val itemsSelectedObservable = ItemSelectedObservable()
-
-    val hasSelected: Boolean
+    override val hasSelected: Boolean
         get() = selectedPosition != NO_POSITION
+
+    override val itemsSelectedObservable = ItemSelectedObservable()
 
     val selectedPosition: Int
         get() = if (targetSelectionPosition in 0 until itemCount) {
@@ -78,46 +77,40 @@ abstract class BaseSingleSelectionRecyclerViewAdapter<I, VH : BaseRecyclerViewAd
 
     override fun isItemPositionSelected(position: Int): Boolean {
         rangeCheck(position)
-        return targetSelectionPosition != NO_POSITION && targetSelectionPosition == position
+        return targetSelectionPosition != NO_POSITION && targetSelectionPosition == getListPosition(position)
     }
 
     @CallSuper
     override fun bindSelection(holder: VH, item: I?, position: Int) {
 
-        val isSelected = isItemPositionSelected(position)
-        val selectableView = getSelectableView(holder)
-        val clickableView = getClickableView(holder)
-        val longClickableView = getLongClickableView(holder)
+        val clickableView = holder.clickableView
+        val longClickableView = holder.longClickableView
 
         val selectTriggerModes = getSelectTriggerModesForItem(item, position)
 
         clickableView?.let {
             if (selectTriggerModes.contains(CLICK)) {
                 it.setOnClickListener {
-                    changeSelectedStateFromUiNotify(position, isSelected, selectableView)
-                    itemsEventsObservable.notifyItemClick(holder.adapterPosition, item)
+                    with(getListPosition(holder.adapterPosition)) {
+                        changeSelectedStateFromUiNotify(this, holder)
+                        itemsEventsObservable.notifyItemClick(this, item)
+                    }
                 }
-
             }
         }
 
         longClickableView?.let {
             if (selectTriggerModes.contains(LONG_CLICK)) {
                 it.setOnLongClickListener {
-                    changeSelectedStateFromUiNotify(position, isSelected, selectableView)
-                    return@setOnLongClickListener itemsEventsObservable.notifyItemLongClick(holder.adapterPosition, item)
+                    with(getListPosition(holder.adapterPosition)) {
+                        changeSelectedStateFromUiNotify(this, holder)
+                        return@setOnLongClickListener itemsEventsObservable.notifyItemLongClick(this, item)
+                    }
                 }
             }
         }
 
-        selectableView?.let {
-            handleSelected(it, isSelected)
-        }
-        if (isSelected) {
-            onHandleItemSelected(holder, item, position)
-        } else {
-            onHandleItemNotSelected(holder, item, position)
-        }
+        super.bindSelection(holder, item, position)
     }
 
     override fun invalidateSelectionIndexOnAdd(to: Int, count: Int) {
@@ -168,24 +161,25 @@ abstract class BaseSingleSelectionRecyclerViewAdapter<I, VH : BaseRecyclerViewAd
         resetSelection(false)
     }
 
-    fun setSelectionByItem(item: I) {
-        setSelection(indexOf(item))
-    }
-
-    fun setSelection(selection: Int) {
-        setSelection(selection, false)
+    fun setSelectionByItem(item: I): Boolean {
+        val index = indexOf(item)
+        if (index in 0 until itemCount) {
+            return setSelection(index)
+        }
+        return false
     }
 
     /**
      * @return true if selection changed, false - otherwise
      */
-    fun setSelection(selection: Int, fromUser: Boolean): Boolean {
-        if (isSelectable) {
-            rangeCheck(selection)
+    @JvmOverloads
+    fun setSelection(selection: Int, fromUser: Boolean = false): Boolean {
+        rangeCheck(selection)
+        if (isSelectionAtPositionAllowed(selection)) {
             var previousSelection = targetSelectionPosition
             targetSelectionPosition = selection
             var isNewSelection = true
-            if (previousSelection >= 0 && previousSelection < itemCount) {
+            if (previousSelection in 0 until itemCount) {
                 isNewSelection = targetSelectionPosition != previousSelection
             } else {
                 previousSelection = NO_POSITION
@@ -224,7 +218,7 @@ abstract class BaseSingleSelectionRecyclerViewAdapter<I, VH : BaseRecyclerViewAd
                 setSelection(--selection)
                 changed = true
             } else if (loop) {
-                setSelection(itemCount - 1)
+                setSelection(items.size - 1)
                 changed = true
             }
         }
@@ -235,7 +229,7 @@ abstract class BaseSingleSelectionRecyclerViewAdapter<I, VH : BaseRecyclerViewAd
         var changed = false
         var selection = selectedPosition
         if (selection != NO_POSITION) {
-            if (selection < itemCount - 1) {
+            if (selection < items.size - 1) {
                 setSelection(++selection)
                 changed = true
             } else if (loop) {
@@ -258,7 +252,7 @@ abstract class BaseSingleSelectionRecyclerViewAdapter<I, VH : BaseRecyclerViewAd
     }
 
     /**
-     * called before [.notifyItemChanged]}
+     * called before [notifyItemChanged]
      */
     @CallSuper
     protected open fun onSelectionChanged(from: Int, to: Int, fromUser: Boolean) {
@@ -274,7 +268,7 @@ abstract class BaseSingleSelectionRecyclerViewAdapter<I, VH : BaseRecyclerViewAd
     }
 
     protected fun changeSelectedStateFromUi(position: Int): Boolean {
-        if (isSelectable) {
+        if (isSelectionAtPositionAllowed(position)) {
             return if (position == targetSelectionPosition) {
                 if (allowResetSelection) {
                     resetSelection(true)
@@ -292,14 +286,12 @@ abstract class BaseSingleSelectionRecyclerViewAdapter<I, VH : BaseRecyclerViewAd
 
     protected fun changeSelectedStateFromUiNotify(
             position: Int,
-            wasSelected: Boolean,
-            selectableView: View?
+            holder: VH
     ) {
+        val wasSelected = isItemPositionSelected(position)
         if (!changeSelectedStateFromUi(position)) {
             // если результат отрицательный - возвращаем в исходное состояние view (isSelected не изменился)
-            selectableView?.let {
-                handleSelected(it, wasSelected)
-            }
+            handleSelected(holder, wasSelected)
         }
     }
 

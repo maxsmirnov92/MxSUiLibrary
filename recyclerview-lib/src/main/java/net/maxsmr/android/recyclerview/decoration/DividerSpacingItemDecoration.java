@@ -28,8 +28,10 @@ import java.util.Set;
  */
 public class DividerSpacingItemDecoration extends RecyclerView.ItemDecoration {
 
+    @RecyclerView.Orientation
     public static final int HORIZONTAL_LIST = LinearLayoutManager.HORIZONTAL;
 
+    @RecyclerView.Orientation
     public static final int VERTICAL_LIST = LinearLayoutManager.VERTICAL;
 
     private DecorationSettings settings;
@@ -173,8 +175,8 @@ public class DividerSpacingItemDecoration extends RecyclerView.ItemDecoration {
         super.getItemOffsets(outRect, view, parent, state);
         if (isDecorated(view, parent, false)) {
 
-            int width = 0;
-            int height = 0;
+            int width;
+            int height;
 
             if (divider != null && spacePx == 0) {
                 width = divider.getIntrinsicWidth();
@@ -437,8 +439,7 @@ public class DividerSpacingItemDecoration extends RecyclerView.ItemDecoration {
         }
 
         @NotNull
-        public Builder setOrientations(@Nullable Set<Integer> orientations) {
-            this.orientations.clear();
+        public Builder addOrientations(@Nullable Set<Integer> orientations) {
             if (orientations != null) {
                 this.orientations.addAll(orientations);
             }
@@ -446,7 +447,7 @@ public class DividerSpacingItemDecoration extends RecyclerView.ItemDecoration {
         }
 
         @NotNull
-        public Builder setOrientation(int orientation) {
+        public Builder addOrientation(@RecyclerView.Orientation int orientation) {
             orientations.add(orientation);
             return this;
         }

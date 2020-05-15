@@ -1,4 +1,4 @@
-package net.maxsmr.android.recyclerview.adapters
+package net.maxsmr.android.recyclerview.adapters.base
 
 import android.content.Context
 import android.database.Observable
@@ -7,6 +7,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.annotation.CallSuper
 import androidx.annotation.LayoutRes
+import androidx.annotation.MainThread
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.RecyclerView.NO_ID
@@ -14,9 +15,10 @@ import net.maxsmr.android.recyclerview.adapters.diff.AutoNotifyDiffCallback
 import net.maxsmr.android.recyclerview.adapters.diff.ItemInfo
 import java.util.*
 
-private const val INFINITE_SCROLL_LOOPS_COUNT = 100
+const val DEFAULT_INFINITE_SCROLL_LOOPS_COUNT = 100
 
-abstract class BaseRecyclerViewAdapter<I, VH : BaseRecyclerViewAdapter.ViewHolder<*>>(
+@MainThread
+abstract class BaseRecyclerViewAdapter<I, VH : BaseRecyclerViewAdapter.ViewHolder<I>>(
         protected val context: Context,
         @LayoutRes
         protected val baseItemLayoutId: Int = 0,
@@ -26,13 +28,17 @@ abstract class BaseRecyclerViewAdapter<I, VH : BaseRecyclerViewAdapter.ViewHolde
     val firstItem: I?
         get() = if (isNotEmpty) {
             getItem(0)
-        } else null
+        } else {
+            null
+        }
 
     val lastItem: I?
         get() {
             return if (isNotEmpty) {
-                getItem(itemCount - 1)
-            } else null
+                getItem(items.size - 1)
+            } else {
+                null
+            }
         }
 
     val isEmpty: Boolean
@@ -41,13 +47,13 @@ abstract class BaseRecyclerViewAdapter<I, VH : BaseRecyclerViewAdapter.ViewHolde
     val isNotEmpty: Boolean
         get() = !isEmpty
 
-    val items = mutableListOf<I?>()
+    val items = mutableListOf<I>()
 //        get() = field.toMutableList()
 
     protected val itemsEventsObservable = ItemsEventsObservable<I, VH>()
 
     /**
-     * Маппинг позиция в адаптере <-> LayoutRes разметки в этой позиции
+     * Маппинг view type <-> LayoutRes для этого типа
      */
     var viewTypeLayoutResMap = mapOf<Int, Int>()
 
@@ -60,10 +66,25 @@ abstract class BaseRecyclerViewAdapter<I, VH : BaseRecyclerViewAdapter.ViewHolde
     /**
      * Разрешить выборочное обновление элементов в адаптере
      * по позициям с изменившимися данными
+     * (если [allowNotifyOnChange] true)
      */
     var allowDiffNotifyOnChange = true
 
     var allowInfiniteScroll: Boolean = false
+
+    // FIXME поправить смену selected состояния в холдере, по которому клик (итем находится дальше первого лупа):
+    // сразу не применяется, т.к. индекс скорректировали в сторону реальных 0..size-1, только при следующих bind'ах
+    // касается обоих: single и multi
+    var infiniteScrollLoopsCount: Int = DEFAULT_INFINITE_SCROLL_LOOPS_COUNT
+        set(value) {
+            require(value > 0) { "infiniteScrollLoopsCount cannot be less or equal zero: $value" }
+            if (field != value) {
+                field = value
+                if (allowInfiniteScroll && allowDiffNotifyOnChange) {
+                    notifyDataSetChanged()
+                }
+            }
+        }
 
     protected var pendingFocusPosition = RecyclerView.NO_POSITION
 
@@ -75,7 +96,7 @@ abstract class BaseRecyclerViewAdapter<I, VH : BaseRecyclerViewAdapter.ViewHolde
 
     abstract override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): VH
 
-    override fun getItemCount() = if (allowInfiniteScroll) INFINITE_SCROLL_LOOPS_COUNT * items.size else items.size;
+    override fun getItemCount() = if (allowInfiniteScroll) infiniteScrollLoopsCount * items.size else items.size
 
     @CallSuper
     override fun onViewRecycled(holder: VH) {
@@ -83,9 +104,9 @@ abstract class BaseRecyclerViewAdapter<I, VH : BaseRecyclerViewAdapter.ViewHolde
         holder.onViewRecycled()
     }
 
-    override fun onBindViewHolder(holder: VH, position: Int) {
+    final override fun onBindViewHolder(holder: VH, position: Int) {
         val targetPosition = getListPosition(position)
-        val item = if (targetPosition in 0 until items.size) items[targetPosition] else null
+        val item = if (targetPosition in 0 until items.size) items[targetPosition] else throw IndexOutOfBoundsException("Incorrect position: $position")
         bindItem(holder, item, targetPosition)
     }
 
@@ -120,6 +141,8 @@ abstract class BaseRecyclerViewAdapter<I, VH : BaseRecyclerViewAdapter.ViewHolde
         items.clear()
     }
 
+    fun getListItemsCount() = items.size
+
     fun registerItemsEventsListener(listener: ItemsEventsListener<I>) {
         itemsEventsObservable.registerObserver(listener)
     }
@@ -131,21 +154,14 @@ abstract class BaseRecyclerViewAdapter<I, VH : BaseRecyclerViewAdapter.ViewHolde
 
     @Throws(IndexOutOfBoundsException::class)
     fun getItem(at: Int): I? {
-        synchronized(items) {
-            rangeCheck(at)
-            return items[at]
-        }
+        rangeCheck(at)
+        return items[at]
     }
 
-    fun indexOf(item: I?): Int =
-            synchronized(items) {
-                return items.indexOf(item)
-            }
+    fun indexOf(item: I?): Int = items.indexOf(item)
 
     fun lastIndexOf(item: I): Int =
-            synchronized(items) {
-                items.lastIndexOf(item)
-            }
+            items.lastIndexOf(item)
 
     /**
      * Запросить фокус в указанном [index];
@@ -186,32 +202,28 @@ abstract class BaseRecyclerViewAdapter<I, VH : BaseRecyclerViewAdapter.ViewHolde
     }
 
     @Throws(IndexOutOfBoundsException::class)
-    fun addItem(to: Int, item: I?) {
-        synchronized(items) {
-            rangeCheckForAdd(to)
-            val previousSize = items.size
-            items.add(to, item)
-            onItemAdded(to, item, previousSize)
-        }
+    fun addItem(to: Int, item: I) {
+        rangeCheckForAdd(to)
+        val previousSize = items.size
+        items.add(to, item)
+        onItemAdded(to, item, previousSize)
     }
 
-    fun addItem(item: I?) {
+    fun addItem(item: I) {
         addItem(itemCount, item)
     }
 
     @Throws(IndexOutOfBoundsException::class)
-    fun addFirstItem(item: I?) {
+    fun addFirstItem(item: I) {
         addItem(0, item)
     }
 
-    fun addItems(to: Int, items: Collection<I?>?) {
-        synchronized(this.items) {
-            rangeCheckForAdd(to)
-            if (items != null) {
-                val previousSize = items.size
-                this.items.addAll(to, items)
-                onItemsAdded(to, items, previousSize)
-            }
+    fun addItems(to: Int, items: Collection<I>?) {
+        rangeCheckForAdd(to)
+        if (items != null) {
+            val previousSize = items.size
+            this.items.addAll(to, items)
+            onItemsAdded(to, items, previousSize)
         }
     }
 
@@ -219,27 +231,25 @@ abstract class BaseRecyclerViewAdapter<I, VH : BaseRecyclerViewAdapter.ViewHolde
         addItems(itemCount, items)
     }
 
-    fun setItem(`in`: Int, item: I?) {
+    fun setItem(`in`: Int, item: I) {
         rangeCheck(`in`)
         items[`in`] = item
         onItemSet(`in`, item)
     }
 
-    fun replaceItem(`in`: Int, newItem: I?): I? {
-        synchronized(items) {
-            rangeCheck(`in`)
-            allowNotifyOnChange = false
-            val replacedItem = getItem(`in`)
-            items.removeAt(`in`)
-            onItemRemoved(`in`, replacedItem)
-            addItem(`in`, newItem)
-            allowNotifyOnChange = true
-            notifyItemChanged(`in`)
-            return replacedItem
-        }
+    fun replaceItem(`in`: Int, newItem: I): I? {
+        rangeCheck(`in`)
+        allowNotifyOnChange = false
+        val replacedItem = getItem(`in`)
+        items.removeAt(`in`)
+        onItemRemoved(`in`, replacedItem)
+        addItem(`in`, newItem)
+        allowNotifyOnChange = true
+        notifyItemChanged(`in`)
+        return replacedItem
     }
 
-    fun replaceItem(replaceableItem: I?, newItem: I?): I? {
+    fun replaceItem(replaceableItem: I?, newItem: I): I? {
         return replaceItem(indexOf(replaceableItem), newItem)
     }
 
@@ -299,15 +309,6 @@ abstract class BaseRecyclerViewAdapter<I, VH : BaseRecyclerViewAdapter.ViewHolde
     protected open fun onInflateView(parent: ViewGroup, viewType: Int): View =
             LayoutInflater.from(parent.context)
                     .inflate(getLayoutIdForViewType(viewType), parent, false)
-
-    protected open fun getClickableView(holder: VH): View? =
-            holder.itemView
-
-    protected open fun getLongClickableView(holder: VH): View? =
-            getClickableView(holder)
-
-    protected open fun getFocusableView(holder: VH): View? =
-            getClickableView(holder)
 
     @LayoutRes
     protected open fun getLayoutIdForViewType(viewType: Int): Int =
@@ -414,23 +415,23 @@ abstract class BaseRecyclerViewAdapter<I, VH : BaseRecyclerViewAdapter.ViewHolde
         if (!isItemEmpty(item, listPosition) && item != null) {
 
             if (allowSetClickListener(item, listPosition)) {
-                getClickableView(holder)?.setOnClickListener {
+                holder.clickableView?.setOnClickListener {
                     itemsEventsObservable.notifyItemClick(getListPosition(holder.adapterPosition), item)
                 }
             }
 
             if (allowSetLongClickListener(item, listPosition)) {
-                getLongClickableView(holder)?.setOnLongClickListener { itemsEventsObservable.notifyItemLongClick(holder.adapterPosition, item) }
+                holder.longClickableView?.setOnLongClickListener {
+                    itemsEventsObservable.notifyItemLongClick(getListPosition(holder.adapterPosition), item)
+                }
             }
-
             if (allowFill) {
-                holder.bindData(position, item, itemCount)
+                bindData(holder, listPosition, item)
             }
 
         } else {
-
             if (allowFill) {
-                holder.bindEmptyData(listPosition, item, itemCount)
+                bindEmptyData(holder, listPosition, item)
             }
         }
 
@@ -441,18 +442,26 @@ abstract class BaseRecyclerViewAdapter<I, VH : BaseRecyclerViewAdapter.ViewHolde
         }
     }
 
+    protected open fun bindData(holder: VH, position: Int, item: I) {
+        holder.bindData(position, item, itemCount)
+    }
+
+    protected open fun bindEmptyData(holder: VH, position: Int, item: I?) {
+        holder.bindEmptyData(position, item, itemCount)
+    }
+
     /**
      * Реализация запроса фокуса на фокусабельной view
      */
     @CallSuper
     protected open fun bindItemFocus(holder: VH, item: I?, position: Int) {
-        getFocusableView(holder)?.requestFocus()
+        holder.focusableView?.requestFocus()
     }
 
     /**
      * @return позиция с учётом включённости бесконечного скролла
      */
-    protected fun getListPosition(adapterPosition: Int) = if (allowInfiniteScroll) {
+    protected open fun getListPosition(adapterPosition: Int) = if (allowInfiniteScroll) {
         adapterPosition % items.size
     } else {
         adapterPosition
@@ -479,15 +488,24 @@ abstract class BaseRecyclerViewAdapter<I, VH : BaseRecyclerViewAdapter.ViewHolde
     private fun diffNotifyDataSetChanged() {
         val newItemInfo = extractRealItemInfo()
         val diffResult = DiffUtil.calculateDiff(
-                AutoNotifyDiffCallback(lastItemsInfo,
+                AutoNotifyDiffCallback(
+                        infiniteScrollLoopsCount,
+                        lastItemsInfo,
                         newItemInfo,
-                        allowInfiniteScroll)
+                        allowInfiniteScroll
+                )
         )
         diffResult.dispatchUpdatesTo(this)
         lastItemsInfo = newItemInfo
     }
 
     abstract class ViewHolder<I>(view: View) : RecyclerView.ViewHolder(view) {
+
+        open val clickableView: View? = itemView
+
+        open val longClickableView: View? = itemView
+
+        open val focusableView: View? = itemView
 
         constructor(parent: ViewGroup, @LayoutRes layoutId: Int) :
                 this(LayoutInflater.from(parent.context).inflate(layoutId, parent, false))

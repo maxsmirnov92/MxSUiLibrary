@@ -39,7 +39,6 @@ allprojects {
 }
 
 ext {
-    commonUtilsVersion = "1.0.9"
     jugglerVersion = "0.1.23"
     nestableViewPagerVersion = "0.2.0"
 }
