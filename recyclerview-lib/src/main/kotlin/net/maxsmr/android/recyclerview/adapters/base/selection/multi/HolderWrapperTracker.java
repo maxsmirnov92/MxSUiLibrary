@@ -1,4 +1,4 @@
-package com.bejibx.android.recyclerview.selection;
+package net.maxsmr.android.recyclerview.adapters.base.selection.multi;
 
 import android.util.SparseArray;
 
@@ -10,7 +10,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 
-public class HolderWrapperTracker {
+class HolderWrapperTracker {
 
     private final SparseArray<SelectionHelper.ViewHolderWrapper> mWrappersByPosition = new SparseArray<>();
 
@@ -46,7 +46,7 @@ public class HolderWrapperTracker {
             final RecyclerView.ViewHolder holder = wrapper.getHolder();
             if (holder != null) {
                 int adapterPosition = holder.getAdapterPosition();
-                if (adapterPosition != position && holder.getAdapterPosition() != RecyclerView.NO_POSITION) {
+                if (adapterPosition != position && adapterPosition != RecyclerView.NO_POSITION) {
                     correct = false;
                 }
             } else {

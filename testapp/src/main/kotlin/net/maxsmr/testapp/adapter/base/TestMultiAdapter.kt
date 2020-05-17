@@ -5,7 +5,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.CheckBox
 import android.widget.TextView
-import net.maxsmr.android.recyclerview.adapters.base.selection.BaseMultiSelectionRecyclerViewAdapter
+import net.maxsmr.android.recyclerview.adapters.base.selection.multi.BaseMultiSelectionRecyclerViewAdapter
 import net.maxsmr.testapp.R
 import net.maxsmr.testapp.adapter.TestItem
 

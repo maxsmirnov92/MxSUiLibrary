@@ -8,7 +8,6 @@ import android.view.ViewGroup
 import android.widget.Checkable
 import androidx.annotation.CallSuper
 import androidx.annotation.LayoutRes
-import com.bejibx.android.recyclerview.selection.SelectionHelper.SelectTriggerMode
 import net.maxsmr.android.recyclerview.adapters.base.BaseRecyclerViewAdapter
 
 abstract class BaseSelectionRecyclerViewAdapter<I, VH : BaseSelectionRecyclerViewAdapter.BaseSelectableViewHolder<I>, L : BaseSelectionRecyclerViewAdapter.BaseItemSelectedChangeListener>(
@@ -36,13 +35,11 @@ abstract class BaseSelectionRecyclerViewAdapter<I, VH : BaseSelectionRecyclerVie
         }
 
     override fun allowSetClickListener(item: I?, position: Int): Boolean =
-            !isItemEmpty(item, position)
-                    && !getSelectTriggerModesForItem(item, position).contains(SelectTriggerMode.CLICK)
+            super.allowSetClickListener(item, position) && !isSelectionForItemByClickAllowed(item, position)
 
 
     override fun allowSetLongClickListener(item: I?, position: Int): Boolean =
-            !isItemEmpty(item, position)
-                    && !getSelectTriggerModesForItem(item, position).contains(SelectTriggerMode.LONG_CLICK)
+            super.allowSetLongClickListener(item, position) && !isSelectionForItemByLongClickAllowed(item, position)
 
     @CallSuper
     override fun bindItem(holder: VH, item: I?, position: Int) {
@@ -58,7 +55,7 @@ abstract class BaseSelectionRecyclerViewAdapter<I, VH : BaseSelectionRecyclerVie
 
     @CallSuper
     override fun onItemsAdded(to: Int, items: Collection<I?>, previousSize: Int) {
-        invalidateSelectionIndexOnAdd(to, items.size)
+        invalidateSelectionIndexOnAdd(to, listItemCount)
         super.onItemsAdded(to, items, previousSize)
     }
 
@@ -81,12 +78,18 @@ abstract class BaseSelectionRecyclerViewAdapter<I, VH : BaseSelectionRecyclerVie
     }
 
     final override fun bindData(holder: VH, position: Int, item: I) {
-        holder.bindData(position, item, itemCount, isItemPositionSelected(position))
+        holder.bindData(position, item, listItemCount, isItemPositionSelected(position))
     }
 
     final override fun bindEmptyData(holder: VH, position: Int, item: I?) {
-        holder.bindEmptyData(position, item, itemCount, isItemPositionSelected(position))
+        holder.bindEmptyData(position, item, listItemCount, isItemPositionSelected(position))
     }
+
+    fun isSelectionForItemByClickAllowed(item: I?, position: Int) =
+            isSelectionForItemAllowed(item, position) && getSelectTriggerModesForItem(item, position).contains(SelectTriggerMode.CLICK)
+
+    fun isSelectionForItemByLongClickAllowed(item: I?, position: Int) =
+            isSelectionForItemAllowed(item, position) && getSelectTriggerModesForItem(item, position).contains(SelectTriggerMode.LONG_CLICK)
 
     fun registerItemSelectedChangeListener(listener: L) {
         itemsSelectedObservable.registerObserver(listener)
@@ -95,7 +98,6 @@ abstract class BaseSelectionRecyclerViewAdapter<I, VH : BaseSelectionRecyclerVie
     fun unregisterItemSelectedChangeListener(listener: L) {
         itemsSelectedObservable.unregisterObserver(listener)
     }
-
 
     fun toggleSelectable() {
         isSelectable = !isSelectable
@@ -123,7 +125,7 @@ abstract class BaseSelectionRecyclerViewAdapter<I, VH : BaseSelectionRecyclerVie
         }
     }
 
-    protected open fun isSelectionAtPositionAllowed(position: Int) = isSelectable
+    protected open fun isSelectionForItemAllowed(item: I?, position: Int) = isSelectable
 
     // override if need various for each position
     protected open fun getSelectTriggerModesForItem(item: I?, position: Int): Set<SelectTriggerMode> = selectTriggerModes
@@ -148,33 +150,8 @@ abstract class BaseSelectionRecyclerViewAdapter<I, VH : BaseSelectionRecyclerVie
         // override if needed
     }
 
-    protected abstract class BaseItemSelectedObservable<L : BaseItemSelectedChangeListener> : Observable<L>() {
-
-        fun notifySelectModesChanged(selectTriggerModes: Set<SelectTriggerMode>) {
-            synchronized(mObservers) {
-                for (l in mObservers) {
-                    l.onSelectModesChanged(selectTriggerModes)
-                }
-            }
-        }
-
-        fun notifySelectableChanged(isSelectable: Boolean) {
-            synchronized(mObservers) {
-                for (l in mObservers) {
-                    l.onSelectableChanged(isSelectable)
-                }
-            }
-        }
-
-        fun notifyAllowResetSelectionChanged(isAllowed: Boolean) {
-            synchronized(mObservers) {
-                for (l in mObservers) {
-                    l.onAllowResetSelectionChanged(isAllowed)
-                }
-            }
-        }
-
-
+    enum class SelectTriggerMode {
+        CLICK, LONG_CLICK
     }
 
     interface BaseItemSelectedChangeListener {
@@ -222,6 +199,33 @@ abstract class BaseSelectionRecyclerViewAdapter<I, VH : BaseSelectionRecyclerVie
                     it.isChecked = isSelected
                 } else {
                     it.isSelected = isSelected
+                }
+            }
+        }
+    }
+
+    protected abstract class BaseItemSelectedObservable<L : BaseItemSelectedChangeListener> : Observable<L>() {
+
+        fun notifySelectModesChanged(selectTriggerModes: Set<SelectTriggerMode>) {
+            synchronized(mObservers) {
+                for (l in mObservers) {
+                    l.onSelectModesChanged(selectTriggerModes)
+                }
+            }
+        }
+
+        fun notifySelectableChanged(isSelectable: Boolean) {
+            synchronized(mObservers) {
+                for (l in mObservers) {
+                    l.onSelectableChanged(isSelectable)
+                }
+            }
+        }
+
+        fun notifyAllowResetSelectionChanged(isAllowed: Boolean) {
+            synchronized(mObservers) {
+                for (l in mObservers) {
+                    l.onAllowResetSelectionChanged(isAllowed)
                 }
             }
         }

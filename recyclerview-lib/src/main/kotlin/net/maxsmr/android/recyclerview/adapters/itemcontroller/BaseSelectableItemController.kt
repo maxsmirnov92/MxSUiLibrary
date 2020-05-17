@@ -6,13 +6,12 @@ import android.widget.Checkable
 import androidx.annotation.CallSuper
 import androidx.annotation.LayoutRes
 import androidx.recyclerview.widget.RecyclerView.NO_POSITION
-import net.maxsmr.android.recyclerview.adapters.base.selection.BaseMultiSelectionRecyclerViewAdapter
 import net.maxsmr.android.recyclerview.adapters.itemcontroller.wrapper.SelectableData
 
 /**
  * Базовый item controller для реализации
  * selectable-свойства;
- * в отличие от [BaseMultiSelectionRecyclerViewAdapter]
+ * в отличие от BaseMultiSelectionRecyclerViewAdapter
  * не учитывает порядок, в котором менялся isSelectable
  */
 abstract class BaseSelectableItemController<T, VH : BaseSelectableItemController.BaseSelectableViewHolder<T>> :

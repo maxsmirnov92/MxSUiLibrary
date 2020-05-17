@@ -1,11 +1,10 @@
 package net.maxsmr.android.recyclerview.adapters.base.selection
 
 import android.content.Context
+import android.view.View
 import androidx.annotation.CallSuper
 import androidx.annotation.LayoutRes
 import androidx.recyclerview.widget.RecyclerView.NO_POSITION
-import com.bejibx.android.recyclerview.selection.SelectionHelper.SelectTriggerMode.CLICK
-import com.bejibx.android.recyclerview.selection.SelectionHelper.SelectTriggerMode.LONG_CLICK
 
 abstract class BaseSingleSelectionRecyclerViewAdapter<I, VH : BaseSelectionRecyclerViewAdapter.BaseSelectableViewHolder<I>> @JvmOverloads constructor(
         context: Context,
@@ -20,11 +19,13 @@ abstract class BaseSingleSelectionRecyclerViewAdapter<I, VH : BaseSelectionRecyc
 
     override val itemsSelectedObservable = ItemSelectedObservable()
 
-    val selectedPosition: Int
-        get() = if (targetSelectionPosition in 0 until itemCount) {
-            targetSelectionPosition
+    var selectedPosition: Int = NO_POSITION
+        private set
+        get() = if (field in 0 until listItemCount) {
+            field
         } else {
-            NO_POSITION
+            field = NO_POSITION
+            field
         }
 
     val selectedItem: I?
@@ -53,16 +54,6 @@ abstract class BaseSingleSelectionRecyclerViewAdapter<I, VH : BaseSelectionRecyc
             }
         }
 
-    private var targetSelectionPosition = NO_POSITION
-        set(value) {
-            if (field != value) {
-                field = value
-                if (value >= itemCount) {
-                    field = NO_POSITION
-                }
-            }
-        }
-
     @CallSuper
     override fun onItemsSet() {
         resetSelection()
@@ -77,36 +68,35 @@ abstract class BaseSingleSelectionRecyclerViewAdapter<I, VH : BaseSelectionRecyc
 
     override fun isItemPositionSelected(position: Int): Boolean {
         rangeCheck(position)
-        return targetSelectionPosition != NO_POSITION && targetSelectionPosition == getListPosition(position)
+        return selectedPosition != NO_POSITION && selectedPosition == position
     }
 
     @CallSuper
     override fun bindSelection(holder: VH, item: I?, position: Int) {
 
-        val clickableView = holder.clickableView
-        val longClickableView = holder.longClickableView
-
-        val selectTriggerModes = getSelectTriggerModesForItem(item, position)
-
-        clickableView?.let {
-            if (selectTriggerModes.contains(CLICK)) {
-                it.setOnClickListener {
+        holder.clickableView?.let { view ->
+            if (isSelectionForItemByClickAllowed(item, position)) {
+                val listener = View.OnClickListener {
                     with(getListPosition(holder.adapterPosition)) {
                         changeSelectedStateFromUiNotify(this, holder)
                         itemsEventsObservable.notifyItemClick(this, item)
                     }
                 }
+                holder.clickListener = listener
+                view.setOnClickListener(listener)
             }
         }
 
-        longClickableView?.let {
-            if (selectTriggerModes.contains(LONG_CLICK)) {
-                it.setOnLongClickListener {
+        holder.longClickableView?.let { view ->
+            if (isSelectionForItemByLongClickAllowed(item, position)) {
+                val listener = View.OnLongClickListener {
                     with(getListPosition(holder.adapterPosition)) {
                         changeSelectedStateFromUiNotify(this, holder)
-                        return@setOnLongClickListener itemsEventsObservable.notifyItemLongClick(this, item)
+                        itemsEventsObservable.notifyItemLongClick(this, item)
                     }
                 }
+                holder.longClickListener = listener
+                view.setOnLongClickListener(listener)
             }
         }
 
@@ -114,45 +104,39 @@ abstract class BaseSingleSelectionRecyclerViewAdapter<I, VH : BaseSelectionRecyc
     }
 
     override fun invalidateSelectionIndexOnAdd(to: Int, count: Int) {
-        val currentCount = itemCount
-        if (count >= 1 && to in 0 until currentCount) {
+        if (count >= 1 && to in 0 until listItemCount) {
+            var shouldNotify = false
             var previousSelection = NO_POSITION
-            if (targetSelectionPosition != NO_POSITION) {
-                if (targetSelectionPosition >= to) {
-                    previousSelection = targetSelectionPosition
-                    targetSelectionPosition += count
+            if (selectedPosition != NO_POSITION) {
+                if (selectedPosition >= to) {
+                    previousSelection = selectedPosition
+                    selectedPosition += count
+                    shouldNotify = true
                 }
             }
-            if (allowNotifyOnChange) {
-                if (previousSelection in 0 until currentCount) {
-                    notifyItemChanged(previousSelection)
-                }
-                if (targetSelectionPosition != previousSelection && targetSelectionPosition >= 0 && targetSelectionPosition < currentCount) {
-                    notifyItemChanged(targetSelectionPosition)
-                }
+            if (shouldNotify) {
+                onSelectionChanged(previousSelection, selectedPosition, false)
             }
         }
     }
 
     override fun invalidateSelectionIndexOnRemove(from: Int, count: Int) {
-        val currentCount = itemCount
-        if (from in 0..currentCount && count >= 1) {
+        if (from in 0..listItemCount && count >= 1) {
+            var shouldNotify = false
             var previousSelection = NO_POSITION
-            if (targetSelectionPosition != NO_POSITION) {
-                if (targetSelectionPosition >= from && targetSelectionPosition < from + count) {
-                    previousSelection = targetSelectionPosition
-                } else if (targetSelectionPosition >= from + count) {
-                    previousSelection = targetSelectionPosition
-                    targetSelectionPosition -= count
+            if (selectedPosition != NO_POSITION) {
+                if (selectedPosition >= from && selectedPosition < from + count) {
+                    previousSelection = selectedPosition
+                    selectedPosition = NO_POSITION
+                    shouldNotify = true
+                } else if (selectedPosition >= from + count) {
+                    previousSelection = selectedPosition
+                    selectedPosition -= count
+                    shouldNotify = true
                 }
             }
-            if (allowNotifyOnChange) {
-                if (previousSelection in 0 until currentCount) {
-                    notifyItemChanged(previousSelection)
-                }
-                if (targetSelectionPosition != previousSelection && targetSelectionPosition >= 0 && targetSelectionPosition < currentCount) {
-                    notifyItemChanged(targetSelectionPosition)
-                }
+            if (shouldNotify) {
+                onSelectionChanged(previousSelection, selectedPosition, false)
             }
         }
     }
@@ -163,7 +147,7 @@ abstract class BaseSingleSelectionRecyclerViewAdapter<I, VH : BaseSelectionRecyc
 
     fun setSelectionByItem(item: I): Boolean {
         val index = indexOf(item)
-        if (index in 0 until itemCount) {
+        if (index in 0 until listItemCount) {
             return setSelection(index)
         }
         return false
@@ -173,26 +157,19 @@ abstract class BaseSingleSelectionRecyclerViewAdapter<I, VH : BaseSelectionRecyc
      * @return true if selection changed, false - otherwise
      */
     @JvmOverloads
-    fun setSelection(selection: Int, fromUser: Boolean = false): Boolean {
+    fun setSelection(
+            selection: Int,
+            fromUser: Boolean = false,
+            notifySelectionChangedAction: (() -> Int)? = null
+    ): Boolean {
         rangeCheck(selection)
-        if (isSelectionAtPositionAllowed(selection)) {
-            var previousSelection = targetSelectionPosition
-            targetSelectionPosition = selection
-            var isNewSelection = true
-            if (previousSelection in 0 until itemCount) {
-                isNewSelection = targetSelectionPosition != previousSelection
-            } else {
-                previousSelection = NO_POSITION
-            }
+        if (isSelectionForItemAllowed(getItem(selection), selection)) {
+            val previousSelection = selectedPosition
+            selectedPosition = selection
+            val isNewSelection = selection != previousSelection
             // calling it anyway to trigger reselect if needed
-            onSelectionChanged(previousSelection, targetSelectionPosition, fromUser)
+            onSelectionChanged(previousSelection, selection, fromUser, notifySelectionChangedAction)
             if (isNewSelection) {
-                if (allowNotifyOnChange) {
-                    notifyItemChanged(selection)
-                    if (previousSelection != NO_POSITION) {
-                        notifyItemChanged(previousSelection)
-                    }
-                }
                 return true
             }
         }
@@ -218,7 +195,7 @@ abstract class BaseSingleSelectionRecyclerViewAdapter<I, VH : BaseSelectionRecyc
                 setSelection(--selection)
                 changed = true
             } else if (loop) {
-                setSelection(items.size - 1)
+                setSelection(listItemCount - 1)
                 changed = true
             }
         }
@@ -229,7 +206,7 @@ abstract class BaseSingleSelectionRecyclerViewAdapter<I, VH : BaseSelectionRecyc
         var changed = false
         var selection = selectedPosition
         if (selection != NO_POSITION) {
-            if (selection < items.size - 1) {
+            if (selection < listItemCount - 1) {
                 setSelection(++selection)
                 changed = true
             } else if (loop) {
@@ -251,48 +228,62 @@ abstract class BaseSingleSelectionRecyclerViewAdapter<I, VH : BaseSelectionRecyc
         itemsSelectedObservable.notifyAllowResetSelectionChanged(isAllowed)
     }
 
-    /**
-     * called before [notifyItemChanged]
-     */
     @CallSuper
-    protected open fun onSelectionChanged(from: Int, to: Int, fromUser: Boolean) {
+    protected open fun onSelectionChanged(from: Int, to: Int, fromUser: Boolean, notifySelectionChangedAction: (() -> Int)? = null) {
+        val isNewSelection = from != to
         if (to != NO_POSITION) {
-            if (from != to) {
+            if (isNewSelection) {
                 itemsSelectedObservable.notifyItemSetSelection(from, to, fromUser)
+                if (allowNotifyOnChange) {
+                    // позиция, для которой только что произошло обычное или кастомное оповещение
+                    val notifiedPosition =
+                            if (notifySelectionChangedAction == null) {
+                                notifyItemChanged(to)
+                                to
+                            } else {
+                                notifySelectionChangedAction()
+                            }
+                    notifyItemsChangedForInfiniteScroll(to, setOf(notifiedPosition))
+                }
             } else {
                 itemsSelectedObservable.notifyItemReselect(to, fromUser)
             }
         } else {
             itemsSelectedObservable.notifyItemResetSelection(from, fromUser)
         }
+        if (isNewSelection) {
+            notifyItemChangedInfiniteCheck(from)
+        }
     }
 
-    protected fun changeSelectedStateFromUi(position: Int): Boolean {
-        if (isSelectionAtPositionAllowed(position)) {
-            return if (position == targetSelectionPosition) {
+    protected fun changeSelectedStateFromUiNotify(position: Int, holder: VH) {
+        val wasSelected = isItemPositionSelected(position)
+        if (!changeSelectedStateFromUi(position, notifySelectionChangedAction = {
+                    // вместо обычного notify пользуем handleSelected на адаптере
+                    // + позиция должна быть из холдера (например, с учётом infinite scroll)
+                    handleSelected(holder, isItemPositionSelected(position))
+                    holder.adapterPosition // позиция, для которой ui был изменён вручную
+                })) {
+            // если результат отрицательный - возвращаем в исходное состояние view (isSelected не изменился)
+            handleSelected(holder, wasSelected)
+        }
+    }
+
+    protected fun changeSelectedStateFromUi(position: Int, notifySelectionChangedAction: (() -> Int)? = null): Boolean {
+        if (isSelectionForItemAllowed(getItem(position), position)) {
+            return if (position == selectedPosition) {
                 if (allowResetSelection) {
                     resetSelection(true)
                 } else {
                     // current state is selected, triggering reselect, state must be not changed
-                    setSelection(position, true)
+                    setSelection(position, true, notifySelectionChangedAction)
                     false
                 }
             } else {
-                setSelection(position, true)
+                setSelection(position, true, notifySelectionChangedAction)
             }
         }
         return false
-    }
-
-    protected fun changeSelectedStateFromUiNotify(
-            position: Int,
-            holder: VH
-    ) {
-        val wasSelected = isItemPositionSelected(position)
-        if (!changeSelectedStateFromUi(position)) {
-            // если результат отрицательный - возвращаем в исходное состояние view (isSelected не изменился)
-            handleSelected(holder, wasSelected)
-        }
     }
 
     /**
@@ -300,29 +291,34 @@ abstract class BaseSingleSelectionRecyclerViewAdapter<I, VH : BaseSelectionRecyc
      */
     private fun resetSelection(fromUser: Boolean): Boolean {
         if (hasSelected) {
-            var previousSelection = targetSelectionPosition
-            targetSelectionPosition = NO_POSITION
-            if (previousSelection < 0 || previousSelection >= itemCount) {
-                previousSelection = NO_POSITION
-            }
-            onSelectionChanged(previousSelection, targetSelectionPosition, fromUser)
-            if (allowNotifyOnChange) {
-                if (previousSelection in 0 until itemCount) {
-                    notifyItemChanged(previousSelection)
-                }
-            }
+            val previousSelection = selectedPosition
+            selectedPosition = NO_POSITION
+            onSelectionChanged(previousSelection, selectedPosition, fromUser)
             return true
         }
         return false
     }
 
-    private fun toggleSelection(selection: Int, fromUser: Boolean): Boolean {
+    private fun toggleSelection(
+            selection: Int,
+            fromUser: Boolean,
+            notifySelectionChangedAction: (() -> Int)? = null
+    ): Boolean {
         rangeCheck(selection)
-        return if (targetSelectionPosition == selection) {
+        return if (selectedPosition == selection) {
             resetSelection(fromUser)
         } else {
-            setSelection(selection, fromUser)
+            setSelection(selection, fromUser, notifySelectionChangedAction)
         }
+    }
+
+    interface OnItemSelectedChangeListener : BaseItemSelectedChangeListener {
+
+        fun onItemSetSelection(fromIndex: Int, toIndex: Int, fromUser: Boolean)
+
+        fun onItemResetSelection(index: Int, fromUser: Boolean)
+
+        fun onItemReselect(index: Int, fromUser: Boolean)
     }
 
     protected class ItemSelectedObservable : BaseItemSelectedObservable<OnItemSelectedChangeListener>() {
@@ -350,14 +346,5 @@ abstract class BaseSingleSelectionRecyclerViewAdapter<I, VH : BaseSelectionRecyc
                 }
             }
         }
-    }
-
-    interface OnItemSelectedChangeListener : BaseItemSelectedChangeListener {
-
-        fun onItemSetSelection(fromIndex: Int, toIndex: Int, fromUser: Boolean)
-
-        fun onItemResetSelection(index: Int, fromUser: Boolean)
-
-        fun onItemReselect(index: Int, fromUser: Boolean)
     }
 }

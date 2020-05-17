@@ -10,9 +10,8 @@ import android.widget.Toast
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.RecyclerView.NO_POSITION
-import com.bejibx.android.recyclerview.selection.SelectionHelper
 import kotlinx.android.synthetic.main.activity_recycler_test.*
-import net.maxsmr.android.recyclerview.adapters.base.selection.BaseMultiSelectionRecyclerViewAdapter
+import net.maxsmr.android.recyclerview.adapters.base.selection.multi.BaseMultiSelectionRecyclerViewAdapter
 import net.maxsmr.android.recyclerview.adapters.base.BaseRecyclerViewAdapter
 import net.maxsmr.android.recyclerview.adapters.base.selection.BaseSelectionRecyclerViewAdapter
 import net.maxsmr.android.recyclerview.adapters.base.selection.BaseSingleSelectionRecyclerViewAdapter
@@ -68,17 +67,17 @@ class RecyclerTestActivity : AppCompatActivity(), BaseRecyclerViewAdapter.ItemsE
     }
 
     private val noneAdapter = TestNoneAdapter(this).apply {
-        allowInfiniteScroll = true
+        allowInfiniteScroll = false
     }
     private val singleAdapter = TestSingleAdapter(this).apply {
-        allowInfiniteScroll = true
+        allowInfiniteScroll = false
         isSelectable = false
-        selectTriggerModes = setOf(SelectionHelper.SelectTriggerMode.CLICK)
+        selectTriggerModes = setOf(BaseSelectionRecyclerViewAdapter.SelectTriggerMode.CLICK)
     }
     private val multiAdapter = TestMultiAdapter(this).apply {
-        allowInfiniteScroll = true
+        allowInfiniteScroll = false
         isSelectable = false
-        selectTriggerModes =  setOf(SelectionHelper.SelectTriggerMode.CLICK)
+        selectTriggerModes = setOf(BaseSelectionRecyclerViewAdapter.SelectTriggerMode.CLICK)
     }
 
     private var isMultiItemControllerInUse = false
@@ -114,6 +113,7 @@ class RecyclerTestActivity : AppCompatActivity(), BaseRecyclerViewAdapter.ItemsE
     override fun onOptionsItemSelected(item: MenuItem?): Boolean {
         item?.let {
             when (item.itemId) {
+                R.id.action_recycler_toggle_infinite_scroll -> toggleInfiniteScroll()
                 R.id.action_recycler_toggle_selectable -> toggleSelectable()
                 R.id.action_recycler_toggle_selected -> toggleSelected()
                 R.id.action_recycler_action_select_all -> setAllSelected()
@@ -286,7 +286,7 @@ class RecyclerTestActivity : AppCompatActivity(), BaseRecyclerViewAdapter.ItemsE
     }
 
     private fun generateAdapterData() {
-        val count = currentBaseAdapter.getListItemsCount().let {
+        val count = currentBaseAdapter.listItemCount.let {
             if (it > 0) {
                 it
             } else {
@@ -308,6 +308,13 @@ class RecyclerTestActivity : AppCompatActivity(), BaseRecyclerViewAdapter.ItemsE
                 multiItemController.items = data.map { SelectableData(it, false) }
                 refreshRecyclerByAdapterType()
             }
+        }
+    }
+
+    private fun toggleInfiniteScroll() {
+        when (adapterType) {
+            BASE -> currentBaseAdapter.toggleInfiniteScroll()
+            else -> easyAdapter.setInfiniteScroll(!currentBaseAdapter.allowInfiniteScroll)
         }
     }
 
@@ -356,14 +363,14 @@ class RecyclerTestActivity : AppCompatActivity(), BaseRecyclerViewAdapter.ItemsE
     private fun clearAllSelected() {
         when (adapterType) {
             BASE -> with(currentBaseAdapter) {
-                    when (this) {
-                        is BaseMultiSelectionRecyclerViewAdapter<*, *> -> resetAllItemsSelection()
-                        is BaseSingleSelectionRecyclerViewAdapter<*, *> -> resetSelection()
-                        else -> {
-                            Toast.makeText(this@RecyclerTestActivity, R.string.recycler_test_unable_to_clear_all_selection, Toast.LENGTH_SHORT).show()
-                        }
+                when (this) {
+                    is BaseMultiSelectionRecyclerViewAdapter<*, *> -> resetAllItemsSelection()
+                    is BaseSingleSelectionRecyclerViewAdapter<*, *> -> resetSelection()
+                    else -> {
+                        Toast.makeText(this@RecyclerTestActivity, R.string.recycler_test_unable_to_clear_all_selection, Toast.LENGTH_SHORT).show()
                     }
                 }
+            }
             else -> multiItemController.resetAllSelected()
         }
     }

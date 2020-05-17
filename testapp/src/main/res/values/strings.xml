@@ -11,6 +11,7 @@
     <string name="recycler_test_selected_items_message">Selected items is: %s</string>
     <string name="recycler_test_selected_items_empty_message">No selected items</string>
     <string name="recycler_test_adapter_type_changed_message">RecyclerView adapter type changed from %s to %s</string>
+    <string name="recycler_test_action_toggle_infinite_scroll_text">Toggle infinite scroll</string>
     <string name="recycler_test_action_toggle_selectable_text">Toggle selectable</string>
     <string name="recycler_test_action_toggle_selected_text">Toggle selected</string>
     <string name="recycler_test_action_select_all_text">Set all selected</string>

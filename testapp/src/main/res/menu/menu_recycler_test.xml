@@ -2,6 +2,10 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
     <item
+        android:id="@+id/action_recycler_toggle_infinite_scroll"
+        android:title="@string/recycler_test_action_toggle_infinite_scroll_text"
+        app:showAsAction="never" />
+    <item
         android:id="@+id/action_recycler_toggle_selectable"
         android:title="@string/recycler_test_action_toggle_selectable_text"
         app:showAsAction="never" />

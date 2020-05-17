@@ -12,6 +12,7 @@ import androidx.recyclerview.widget.RecyclerView.NO_POSITION
  * которому требуется отслеживать текущие items,
  * с возможностью получения фокуса на контретном индексе
  */
+// FIXME: allowAtPosition, запомнинание listeners для VH, infinite scroll, handleSelected из клика
 abstract class BaseFocusableItemController<T, VH : BaseFocusableItemController.FocusableViewHolder<T>> : LoadableItemController<T, VH>() {
 
     /**
