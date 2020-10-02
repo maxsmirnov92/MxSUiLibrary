@@ -286,14 +286,7 @@ class RecyclerTestActivity : AppCompatActivity(), BaseRecyclerViewAdapter.ItemsE
     }
 
     private fun generateAdapterData() {
-        val count = currentBaseAdapter.listItemCount.let {
-            if (it > 0) {
-                it
-            } else {
-                defaultData.size
-            }
-        }
-        setAdapterData(generateData(count * 2))
+        setAdapterData(generateData(defaultData.size * 2))
     }
 
     private fun clearAdapterData() {

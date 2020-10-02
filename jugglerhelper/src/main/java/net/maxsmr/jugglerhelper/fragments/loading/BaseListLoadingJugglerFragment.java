@@ -9,7 +9,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
-import net.maxsmr.android.recyclerview.adapters.BaseRecyclerViewAdapter;
+import net.maxsmr.android.recyclerview.adapters.base.BaseRecyclerViewAdapter;
 import net.maxsmr.android.recyclerview.scroll.RecyclerScrollableController;
 import net.maxsmr.jugglerhelper.R;
 
@@ -65,8 +65,8 @@ public abstract class BaseListLoadingJugglerFragment<I, Adapter extends BaseRecy
     }
 
     @CallSuper
-    protected void onBindViews(@NotNull View rootView) {
-        super.onBindViews(rootView);
+    protected void initViews(@NotNull View rootView) {
+        super.initViews(rootView);
         recycler = rootView.findViewById(getRecyclerId());
     }
 
@@ -282,43 +282,48 @@ public abstract class BaseListLoadingJugglerFragment<I, Adapter extends BaseRecy
     }
 
     @Override
-    public void onItemClick(int position, I item) {
+    public void onItemClick(int position, @Nullable I item) {
+
     }
 
     @Override
-    public boolean onItemLongClick(int position, I item) {
+    public boolean onItemLongClick(int position, @Nullable I item) {
         return false;
     }
 
     @Override
-    public void onItemAdded(int to, I item) {
-    }
-
-    @Override
-    public void onItemFocusChanged(int i, @Nullable I i1) {
+    public void onItemFocusChanged(int position, @Nullable I item) {
 
     }
 
     @Override
-    public void onItemsAdded(int i, @NotNull Collection<? extends I> collection) {
+    public void onItemAdded(int to, @Nullable I item, int previousSize) {
 
     }
 
     @Override
-    public void onItemsSet(@NotNull List<? extends I> list) {
+    public void onItemsAdded(int to, @NotNull Collection<? extends I> items, int previousSize) {
 
     }
 
     @Override
-    public void onItemSet(int to, I item) {
+    public void onItemSet(int to, @Nullable I item) {
+
     }
 
     @Override
-    public void onItemRemoved(int from, I item) {
+    public void onItemsSet(@NotNull List<? extends I> items) {
+
     }
 
     @Override
-    public void onItemsRangeRemoved(int from, int to, int previousSize) {
+    public void onItemRemoved(int from, @Nullable I item) {
+
+    }
+
+    @Override
+    public void onItemsRangeRemoved(int from, int to, int previousSize, @NotNull List<? extends I> removedItems) {
+
     }
 
     @Override
@@ -354,7 +359,7 @@ public abstract class BaseListLoadingJugglerFragment<I, Adapter extends BaseRecy
                 Future<?> task = service.submit(() -> {
                     //noinspection StatementWithEmptyBody
                     while (recycler.isComputingLayout()) ;
-                    mainHandler.postDelayed(wrappedRunnable, delay);
+                    getMainHandler().postDelayed(wrappedRunnable, delay);
                 });
                 try {
                     task.get(5, TimeUnit.SECONDS);
@@ -362,7 +367,7 @@ public abstract class BaseListLoadingJugglerFragment<I, Adapter extends BaseRecy
                     e.printStackTrace();
                 }
             } else {
-                mainHandler.postDelayed(r, delay);
+                getMainHandler().postDelayed(r, delay);
             }
         }
 

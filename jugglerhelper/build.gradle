@@ -2,9 +2,11 @@ apply from: "$rootDir/buildSrc/androidLib.gradle"
 
 dependencies {
 
+    api "androidx.swiperefreshlayout:swiperefreshlayout:$androidXSwipeRefreshVersion"
+
     api "net.maxsmr:commonutils:$commonUtilsVersion"
-    api "net.maxsmr:recyclerview-lib:${project.getModuleVersionNameByPath(":recyclerview-lib")}"
+    api project(':recyclerview-lib')
+//    api "net.maxsmr:recyclerview-lib:${project.getModuleVersionNameByPath(":recyclerview-lib")}"
 
     api "me.ilich:juggler:$jugglerVersion"
-    api(group: 'me.ilich', name: 'NestableViewPager', version: "$nestableViewPagerVersion")
 }

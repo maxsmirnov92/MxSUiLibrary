@@ -1,12 +1,9 @@
 apply from: "$rootDir/buildSrc/androidApp.gradle"
 
-ext {
-    constraintLayoutVersion = '2.0.0-beta4'
-}
-
 dependencies {
 
-    implementation "androidx.constraintlayout:constraintlayout:$constraintLayoutVersion"
+    implementation "androidx.constraintlayout:constraintlayout:$androidXConstraintLayoutVersion"
 //    implementation "net.maxsmr:recyclerview-lib:${project.getModuleVersionNameByPath(":recyclerview-lib")}"
-    implementation project(':recyclerview-lib')
+//    implementation project(':recyclerview-lib')
+    implementation project(':jugglerhelper')
 }

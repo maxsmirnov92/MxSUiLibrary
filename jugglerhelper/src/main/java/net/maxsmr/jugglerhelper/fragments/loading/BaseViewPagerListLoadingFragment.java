@@ -55,8 +55,8 @@ public abstract class BaseViewPagerListLoadingFragment<I, Adapter extends BasePa
     }
 
     @Override
-    protected void onBindViews(@NotNull View rootView) {
-        super.onBindViews(rootView);
+    protected void initViews(@NotNull View rootView) {
+        super.initViews(rootView);
         final int viewPagerId = getViewPagerId();
         viewPager = rootView.findViewById(viewPagerId);
         final int indicatorId = getViewPagerIndicatorId();

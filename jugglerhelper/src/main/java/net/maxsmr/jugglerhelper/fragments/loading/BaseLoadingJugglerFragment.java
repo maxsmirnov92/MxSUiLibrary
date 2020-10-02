@@ -95,7 +95,7 @@ public abstract class BaseLoadingJugglerFragment<I> extends BaseJugglerFragment 
     }
 
     @CallSuper
-    protected void onBindViews(@NotNull View rootView) {
+    protected void initViews(@NotNull View rootView) {
         final int swipeRefreshLayoutId = getSwipeRefreshLayoutId();
         if (swipeRefreshLayoutId != 0) {
             swipeRefreshLayout = rootView.findViewById(swipeRefreshLayoutId);
@@ -136,26 +136,6 @@ public abstract class BaseLoadingJugglerFragment<I> extends BaseJugglerFragment 
             networkReceiver = null;
         }
     }
-
-
-    @CallSuper
-    protected void applyTypeface() {
-
-        View rootView = getView();
-
-        if (rootView == null) {
-            throw new IllegalStateException("root view was not created");
-        }
-
-        String alias = getBaseFontAlias();
-
-        if (!TextUtils.isEmpty(alias)) {
-            FontsHolder.getInstance().apply(placeholder, alias, false);
-            FontsHolder.getInstance().apply(loadingLayout, alias, false);
-            FontsHolder.getInstance().apply(retryButton, alias, false);
-        }
-    }
-
 
     protected void invalidateLoading(@Nullable I data) {
         if (isLoading) {
@@ -303,8 +283,6 @@ public abstract class BaseLoadingJugglerFragment<I> extends BaseJugglerFragment 
         if (retryButton != null) {
             retryButton.setOnClickListener(this);
         }
-
-        applyTypeface();
 
         registerNetworkBroadcastReceiver();
 
