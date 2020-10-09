@@ -2,7 +2,7 @@ apply from: "$rootDir/buildSrc/androidLib.gradle"
 
 dependencies {
 
-    api "androidx.swiperefreshlayout:swiperefreshlayout:$androidXSwipeRefreshVersion"
+    api "androidx.swiperefreshlayout:swiperefreshlayout:$androidxSwipeRefreshVersion"
 
     api "net.maxsmr:commonutils:$commonUtilsVersion"
     api project(':recyclerview-lib')

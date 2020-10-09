@@ -13,15 +13,15 @@ interface SelectionListener {
      */
     int getListPosition(int position);
 
-    boolean isSelectionAtPositionAllowed(int position);
+    boolean canSelectAtPosition(int position);
 
-    void onSelectionChanged(int position, @Nullable BaseSelectionRecyclerViewAdapter.ViewHolder holder, boolean isSelected, boolean fromUser);
+    void onSelectionChanged(int position, @Nullable BaseSelectionRecyclerViewAdapter.ViewHolder<?> holder, boolean isSelected, boolean fromUser);
 
-    void onReselected(int position, @Nullable BaseSelectionRecyclerViewAdapter.ViewHolder holder, boolean fromUser);
+    void onReselected(int position, @Nullable BaseSelectionRecyclerViewAdapter.ViewHolder<?> holder, boolean fromUser);
 
     void onSelectableChanged(boolean isSelectable);
 
     void onAllowResetSelectionChanged(boolean isAllowed);
 
-    void handleSelected(@NotNull BaseSelectionRecyclerViewAdapter.ViewHolder holder, boolean isSelected);
+    void handleSelected(@NotNull BaseSelectionRecyclerViewAdapter.ViewHolder<?> holder, boolean isSelected);
 }

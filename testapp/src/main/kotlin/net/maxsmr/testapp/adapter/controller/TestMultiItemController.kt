@@ -8,7 +8,6 @@ import net.maxsmr.android.recyclerview.adapters.itemcontroller.view.LoadableItem
 import net.maxsmr.testapp.adapter.TestItem
 import net.maxsmr.android.recyclerview.adapters.itemcontroller.BaseSelectableItemController
 import net.maxsmr.android.recyclerview.adapters.itemcontroller.wrapper.SelectableData
-import net.maxsmr.testapp.EMPTY_STRING
 import net.maxsmr.testapp.R
 
 class TestMultiItemController : BaseSelectableItemController<TestItem, TestMultiItemController.Holder>() {
@@ -36,7 +35,7 @@ class TestMultiItemController : BaseSelectableItemController<TestItem, TestMulti
         override fun bind(item: SelectableData<TestItem>?) {
             super.bind(item)
             testCheck.visibility = if (isSelectable) View.VISIBLE else View.GONE
-            testText.text = item?.data?.data ?: EMPTY_STRING
+            testText.text = item?.data?.data ?: ""
         }
     }
 }

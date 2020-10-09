@@ -53,8 +53,8 @@ final class SelectionHelper {
         return false;
     }
 
-    public boolean isSelectionAtPositionAllowed(int position) {
-        return isSelectable() && selectionListener.isSelectionAtPositionAllowed(position);
+    public boolean canSelectAtPosition(int position) {
+        return isSelectable() && selectionListener.canSelectAtPosition(position);
     }
 
     public boolean isResetSelectionAllowed() {
@@ -73,7 +73,7 @@ final class SelectionHelper {
         return false;
     }
 
-    public <VH extends BaseSelectionRecyclerViewAdapter.BaseSelectableViewHolder> VH wrapSelectable(
+    public <VH extends BaseSelectionRecyclerViewAdapter.BaseSelectableViewHolder<?>> VH wrapSelectable(
             @NotNull VH holder,
             boolean shouldSetClickListener,
             boolean shouldSetLongClickListener
@@ -84,7 +84,7 @@ final class SelectionHelper {
         return holder;
     }
 
-    public <VH extends BaseRecyclerViewAdapter.ViewHolder> VH wrapClickable(@NotNull VH holder) {
+    public <VH extends BaseRecyclerViewAdapter.ViewHolder<?>> VH wrapClickable(@NotNull VH holder) {
         bindWrapper(new ViewHolderClickWrapper<>(holder));
         return holder;
     }
@@ -93,7 +93,7 @@ final class SelectionHelper {
         tracker.recycleWrapper(holder.getAdapterPosition());
     }
 
-    private <W extends SelectionHelper.ViewHolderWrapper> void bindWrapper(@NotNull W wrapper) {
+    private <W extends SelectionHelper.ViewHolderWrapper<?>> void bindWrapper(@NotNull W wrapper) {
         RecyclerView.ViewHolder holder = wrapper.getHolder();
         if (holder != null) {
             tracker.bindWrapper(wrapper, holder.getAdapterPosition());
@@ -114,15 +114,15 @@ final class SelectionHelper {
             boolean isSelected,
             boolean fromUser
     ) {
-        if (isSelectionAtPositionAllowed(position) && position != NO_POSITION) {
+        if (canSelectAtPosition(position) && position != NO_POSITION) {
             boolean isAlreadySelected = isItemSelected(position);
             if (isSelected) {
                 selectedItems.add(position);
             } else {
                 selectedItems.remove(position);
             }
-            BaseSelectionRecyclerViewAdapter.ViewHolder holder = null;
-            ViewHolderWrapper wrapper = wrapperPosition != NO_POSITION ? tracker.getWrapper(wrapperPosition) : null;
+            BaseSelectionRecyclerViewAdapter.ViewHolder<?> holder = null;
+            ViewHolderWrapper<?> wrapper = wrapperPosition != NO_POSITION ? tracker.getWrapper(wrapperPosition) : null;
             if (wrapper != null) {
                 holder = wrapper.getHolder();
             }
@@ -142,7 +142,7 @@ final class SelectionHelper {
             boolean fromUser
     ) {
         boolean success = false;
-        if (positions != null) {
+        if (positions != null && !positions.isEmpty()) {
             success = true;
             for (int pos : positions) {
                 if (!setItemSelectedByPosition(pos, NO_POSITION, isSelected, fromUser)) {
@@ -197,7 +197,7 @@ final class SelectionHelper {
         selectedItems.clear();
     }
 
-    abstract static class ViewHolderWrapper<VH extends BaseRecyclerViewAdapter.ViewHolder> implements View.OnClickListener, View.OnLongClickListener {
+    abstract static class ViewHolderWrapper<VH extends BaseRecyclerViewAdapter.ViewHolder<?>> implements View.OnClickListener, View.OnLongClickListener {
 
         @NotNull
         final WeakReference<VH> mWrappedHolderRef;
@@ -238,7 +238,7 @@ final class SelectionHelper {
         }
     }
 
-    class ViewHolderMultiSelectionWrapper<VH extends BaseSelectionRecyclerViewAdapter.BaseSelectableViewHolder> extends ViewHolderWrapper<VH> {
+    class ViewHolderMultiSelectionWrapper<VH extends BaseSelectionRecyclerViewAdapter.BaseSelectableViewHolder<?>> extends ViewHolderWrapper<VH> {
 
         private final boolean shouldSetClickListener;
 
@@ -286,7 +286,7 @@ final class SelectionHelper {
             return true;
         }
 
-        private void changeSelectedStateFromUiNotify(int position, @NotNull BaseSelectionRecyclerViewAdapter.ViewHolder holder) {
+        private void changeSelectedStateFromUiNotify(int position, @NotNull BaseSelectionRecyclerViewAdapter.ViewHolder<?> holder) {
             final boolean wasSelected = isItemSelected(position);
             if (!changeSelectedStateFromUi(position, holder.getAdapterPosition())) {
                 selectionListener.handleSelected(holder, wasSelected);
@@ -294,7 +294,7 @@ final class SelectionHelper {
         }
 
         private boolean changeSelectedStateFromUi(int position, int wrapperPosition) {
-            if (isSelectionAtPositionAllowed(position)) {
+            if (canSelectAtPosition(position)) {
                 if (isItemSelected(position)) {
                     if (isResetSelectionAllowed()) {
                         return resetItemSelectedByPosition(position, wrapperPosition, true);
@@ -311,7 +311,7 @@ final class SelectionHelper {
         }
     }
 
-    class ViewHolderClickWrapper<VH extends BaseRecyclerViewAdapter.ViewHolder> extends ViewHolderWrapper<VH> {
+    class ViewHolderClickWrapper<VH extends BaseRecyclerViewAdapter.ViewHolder<?>> extends ViewHolderWrapper<VH> {
 
         ViewHolderClickWrapper(VH holder) {
             super(holder);

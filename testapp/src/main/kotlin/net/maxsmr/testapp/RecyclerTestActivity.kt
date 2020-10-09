@@ -1,23 +1,31 @@
 package net.maxsmr.testapp
 
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.view.KeyEvent
 import android.view.Menu
 import android.view.MenuItem
 import android.widget.RadioButton
 import android.widget.RadioGroup
 import android.widget.Toast
+import androidx.appcompat.app.AppCompatActivity
+import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.RecyclerView.NO_POSITION
 import kotlinx.android.synthetic.main.activity_recycler_test.*
-import net.maxsmr.android.recyclerview.adapters.base.selection.multi.BaseMultiSelectionRecyclerViewAdapter
 import net.maxsmr.android.recyclerview.adapters.base.BaseRecyclerViewAdapter
+import net.maxsmr.android.recyclerview.adapters.base.drag.DragAndDropTouchHelperCallback
+import net.maxsmr.android.recyclerview.adapters.base.drag.OnStartDragHelperListener
 import net.maxsmr.android.recyclerview.adapters.base.selection.BaseSelectionRecyclerViewAdapter
 import net.maxsmr.android.recyclerview.adapters.base.selection.BaseSingleSelectionRecyclerViewAdapter
+import net.maxsmr.android.recyclerview.adapters.base.selection.multi.BaseMultiSelectionRecyclerViewAdapter
 import net.maxsmr.android.recyclerview.adapters.itemcontroller.BaseFocusableItemController
 import net.maxsmr.android.recyclerview.adapters.itemcontroller.BaseSelectableItemController
+import net.maxsmr.android.recyclerview.adapters.itemcontroller.BaseSelectableItemController.SelectMode.MULTI
+import net.maxsmr.android.recyclerview.adapters.itemcontroller.BaseSelectableItemController.SelectMode.SINGLE
+import net.maxsmr.android.recyclerview.adapters.itemcontroller.wrapper.SelectableData
 import net.maxsmr.testapp.AdapterType.BASE
+import net.maxsmr.testapp.AdapterType.EASY
 import net.maxsmr.testapp.adapter.TestItem
 import net.maxsmr.testapp.adapter.base.TestMultiAdapter
 import net.maxsmr.testapp.adapter.base.TestNoneAdapter
@@ -26,12 +34,7 @@ import net.maxsmr.testapp.adapter.controller.TestItemController
 import net.maxsmr.testapp.adapter.controller.TestMultiItemController
 import ru.surfstudio.android.easyadapter.EasyAdapter
 import ru.surfstudio.android.easyadapter.ItemList
-import net.maxsmr.android.recyclerview.adapters.itemcontroller.BaseSelectableItemController.SelectMode.*
-import net.maxsmr.android.recyclerview.adapters.itemcontroller.wrapper.SelectableData
-import net.maxsmr.testapp.AdapterType.EASY
 import java.util.*
-
-const val EMPTY_STRING = ""
 
 @Suppress("UNCHECKED_CAST")
 class RecyclerTestActivity : AppCompatActivity(), BaseRecyclerViewAdapter.ItemsEventsListener<TestItem> {
@@ -71,19 +74,27 @@ class RecyclerTestActivity : AppCompatActivity(), BaseRecyclerViewAdapter.ItemsE
     }
     private val singleAdapter = TestSingleAdapter(this).apply {
         allowInfiniteScroll = false
+        allowDragAndDrop = true
         isSelectable = false
+        allowResetSelection = false
         selectTriggerModes = setOf(BaseSelectionRecyclerViewAdapter.SelectTriggerMode.CLICK)
     }
     private val multiAdapter = TestMultiAdapter(this).apply {
         allowInfiniteScroll = false
+        allowDragAndDrop = true
         isSelectable = false
         selectTriggerModes = setOf(BaseSelectionRecyclerViewAdapter.SelectTriggerMode.CLICK)
     }
+
+    private val singleTouchHelper = ItemTouchHelper(DragAndDropTouchHelperCallback(singleAdapter))
+    private val multiTouchHelper = ItemTouchHelper(DragAndDropTouchHelperCallback(multiAdapter))
 
     private var isMultiItemControllerInUse = false
 
     private var currentBaseAdapter: BaseRecyclerViewAdapter<TestItem, BaseRecyclerViewAdapter.ViewHolder<TestItem>> =
             noneAdapter as BaseRecyclerViewAdapter<TestItem, BaseRecyclerViewAdapter.ViewHolder<TestItem>>
+
+    private var currentTouchHelper: ItemTouchHelper? = null
 
     init {
         noneAdapter.setItems(defaultData)
@@ -111,16 +122,19 @@ class RecyclerTestActivity : AppCompatActivity(), BaseRecyclerViewAdapter.ItemsE
     }
 
     override fun onOptionsItemSelected(item: MenuItem?): Boolean {
+        var result = true
         item?.let {
             when (item.itemId) {
                 R.id.action_recycler_toggle_infinite_scroll -> toggleInfiniteScroll()
+                R.id.action_recycler_toggle_draggable -> toggleDraggable()
                 R.id.action_recycler_toggle_selectable -> toggleSelectable()
                 R.id.action_recycler_toggle_selected -> toggleSelected()
                 R.id.action_recycler_action_select_all -> setAllSelected()
                 R.id.action_recycler_action_clear_all -> clearAllSelected()
+                else -> result = false
             }
         }
-        return true
+        return result
     }
 
     override fun onItemClick(position: Int, item: TestItem?) {
@@ -156,12 +170,36 @@ class RecyclerTestActivity : AppCompatActivity(), BaseRecyclerViewAdapter.ItemsE
         // do nothing
     }
 
-    override fun onItemRemoved(from: Int, item: TestItem?) {
+    override fun onItemRemoved(position: Int, item: TestItem?) {
         // do nothing
     }
 
     override fun onItemsRangeRemoved(from: Int, to: Int, previousSize: Int, removedItems: List<TestItem?>) {
         // do nothing
+    }
+
+    override fun onItemsSwapped(fromPosition: Int, fromItem: TestItem?, toPosition: Int, toItem: TestItem?) {
+        // do nothing
+    }
+
+    override fun onKeyUp(keyCode: Int, event: KeyEvent?): Boolean {
+        var result = false
+        SelectType.resolveByIndex(getSelectedIndexInRadioGroup(recycler_type_select_rg))?.let { type ->
+            if (adapterType == BASE && type == SelectType.SINGLE) {
+                val adapter = currentBaseAdapter as BaseSingleSelectionRecyclerViewAdapter<*,*>
+                when(keyCode) {
+                    KeyEvent.KEYCODE_DPAD_DOWN -> {
+                        adapter.nextSelection(true)
+                        result = true
+                    }
+                    KeyEvent.KEYCODE_DPAD_UP -> {
+                        adapter.previousSelection(true)
+                        result = true
+                    }
+                }
+            }
+        }
+        return result || super.onKeyUp(keyCode, event)
     }
 
     private fun initViews() {
@@ -179,7 +217,11 @@ class RecyclerTestActivity : AppCompatActivity(), BaseRecyclerViewAdapter.ItemsE
 
     private fun initListeners() {
         singleAdapter.registerItemsEventsListener(this)
+        singleAdapter.startDragListener = OnStartDragHelperListener(singleTouchHelper)
+
         multiAdapter.registerItemsEventsListener(this)
+        multiAdapter.startDragListener = OnStartDragHelperListener(multiTouchHelper)
+
         multiItemController.onItemLongClickListener = { _, _ ->
             multiItemController.isSelectable = true
             true
@@ -214,19 +256,27 @@ class RecyclerTestActivity : AppCompatActivity(), BaseRecyclerViewAdapter.ItemsE
      * По типу адаптера рефрешнуть [RecyclerView]
      */
     private fun refreshRecyclerByAdapterType() {
-        SelectType.resolveByIndex(getSelectedIndexInRadioGroup(recycler_type_select_rg))?.let {
+        SelectType.resolveByIndex(getSelectedIndexInRadioGroup(recycler_type_select_rg))?.let {type ->
             val resultAdapter: RecyclerView.Adapter<*>
             if (adapterType == BASE) {
                 val previousData = currentBaseAdapter.items as List<TestItem>
-                currentBaseAdapter = when (it) {
+                currentBaseAdapter = when (type) {
                     SelectType.NONE -> noneAdapter as BaseRecyclerViewAdapter<TestItem, BaseRecyclerViewAdapter.ViewHolder<TestItem>>
                     SelectType.SINGLE -> singleAdapter as BaseRecyclerViewAdapter<TestItem, BaseRecyclerViewAdapter.ViewHolder<TestItem>>
                     SelectType.MULTI -> multiAdapter as BaseRecyclerViewAdapter<TestItem, BaseRecyclerViewAdapter.ViewHolder<TestItem>>
                 }
+                val previousTouchHelper = currentTouchHelper
+                currentTouchHelper = when (type) {
+                    SelectType.NONE -> null
+                    SelectType.SINGLE -> singleTouchHelper
+                    SelectType.MULTI -> multiTouchHelper
+                }
+                previousTouchHelper?.attachToRecyclerView(null)
+                currentTouchHelper?.attachToRecyclerView(recycler_test_rv)
                 currentBaseAdapter.setItems(previousData)
                 resultAdapter = currentBaseAdapter
             } else {
-                when (it) {
+                when (type) {
                     SelectType.NONE -> {
                         val currentData = noneItemController.items
                         easyAdapter.setItems(ItemList.create()
@@ -236,7 +286,7 @@ class RecyclerTestActivity : AppCompatActivity(), BaseRecyclerViewAdapter.ItemsE
                     SelectType.SINGLE, SelectType.MULTI -> {
                         val currentData = multiItemController.items
                         multiItemController.selectMode =
-                                if (it == SelectType.SINGLE) SINGLE else MULTI
+                                if (type == SelectType.SINGLE) SINGLE else MULTI
                         easyAdapter.setItems(ItemList.create()
                                 .addAll(currentData, multiItemController))
                         isMultiItemControllerInUse = true
@@ -249,7 +299,7 @@ class RecyclerTestActivity : AppCompatActivity(), BaseRecyclerViewAdapter.ItemsE
     }
 
     private fun showCurrentSelectedToast() {
-        var text: String = EMPTY_STRING
+        var text: String = ""
         if (adapterType == BASE) {
             with(currentBaseAdapter) {
                 when (this) {
@@ -286,7 +336,8 @@ class RecyclerTestActivity : AppCompatActivity(), BaseRecyclerViewAdapter.ItemsE
     }
 
     private fun generateAdapterData() {
-        setAdapterData(generateData(defaultData.size * 2))
+        val defaultSize = defaultData.size
+        setAdapterData(generateData(defaultSize * Random().nextInt( defaultSize) + defaultSize))
     }
 
     private fun clearAdapterData() {
@@ -308,6 +359,13 @@ class RecyclerTestActivity : AppCompatActivity(), BaseRecyclerViewAdapter.ItemsE
         when (adapterType) {
             BASE -> currentBaseAdapter.toggleInfiniteScroll()
             else -> easyAdapter.setInfiniteScroll(!currentBaseAdapter.allowInfiniteScroll)
+        }
+    }
+
+    private fun toggleDraggable() {
+        when (adapterType) {
+            BASE -> currentBaseAdapter.toggleDragAndDrop()
+            else -> Toast.makeText(this, R.string.recycler_test_unable_to_toggle_draggable, Toast.LENGTH_SHORT).show()
         }
     }
 

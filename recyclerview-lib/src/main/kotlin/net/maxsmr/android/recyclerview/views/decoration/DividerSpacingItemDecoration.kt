@@ -1,4 +1,4 @@
-package net.maxsmr.android.recyclerview.decoration
+package net.maxsmr.android.recyclerview.views.decoration
 
 import android.content.Context
 import android.graphics.Canvas

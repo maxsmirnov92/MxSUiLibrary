@@ -16,7 +16,6 @@
 package net.maxsmr.android.recyclerview.adapters.diff
 
 import androidx.recyclerview.widget.DiffUtil
-import net.maxsmr.android.recyclerview.adapters.base.DEFAULT_INFINITE_SCROLL_LOOPS_COUNT
 
 /**
  * Implementation of [DiffUtil.Callback].

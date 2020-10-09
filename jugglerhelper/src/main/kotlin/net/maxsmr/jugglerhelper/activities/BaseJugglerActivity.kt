@@ -102,6 +102,14 @@ abstract class BaseJugglerActivity : JugglerActivity() {
         }
     }
 
+    open fun getAssets(): AssetManager? {
+        // при переопределении конфигурации (например, в LocaleContextWrapper или applyOverrideConfiguration)
+        // возвращает другой инстанс в Context.getAssets() и Context.getResources().getAssets()
+        // и не находит там нужные строки
+        // начиная с версии appCompat 1.3
+        return getResources().getAssets()
+    }
+
     fun findFragmentById(id: Int): Fragment? =
             FragmentFinder.findFragmentById(supportFragmentManager, id)?.second
 

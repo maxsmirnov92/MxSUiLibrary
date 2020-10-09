@@ -228,7 +228,7 @@ abstract class BaseSelectableItemController<T, VH : BaseSelectableItemController
 
     fun resetSelected(targetItems: Collection<T>): Set<T> {
         val changedItems: MutableSet<T> = mutableSetOf()
-        targetItems.forEachIndexed { indexOfIndex, index ->
+        targetItems.forEachIndexed { _, index ->
             if (resetSelected(index/*, indexOfIndex == targetItems.size - 1*/)) {
                 changedItems.add(index)
             }
@@ -322,7 +322,7 @@ abstract class BaseSelectableItemController<T, VH : BaseSelectableItemController
         if (selectMode == SelectMode.SINGLE) {
             resetAllSelected()
         } else {
-            items.forEachIndexed { index, item ->
+            items.forEachIndexed { index, _ ->
                 toggleSelectedByIndex(index, index == items.size - 1)
             }
         }
@@ -536,10 +536,10 @@ abstract class BaseSelectableItemController<T, VH : BaseSelectableItemController
          */
         protected abstract val selectableView: View?
 
-        override val allowSetBaseClickListener: Boolean
+        override val canSetBaseClickListener: Boolean
             get() = !selectTriggerModes.contains(SelectTriggerMode.CLICK)
 
-        override val allowSetBaseLongClickListener: Boolean
+        override val canSetBaseLongClickListener: Boolean
             get() = !selectTriggerModes.contains(SelectTriggerMode.LONG_CLICK)
 
         lateinit var selectTriggerModes: Set<SelectTriggerMode>

@@ -101,13 +101,11 @@ abstract class BaseMultiSelectionRecyclerViewAdapter<I, VH : BaseSelectionRecycl
 
     @CallSuper
     override fun bindSelection(holder: VH, item: I?, position: Int) {
-
         selectionHelper.wrapSelectable(
                 holder,
-                isSelectionForItemByClickAllowed(item, position),
-                isSelectionForItemByLongClickAllowed(item, position)
+                canSelectItemByClick(item, position),
+                canSelectItemByLongClick(item, position)
         )
-
         super.bindSelection(holder, item, position)
     }
 
@@ -132,7 +130,7 @@ abstract class BaseMultiSelectionRecyclerViewAdapter<I, VH : BaseSelectionRecycl
         return super.getListPosition(adapterPosition)
     }
 
-    override fun isSelectionAtPositionAllowed(position: Int): Boolean = isSelectionForItemAllowed(getItem(position), position)
+    override fun canSelectAtPosition(position: Int): Boolean = canSelectItem(getItem(position), position)
 
     @CallSuper
     override fun onSelectionChanged(position: Int, holder: ViewHolder<*>?, isSelected: Boolean, fromUser: Boolean) {
@@ -233,6 +231,23 @@ abstract class BaseMultiSelectionRecyclerViewAdapter<I, VH : BaseSelectionRecycl
             setItemsSelectedByPositions(targetUnselected, false, false)
             setItemsSelectedByPositions(targetSelected, true)
         }
+    }
+
+    override fun invalidateSelectionIndexOnSwap(from: Int, to: Int) {
+        val targetSelected = mutableListOf<Int>()
+        val targetUnselected = mutableListOf<Int>()
+        if (to in 0..listItemCount && from in 0..listItemCount) {
+            if (selectedItemsPositions.contains(from)) {
+                targetSelected.add(to)
+                targetUnselected.add(from)
+            }
+            if (selectedItemsPositions.contains(to)) {
+                targetSelected.add(from)
+                targetUnselected.add(to)
+            }
+        }
+        setItemsSelectedByPositions(targetSelected, true)
+        setItemsSelectedByPositions(targetUnselected, false)
     }
 
     override fun resetSelection() {

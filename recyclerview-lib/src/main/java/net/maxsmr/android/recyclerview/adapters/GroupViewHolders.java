@@ -55,19 +55,11 @@ public class GroupViewHolders {
             return item == null;
         }
 
-        public final void fill(@Nullable I item, int groupPosition) {
-            if (item == null || isItemEmpty(item)) {
-                displayNoData(groupPosition);
-            } else {
-                displayData(item, groupPosition);
-            }
-        }
-
-        public void displayData(@NotNull I item, int groupPosition) {
+        public void bindData(@NotNull I item, int groupPosition) {
             itemView.setVisibility(View.VISIBLE);
         }
 
-        public void displayNoData(int groupPosition) {
+        public void bindNoData(int groupPosition) {
             itemView.setVisibility(View.GONE);
         }
     }
@@ -93,19 +85,11 @@ public class GroupViewHolders {
 
         protected abstract void onBindView(@NotNull View itemView);
 
-        public final void fill(@Nullable I item, int groupPosition, int childPosition) {
-            if (item == null) {
-                displayNoData(groupPosition, childPosition);
-            } else {
-                displayData(item, groupPosition, childPosition);
-            }
-        }
-
-        public void displayData(@NotNull I item, int groupPosition, int childPosition) {
+        public void bindData(@NotNull I item, int groupPosition, int childPosition) {
             itemView.setVisibility(View.VISIBLE);
         }
 
-        public void displayNoData(int groupPosition, int childPosition) {
+        public void bindNoData(int groupPosition, int childPosition) {
             itemView.setVisibility(View.GONE);
         }
     }

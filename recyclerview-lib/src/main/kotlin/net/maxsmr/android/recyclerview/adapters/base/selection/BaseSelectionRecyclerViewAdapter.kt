@@ -34,12 +34,12 @@ abstract class BaseSelectionRecyclerViewAdapter<I, VH : BaseSelectionRecyclerVie
             }
         }
 
-    override fun allowSetClickListener(item: I?, position: Int): Boolean =
-            super.allowSetClickListener(item, position) && !isSelectionForItemByClickAllowed(item, position)
+    override fun canSetClickListener(item: I?, position: Int): Boolean =
+            super.canSetClickListener(item, position) && !canSelectItemByClick(item, position)
 
 
-    override fun allowSetLongClickListener(item: I?, position: Int): Boolean =
-            super.allowSetLongClickListener(item, position) && !isSelectionForItemByLongClickAllowed(item, position)
+    override fun canSetLongClickListener(item: I?, position: Int): Boolean =
+            super.canSetLongClickListener(item, position) && !canSelectItemByLongClick(item, position)
 
     @CallSuper
     override fun bindItem(holder: VH, item: I?, position: Int) {
@@ -66,15 +66,22 @@ abstract class BaseSelectionRecyclerViewAdapter<I, VH : BaseSelectionRecyclerVie
     }
 
     @CallSuper
-    override fun onItemRemoved(from: Int, item: I?) {
-        invalidateSelectionIndexOnRemove(from, 1)
-        super.onItemRemoved(from, item)
+    override fun onItemRemoved(position: Int, item: I?) {
+        invalidateSelectionIndexOnRemove(position, 1)
+        super.onItemRemoved(position, item)
     }
 
     @CallSuper
     override fun onItemsRangeRemoved(from: Int, to: Int, previousSize: Int, removedItems: List<I?>) {
         invalidateSelectionIndexOnRemove(from, if (from == to) 1 else to - from)
         super.onItemsRangeRemoved(from, to, previousSize, removedItems)
+    }
+
+    override fun onItemsSwapped(fromPosition: Int, fromItem: I?, toPosition: Int, toItem: I?) {
+        allowNotifyOnChange = false
+        invalidateSelectionIndexOnSwap(fromPosition, toPosition)
+        allowNotifyOnChange = true
+        super.onItemsSwapped(fromPosition, fromItem, toPosition, toItem)
     }
 
     final override fun bindData(holder: VH, position: Int, item: I) {
@@ -85,11 +92,11 @@ abstract class BaseSelectionRecyclerViewAdapter<I, VH : BaseSelectionRecyclerVie
         holder.bindEmptyData(position, item, listItemCount, isItemPositionSelected(position))
     }
 
-    fun isSelectionForItemByClickAllowed(item: I?, position: Int) =
-            isSelectionForItemAllowed(item, position) && getSelectTriggerModesForItem(item, position).contains(SelectTriggerMode.CLICK)
+    fun canSelectItemByClick(item: I?, position: Int) =
+            canSelectItem(item, position) && getSelectTriggerModesForItem(item, position).contains(SelectTriggerMode.CLICK)
 
-    fun isSelectionForItemByLongClickAllowed(item: I?, position: Int) =
-            isSelectionForItemAllowed(item, position) && getSelectTriggerModesForItem(item, position).contains(SelectTriggerMode.LONG_CLICK)
+    fun canSelectItemByLongClick(item: I?, position: Int) =
+            canSelectItem(item, position) && getSelectTriggerModesForItem(item, position).contains(SelectTriggerMode.LONG_CLICK)
 
     fun registerItemSelectedChangeListener(listener: L) {
         itemsSelectedObservable.registerObserver(listener)
@@ -114,6 +121,8 @@ abstract class BaseSelectionRecyclerViewAdapter<I, VH : BaseSelectionRecyclerVie
 
     protected abstract fun invalidateSelectionIndexOnRemove(from: Int, count: Int)
 
+    protected abstract fun invalidateSelectionIndexOnSwap(from: Int, to: Int)
+
     @CallSuper
     protected open fun bindSelection(holder: VH, item: I?, position: Int) {
         val isSelected = isItemPositionSelected(position)
@@ -125,7 +134,7 @@ abstract class BaseSelectionRecyclerViewAdapter<I, VH : BaseSelectionRecyclerVie
         }
     }
 
-    protected open fun isSelectionForItemAllowed(item: I?, position: Int) = isSelectable
+    protected open fun canSelectItem(item: I?, position: Int) = isSelectable
 
     // override if need various for each position
     protected open fun getSelectTriggerModesForItem(item: I?, position: Int): Set<SelectTriggerMode> = selectTriggerModes

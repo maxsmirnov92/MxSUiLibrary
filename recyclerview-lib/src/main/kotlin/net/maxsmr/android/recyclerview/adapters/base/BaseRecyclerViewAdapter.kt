@@ -11,11 +11,14 @@ import androidx.annotation.MainThread
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.RecyclerView.NO_ID
+import net.maxsmr.android.recyclerview.adapters.base.drag.ITouchHelperAdapter
+import net.maxsmr.android.recyclerview.adapters.base.drag.OnMotionTouchListener
+import net.maxsmr.android.recyclerview.adapters.base.drag.OnStartDragListener
 import net.maxsmr.android.recyclerview.adapters.diff.AutoNotifyDiffCallback
 import net.maxsmr.android.recyclerview.adapters.diff.ItemInfo
 import java.util.*
 
-const val DEFAULT_INFINITE_SCROLL_LOOPS_COUNT = 100
+const val INFINITE_SCROLL_LOOPS_COUNT_DEFAULT = 100
 
 @MainThread
 abstract class BaseRecyclerViewAdapter<I, VH : BaseRecyclerViewAdapter.ViewHolder<I>>(
@@ -23,9 +26,18 @@ abstract class BaseRecyclerViewAdapter<I, VH : BaseRecyclerViewAdapter.ViewHolde
         @LayoutRes
         protected val baseItemLayoutId: Int = 0,
         items: Collection<I>? = null
-) : RecyclerView.Adapter<VH>() {
+) : RecyclerView.Adapter<VH>(), ITouchHelperAdapter {
+
+    val items = mutableListOf<I>()
+//        get() = field.toMutableList()
 
     val listItemCount get() = items.size
+
+    val isEmpty: Boolean
+        get() = listItemCount == 0
+
+    val isNotEmpty: Boolean
+        get() = !isEmpty
 
     val firstItem: I?
         get() = if (isNotEmpty) {
@@ -42,15 +54,6 @@ abstract class BaseRecyclerViewAdapter<I, VH : BaseRecyclerViewAdapter.ViewHolde
                 null
             }
         }
-
-    val isEmpty: Boolean
-        get() = listItemCount == 0
-
-    val isNotEmpty: Boolean
-        get() = !isEmpty
-
-    val items = mutableListOf<I>()
-//        get() = field.toMutableList()
 
     protected val itemsEventsObservable = ItemsEventsObservable<I, VH>()
 
@@ -72,6 +75,26 @@ abstract class BaseRecyclerViewAdapter<I, VH : BaseRecyclerViewAdapter.ViewHolde
      */
     var allowDiffNotifyOnChange = true
 
+    var allowDragAndDrop = false
+        set(value) {
+            if (field != value) {
+                field = value
+                if (allowNotifyOnChange) {
+                    notifyDataSetChanged()
+                }
+            }
+        }
+
+    var startDragListener: OnStartDragListener? = null
+        set(value) {
+            if (field != value) {
+                field = value
+                if (allowNotifyOnChange) {
+                    notifyDataSetChanged()
+                }
+            }
+        }
+
     var allowInfiniteScroll: Boolean = false
         set(value) {
             if (field != value) {
@@ -82,7 +105,7 @@ abstract class BaseRecyclerViewAdapter<I, VH : BaseRecyclerViewAdapter.ViewHolde
             }
         }
 
-    var infiniteScrollLoopsCount: Int = DEFAULT_INFINITE_SCROLL_LOOPS_COUNT
+    var infiniteScrollLoopsCount: Int = INFINITE_SCROLL_LOOPS_COUNT_DEFAULT
         set(value) {
             require(value > 0) { "infiniteScrollLoopsCount cannot be less or equal zero: $value" }
             if (field != value) {
@@ -94,6 +117,7 @@ abstract class BaseRecyclerViewAdapter<I, VH : BaseRecyclerViewAdapter.ViewHolde
         }
 
     protected var pendingFocusPosition = RecyclerView.NO_POSITION
+        private set
 
     private var lastItemsInfo = listOf<ItemInfo>()
 
@@ -104,6 +128,25 @@ abstract class BaseRecyclerViewAdapter<I, VH : BaseRecyclerViewAdapter.ViewHolde
     abstract override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): VH
 
     override fun getItemCount() = if (allowInfiniteScroll) infiniteScrollLoopsCount * listItemCount else listItemCount
+
+    override fun onItemMove(from: Int, to: Int): Boolean {
+        if (!isDraggable(from) || !isDraggable(to)) {
+            return false
+        }
+        swapItems(getListPosition(from), getListPosition(to))
+//        notifyDataSetChanged()
+        return true
+    }
+
+    override fun onItemDismiss(position: Int) {
+        if (isDismissible(position)) {
+            removeItem(position)
+        }
+    }
+
+    override fun isDraggable(position: Int): Boolean = canDragItem(getItem(getListPosition(position)), position)
+
+    override fun isDismissible(position: Int): Boolean = canDragItem(getItem(getListPosition(position)), position)
 
     @CallSuper
     override fun onViewRecycled(holder: VH) {
@@ -154,6 +197,10 @@ abstract class BaseRecyclerViewAdapter<I, VH : BaseRecyclerViewAdapter.ViewHolde
 
     fun unregisterItemsEventsListener(listener: ItemsEventsListener<I>) {
         itemsEventsObservable.unregisterObserver(listener)
+    }
+
+    fun toggleDragAndDrop() {
+        allowDragAndDrop = !allowDragAndDrop
     }
 
     fun toggleInfiniteScroll() {
@@ -281,11 +328,11 @@ abstract class BaseRecyclerViewAdapter<I, VH : BaseRecyclerViewAdapter.ViewHolde
         return removeItem(indexOf(item))
     }
 
-    fun removeItem(from: Int): I? {
-        rangeCheck(from)
-        val removedItem = getItem(from)
-        items.removeAt(from)
-        onItemRemoved(from, removedItem)
+    fun removeItem(position: Int): I? {
+        rangeCheck(position)
+        val removedItem = getItem(position)
+        items.removeAt(position)
+        onItemRemoved(position, removedItem)
         return removedItem
     }
 
@@ -314,6 +361,17 @@ abstract class BaseRecyclerViewAdapter<I, VH : BaseRecyclerViewAdapter.ViewHolde
         if (isNotEmpty) {
             removeItemsRange(0, listItemCount - 1)
         }
+    }
+
+    fun swapItems(from: Int, to: Int): Boolean {
+        rangeCheck(from)
+        rangeCheck(to)
+        if (from == to) {
+            return false
+        }
+        Collections.swap(items, from, to)
+        onItemsSwapped(from, getItem(from), to, getItem(to))
+        return true
     }
 
     protected open fun areItemsEqual(items: Collection<I>?) = this.items == items
@@ -362,6 +420,14 @@ abstract class BaseRecyclerViewAdapter<I, VH : BaseRecyclerViewAdapter.ViewHolde
     }
 
     @CallSuper
+    protected open fun onItemRemoved(position: Int, item: I?) {
+        itemsEventsObservable.notifyItemRemoved(position, item)
+        if (allowNotifyOnChange) {
+            notifyItemRemoved(position)
+        }
+    }
+
+    @CallSuper
     protected open fun onItemsRangeRemoved(from: Int, to: Int, previousSize: Int, removedItems: List<I?>) {
         itemsEventsObservable.notifyItemsRangeRemoved(from, to, previousSize, removedItems)
         if (allowNotifyOnChange) {
@@ -374,10 +440,10 @@ abstract class BaseRecyclerViewAdapter<I, VH : BaseRecyclerViewAdapter.ViewHolde
     }
 
     @CallSuper
-    protected open fun onItemRemoved(from: Int, item: I?) {
-        itemsEventsObservable.notifyItemRemoved(from, item)
+    protected open fun onItemsSwapped(fromPosition: Int, fromItem: I?, toPosition: Int, toItem: I?) {
+        itemsEventsObservable.notifyItemsSwapped(fromPosition, fromItem, toPosition, toItem)
         if (allowNotifyOnChange) {
-            notifyItemRemoved(from)
+            notifyItemMoved(fromPosition, toPosition) // TODO not refreshing with infinite scroll
         }
     }
 
@@ -396,25 +462,15 @@ abstract class BaseRecyclerViewAdapter<I, VH : BaseRecyclerViewAdapter.ViewHolde
         }
     }
 
-    protected fun rangeCheck(position: Int) {
-        if (position < 0 || position >= listItemCount) {
-            throw IndexOutOfBoundsException("Incorrect position: $position")
-        }
-    }
+    protected open fun canSetClickListener(item: I?, position: Int) = !isItemEmpty(item, position)
 
-    protected fun rangeCheckForAdd(position: Int) {
-        if (position < 0 || position > listItemCount) {
-            throw IndexOutOfBoundsException("Incorrect add position: $position")
-        }
-    }
+    protected open fun canSetLongClickListener(item: I?, position: Int) = canSetClickListener(item, position)
 
-    protected open fun allowSetClickListener(item: I?, position: Int) = !isItemEmpty(item, position)
+    protected open fun canFillHolderForItem(holder: VH, item: I?, position: Int) = true
 
-    protected open fun allowSetLongClickListener(item: I?, position: Int) = allowSetClickListener(item, position)
+    protected open fun canBindFocusForItem(holder: VH, item: I?, position: Int) = pendingFocusPosition == position
 
-    protected open fun allowFillHolderForItem(holder: VH, item: I?, position: Int) = true
-
-    protected open fun allowBindFocusForItem(holder: VH, item: I?, position: Int) = pendingFocusPosition == position
+    protected open fun canDragItem(item: I?, position: Int) = allowDragAndDrop
 
     protected open fun isItemEmpty(item: I?, position: Int): Boolean = item == null
 
@@ -427,21 +483,29 @@ abstract class BaseRecyclerViewAdapter<I, VH : BaseRecyclerViewAdapter.ViewHolde
         val listPosition = getListPosition(position)
 
         // clear previous if was set by this adapter
+        holder.motionTouchListener?.let {
+            holder.draggableView?.setOnTouchListener(null)
+            holder.motionTouchListener = null
+        }
         holder.clickListener?.let {
-            holder.clickableView?.setOnClickListener { view ->
-                view.setOnClickListener(null)
-            }
+            holder.clickableView?.setOnClickListener(null)
             holder.clickListener = null
         }
         holder.longClickListener?.let {
-            holder.longClickableView?.setOnClickListener { view ->
-                view.setOnLongClickListener(null)
-            }
+            holder.longClickableView?.setOnLongClickListener(null)
             holder.clickListener = null
         }
 
+        val touchListener = startDragListener
+        if (touchListener != null && canDragItem(item, position)) {
+            OnMotionTouchListener(holder, touchListener, context).let {
+                holder.draggableView?.setOnTouchListener(it)
+                holder.motionTouchListener = it
+            }
+        }
+
         holder.clickableView?.let { view ->
-            if (allowSetClickListener(item, listPosition)) {
+            if (canSetClickListener(item, listPosition)) {
                 val listener = View.OnClickListener {
                     itemsEventsObservable.notifyItemClick(getListPosition(holder.adapterPosition), item)
                 }
@@ -451,7 +515,7 @@ abstract class BaseRecyclerViewAdapter<I, VH : BaseRecyclerViewAdapter.ViewHolde
         }
 
         holder.longClickableView?.let { view ->
-            if (allowSetLongClickListener(item, listPosition)) {
+            if (canSetLongClickListener(item, listPosition)) {
                 val listener = View.OnLongClickListener {
                     itemsEventsObservable.notifyItemLongClick(getListPosition(holder.adapterPosition), item)
                 }
@@ -460,7 +524,7 @@ abstract class BaseRecyclerViewAdapter<I, VH : BaseRecyclerViewAdapter.ViewHolde
             }
         }
 
-        if (allowFillHolderForItem(holder, item, listPosition)) {
+        if (canFillHolderForItem(holder, item, listPosition)) {
             if (item != null && !isItemEmpty(item, listPosition)) {
                 bindData(holder, listPosition, item)
             } else {
@@ -468,7 +532,7 @@ abstract class BaseRecyclerViewAdapter<I, VH : BaseRecyclerViewAdapter.ViewHolde
             }
         }
 
-        if (allowBindFocusForItem(holder, item, listPosition)) {
+        if (canBindFocusForItem(holder, item, listPosition)) {
             bindItemFocus(holder, item, listPosition)
             itemsEventsObservable.notifyItemFocused(listPosition, item)
             pendingFocusPosition = RecyclerView.NO_POSITION
@@ -500,12 +564,26 @@ abstract class BaseRecyclerViewAdapter<I, VH : BaseRecyclerViewAdapter.ViewHolde
         adapterPosition
     }
 
+    protected fun rangeCheck(position: Int) {
+        if (position < 0 || position >= listItemCount) {
+            throw IndexOutOfBoundsException("Incorrect position: $position")
+        }
+    }
+
+    protected fun rangeCheckForAdd(position: Int) {
+        if (position < 0 || position > listItemCount) {
+            throw IndexOutOfBoundsException("Incorrect add position: $position")
+        }
+    }
+
     protected fun notifyItemChangedInfiniteCheck(position: Int, excludedIndexes: Set<Int> = emptySet()) {
         if (position in 0 until listItemCount) {
-            if (!allowInfiniteScroll) {
-                notifyItemChanged(position)
-            } else {
-                notifyItemsChangedForInfiniteScroll(position, excludedIndexes)
+            if (allowNotifyOnChange) {
+                if (!allowInfiniteScroll) {
+                    notifyItemChanged(position)
+                } else {
+                    notifyItemsChangedForInfiniteScroll(position, excludedIndexes)
+                }
             }
         }
     }
@@ -513,8 +591,7 @@ abstract class BaseRecyclerViewAdapter<I, VH : BaseRecyclerViewAdapter.ViewHolde
     /**
      * Оповещает об изменении selection'а все изменившиеся позиции в случае infinite scroll
      */
-    protected fun notifyItemsChangedForInfiniteScroll(firstChangedPosition: Int, excludedIndexes: Set<Int> = emptySet()
-    ): Set<Int> {
+    protected fun notifyItemsChangedForInfiniteScroll(firstChangedPosition: Int, excludedIndexes: Set<Int> = emptySet()): Set<Int> {
         val notifiedPositions = mutableSetOf<Int>()
         if (firstChangedPosition in 0 until listItemCount) {
             if (isNotEmpty && allowInfiniteScroll) {
@@ -572,8 +649,11 @@ abstract class BaseRecyclerViewAdapter<I, VH : BaseRecyclerViewAdapter.ViewHolde
 
         open val focusableView: View? = itemView
 
+        open val draggableView: View? = null
+
         var clickListener: View.OnClickListener? = null
         var longClickListener: View.OnLongClickListener? = null
+        var motionTouchListener: OnMotionTouchListener? = null
 
         constructor(parent: ViewGroup, @LayoutRes layoutId: Int) :
                 this(LayoutInflater.from(parent.context).inflate(layoutId, parent, false))
@@ -657,10 +737,10 @@ abstract class BaseRecyclerViewAdapter<I, VH : BaseRecyclerViewAdapter.ViewHolde
             }
         }
 
-        fun notifyItemRemoved(from: Int, item: I?) {
+        fun notifyItemRemoved(position: Int, item: I?) {
             synchronized(mObservers) {
                 for (l in mObservers) {
-                    l.onItemRemoved(from, item)
+                    l.onItemRemoved(position, item)
                 }
             }
         }
@@ -669,6 +749,14 @@ abstract class BaseRecyclerViewAdapter<I, VH : BaseRecyclerViewAdapter.ViewHolde
             synchronized(mObservers) {
                 for (l in mObservers) {
                     l.onItemsRangeRemoved(from, to, previousSize, removedItems)
+                }
+            }
+        }
+
+        fun notifyItemsSwapped(fromPosition: Int, fromItem: I?, toPosition: Int, toItem: I?) {
+            synchronized(mObservers) {
+                for (l in mObservers) {
+                    l.onItemsSwapped(fromPosition, fromItem, toPosition, toItem)
                 }
             }
         }
@@ -696,8 +784,10 @@ abstract class BaseRecyclerViewAdapter<I, VH : BaseRecyclerViewAdapter.ViewHolde
 
         fun onItemsSet(items: List<I?>)
 
-        fun onItemRemoved(from: Int, item: I?)
+        fun onItemRemoved(position: Int, item: I?)
 
         fun onItemsRangeRemoved(from: Int, to: Int, previousSize: Int, removedItems: List<I?>)
+
+        fun onItemsSwapped(fromPosition: Int, fromItem: I?, toPosition: Int, toItem: I?)
     }
 }

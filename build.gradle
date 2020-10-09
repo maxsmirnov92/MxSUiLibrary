@@ -7,8 +7,6 @@ buildscript {
     ext {
         commonUtilsVersion = "1.1.0.2"
         jugglerVersion = "0.1.23"
-        androidXSwipeRefreshVersion = "1.1.0"
-        androidXConstraintLayoutVersion = '2.0.1'
         nestableViewPagerVersion = "0.2.0"
     }
 

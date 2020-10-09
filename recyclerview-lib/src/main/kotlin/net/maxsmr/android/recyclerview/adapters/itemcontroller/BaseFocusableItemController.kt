@@ -148,12 +148,12 @@ abstract class BaseFocusableItemController<T, VH : BaseFocusableItemController.F
         /**
          * разрешить выставление базового клик листенера
          */
-        protected abstract val allowSetBaseClickListener: Boolean
+        protected abstract val canSetBaseClickListener: Boolean
 
         /**
          * разрешить выставление базового лонг-клик листенера
          */
-        protected abstract val allowSetBaseLongClickListener: Boolean
+        protected abstract val canSetBaseLongClickListener: Boolean
 
         lateinit var baseController: BaseFocusableItemController<T, out FocusableViewHolder<T>>
 
@@ -182,14 +182,14 @@ abstract class BaseFocusableItemController<T, VH : BaseFocusableItemController.F
 
         @CallSuper
         protected open fun bindListeners(item: T?) {
-            if (allowSetBaseClickListener) {
+            if (canSetBaseClickListener) {
                 clickableView?.let {
                     it.setOnClickListener {
                         baseController.onItemClickListener?.invoke(adapterPosition - baseController.preItemsCount, item)
                     }
                 }
             }
-            if (allowSetBaseLongClickListener) {
+            if (canSetBaseLongClickListener) {
                 longClickableView?.let {
                     it.setOnLongClickListener {
                         baseController.onItemLongClickListener?.invoke(adapterPosition - baseController.preItemsCount, item) ?: false
