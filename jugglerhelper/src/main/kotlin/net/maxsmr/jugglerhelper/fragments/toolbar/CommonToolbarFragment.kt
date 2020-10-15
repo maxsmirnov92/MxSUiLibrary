@@ -10,9 +10,9 @@ import net.maxsmr.jugglerhelper.R
 import net.maxsmr.jugglerhelper.navigation.NavigationMode
 import java.io.Serializable
 
-private val ARG_TOOLBAR_OPTS = CustomLayoutToolbarFragment::class.java.simpleName + ".ARG_TOOLBAR_OPTS"
+private val ARG_TOOLBAR_OPTS = CommonToolbarFragment::class.java.simpleName + ".ARG_TOOLBAR_OPTS"
 
-class CustomLayoutToolbarFragment : BaseCustomJugglerToolbarFragment() {
+open class CommonToolbarFragment : BaseCustomJugglerToolbarFragment() {
 
     private lateinit var options: ToolbarOptions
 
@@ -54,10 +54,10 @@ class CustomLayoutToolbarFragment : BaseCustomJugglerToolbarFragment() {
 
     companion object {
 
-        fun newInstance(options: ToolbarOptions): CustomLayoutToolbarFragment {
+        fun newInstance(options: ToolbarOptions = ToolbarOptions()): CommonToolbarFragment {
             val args = Bundle()
             args.putSerializable(ARG_TOOLBAR_OPTS, options)
-            val fragment = CustomLayoutToolbarFragment()
+            val fragment = CommonToolbarFragment()
             fragment.arguments = args
             return fragment
         }

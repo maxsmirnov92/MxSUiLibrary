@@ -16,7 +16,7 @@
         android:indeterminateTint="@color/colorProgressBarPrimary"
         android:indeterminateTintMode="src_atop" />
 
-    <net.maxsmr.commonutils.android.gui.views.font.FontTextView
+    <TextView
         android:id="@+id/tvLoadingMessage"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"

@@ -4,10 +4,20 @@
     android:id="@+id/toolbar"
     android:layout_width="match_parent"
     android:layout_height="?attr/actionBarSize"
-    android:background="@color/colorPrimary"
     android:foregroundGravity="center"
     android:orientation="vertical"
-    app:title="title"
+    android:theme="@style/ToolBarStyle.ToolbarSearch"
+    app:title="@null"
     app:titleTextColor="@color/textColorPrimary">
+
+    <androidx.appcompat.widget.SearchView
+        android:id="@+id/searchView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_centerHorizontal="true"
+        android:queryHint="Search"/>
+
+<!--    android:background="@drawable/shape_rounded_corner"-->
+<!--    app:queryBackground="@drawable/shape_rounded_corner"-->
 
 </androidx.appcompat.widget.Toolbar>

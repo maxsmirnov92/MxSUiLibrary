@@ -1,11 +1,11 @@
-package net.maxsmr.testapp.adapter.controller
+package net.maxsmr.testapp.recycler.adapter.controller
 
 import android.view.View
 import android.view.ViewGroup
 import android.widget.CheckBox
 import android.widget.TextView
 import net.maxsmr.android.recyclerview.adapters.itemcontroller.view.LoadableItemView
-import net.maxsmr.testapp.adapter.TestItem
+import net.maxsmr.testapp.recycler.adapter.TestItem
 import net.maxsmr.android.recyclerview.adapters.itemcontroller.BaseSelectableItemController
 import net.maxsmr.android.recyclerview.adapters.itemcontroller.wrapper.SelectableData
 import net.maxsmr.testapp.R

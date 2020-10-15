@@ -1,11 +1,11 @@
-package net.maxsmr.testapp.adapter.base
+package net.maxsmr.testapp.recycler.adapter.base
 
 import android.content.Context
 import android.view.ViewGroup
 import android.widget.TextView
 import net.maxsmr.android.recyclerview.adapters.base.BaseRecyclerViewAdapter
 import net.maxsmr.testapp.R
-import net.maxsmr.testapp.adapter.TestItem
+import net.maxsmr.testapp.recycler.adapter.TestItem
 
 class TestNoneAdapter(
         context: Context

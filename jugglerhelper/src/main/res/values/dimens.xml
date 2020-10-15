@@ -40,4 +40,6 @@
 
     <dimen name="view_shadow_height">10dp</dimen>
 
+    <dimen name="navigation_view_width">280dp</dimen>
+    <dimen name="navigation_view_header_height">200dp</dimen>
 </resources>

@@ -1,14 +1,12 @@
-package net.maxsmr.testapp.adapter.base
+package net.maxsmr.testapp.recycler.adapter.base
 
 import android.content.Context
 import android.view.View
 import android.view.ViewGroup
-import android.widget.RadioButton
-import android.widget.TextView
 import kotlinx.android.synthetic.main.item_test_single.view.*
 import net.maxsmr.android.recyclerview.adapters.base.selection.BaseSingleSelectionRecyclerViewAdapter
 import net.maxsmr.testapp.R
-import net.maxsmr.testapp.adapter.TestItem
+import net.maxsmr.testapp.recycler.adapter.TestItem
 
 class TestSingleAdapter(
         context: Context

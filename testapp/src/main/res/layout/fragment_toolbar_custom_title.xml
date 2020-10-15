@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.appcompat.widget.Toolbar xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/toolbar"
+    style="@style/ToolBarStyle"
+    android:layout_width="match_parent"
+    android:layout_height="?attr/actionBarSize"
+    android:foregroundGravity="center"
+    android:gravity="center"
+    android:orientation="vertical"
+    app:title="@null"
+    app:titleTextColor="@color/textColorPrimary">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center">
+
+        <ImageView
+            android:id="@+id/ivToolbarLogo"
+            android:layout_width="60dp"
+            android:layout_height="60dp"
+            app:srcCompat="@null" />
+
+        <TextView
+            android:id="@+id/tvToolbarTitle"
+            style="@style/TextView.NonClickable"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="5dp"
+            android:gravity="center"
+            android:maxLines="2"
+            android:padding="@dimen/space_8"
+            android:textAllCaps="true"
+            android:textColor="@color/textColorPrimary"
+            android:textSize="20sp"
+            tools:text="dfhl;dfhdfh;" />
+
+    </LinearLayout>
+
+</androidx.appcompat.widget.Toolbar>

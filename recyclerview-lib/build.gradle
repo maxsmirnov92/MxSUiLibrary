@@ -10,12 +10,10 @@ android {
 
 dependencies {
 
-    // FIXME new Gradle: direct local .aar file dependencies are not supported when building an AAR
     api project(":easyadapter")
 
     // Android + Support
     api "com.google.android.material:material:$materialVersion"
     api "androidx.recyclerview:recyclerview:$androidxRecyclerViewVersion"
-//    api "androidx.viewpager:viewpager:$androidXViewPagerVersion"
 //    api (name: 'easyadapter', ext:'aar')
 }

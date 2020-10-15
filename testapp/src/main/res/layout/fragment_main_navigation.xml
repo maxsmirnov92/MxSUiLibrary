@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="@dimen/navigation_view_width"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <ImageView
+        android:id="@+id/ivNavigationHeader"
+        style="@style/Selectable.Normal"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/navigation_view_header_height"
+        android:background="@android:color/transparent"
+        android:scaleType="fitXY"
+        android:src="@android:drawable/alert_light_frame" />
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rvNavigationView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:reverseLayout="false" />
+
+</LinearLayout>

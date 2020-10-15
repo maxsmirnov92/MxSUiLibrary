@@ -1,6 +1,7 @@
 <resources>
     <string name="app_name">Recycler Test App</string>
     <string name="activity_recycler_test">RecyclerTest</string>
+    <string name="activity_juggler_test">JugglerTest</string>
     <string name="recycler_test_type_none_radio_text">None</string>
     <string name="recycler_test_type_single_radio_text">Single</string>
     <string name="recycler_test_type_multi_radio_text">Multi</string>
@@ -23,4 +24,9 @@
     <string name="recycler_test_unable_to_toggle_selected">Unable to toggle selected: None type is now selected.</string>
     <string name="recycler_test_unable_to_set_all_selection">Unable to set selections to all: Non-multi type is now selected.</string>
     <string name="recycler_test_unable_to_clear_all_selection">Unable to clear selection(s) to all: None type is now selected.</string>
+    <string name="tab_one_title">Tab One</string>
+    <string name="tab_two_title">Tab Two</string>
+    <string name="tab_one_content">Tab One Content</string>
+    <string name="tab_two_content">Tab Two Content</string>
+    <string name="main_title">Main</string>
 </resources>

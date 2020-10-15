@@ -1,4 +1,4 @@
-package net.maxsmr.testapp.adapter
+package net.maxsmr.testapp.recycler.adapter
 
 data class TestItem(
         val data: String

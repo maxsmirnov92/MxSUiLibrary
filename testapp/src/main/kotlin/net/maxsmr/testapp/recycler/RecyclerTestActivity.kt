@@ -1,4 +1,4 @@
-package net.maxsmr.testapp
+package net.maxsmr.testapp.recycler
 
 import android.os.Bundle
 import android.view.KeyEvent
@@ -24,14 +24,15 @@ import net.maxsmr.android.recyclerview.adapters.itemcontroller.BaseSelectableIte
 import net.maxsmr.android.recyclerview.adapters.itemcontroller.BaseSelectableItemController.SelectMode.MULTI
 import net.maxsmr.android.recyclerview.adapters.itemcontroller.BaseSelectableItemController.SelectMode.SINGLE
 import net.maxsmr.android.recyclerview.adapters.itemcontroller.wrapper.SelectableData
-import net.maxsmr.testapp.AdapterType.BASE
-import net.maxsmr.testapp.AdapterType.EASY
-import net.maxsmr.testapp.adapter.TestItem
-import net.maxsmr.testapp.adapter.base.TestMultiAdapter
-import net.maxsmr.testapp.adapter.base.TestNoneAdapter
-import net.maxsmr.testapp.adapter.base.TestSingleAdapter
-import net.maxsmr.testapp.adapter.controller.TestItemController
-import net.maxsmr.testapp.adapter.controller.TestMultiItemController
+import net.maxsmr.testapp.R
+import net.maxsmr.testapp.recycler.AdapterType.BASE
+import net.maxsmr.testapp.recycler.AdapterType.EASY
+import net.maxsmr.testapp.recycler.adapter.TestItem
+import net.maxsmr.testapp.recycler.adapter.base.TestMultiAdapter
+import net.maxsmr.testapp.recycler.adapter.base.TestNoneAdapter
+import net.maxsmr.testapp.recycler.adapter.base.TestSingleAdapter
+import net.maxsmr.testapp.recycler.adapter.controller.TestItemController
+import net.maxsmr.testapp.recycler.adapter.controller.TestMultiItemController
 import ru.surfstudio.android.easyadapter.EasyAdapter
 import ru.surfstudio.android.easyadapter.ItemList
 import java.util.*
@@ -256,7 +257,7 @@ class RecyclerTestActivity : AppCompatActivity(), BaseRecyclerViewAdapter.ItemsE
      * По типу адаптера рефрешнуть [RecyclerView]
      */
     private fun refreshRecyclerByAdapterType() {
-        SelectType.resolveByIndex(getSelectedIndexInRadioGroup(recycler_type_select_rg))?.let {type ->
+        SelectType.resolveByIndex(getSelectedIndexInRadioGroup(recycler_type_select_rg))?.let { type ->
             val resultAdapter: RecyclerView.Adapter<*>
             if (adapterType == BASE) {
                 val previousData = currentBaseAdapter.items as List<TestItem>
@@ -337,7 +338,7 @@ class RecyclerTestActivity : AppCompatActivity(), BaseRecyclerViewAdapter.ItemsE
 
     private fun generateAdapterData() {
         val defaultSize = defaultData.size
-        setAdapterData(generateData(defaultSize * Random().nextInt( defaultSize) + defaultSize))
+        setAdapterData(generateData(defaultSize * Random().nextInt(defaultSize) + defaultSize))
     }
 
     private fun clearAdapterData() {

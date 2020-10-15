@@ -237,14 +237,19 @@ abstract class BaseMultiSelectionRecyclerViewAdapter<I, VH : BaseSelectionRecycl
         val targetSelected = mutableListOf<Int>()
         val targetUnselected = mutableListOf<Int>()
         if (to in 0..listItemCount && from in 0..listItemCount) {
-            if (selectedItemsPositions.contains(from)) {
+            val containsFrom = selectedItemsPositions.contains(from)
+            val containsTo = selectedItemsPositions.contains(to)
+			if (containsFrom && !containsTo 
+					|| !containsFrom && containsTo) {
+			if (containsFrom) {
                 targetSelected.add(to)
                 targetUnselected.add(from)
             }
-            if (selectedItemsPositions.contains(to)) {
+            if (containsTo) {
                 targetSelected.add(from)
                 targetUnselected.add(to)
             }
+			}
         }
         setItemsSelectedByPositions(targetSelected, true)
         setItemsSelectedByPositions(targetUnselected, false)

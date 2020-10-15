@@ -8,25 +8,22 @@
         <item name="colorAccent">@color/colorAccent</item>
     </style>
 
-    <!--  From CommonUtils  -->
-    <style name="Selectable">
-        <item name="android:clickable">true</item>
-        <item name="android:longClickable">true</item>
-        <item name="android:focusable">true</item>
-    </style>
-
-    <style name="Selectable.Normal">
-        <item name="android:background">?attr/selectableItemBackground</item>
-    </style>
-
-    <style name="Selectable.Borderless">
-        <item name="android:background">?attr/selectableItemBackgroundBorderless</item>
-    </style>
-
-    <style name="NonSelectable">
+    <style name="ToolBarStyle" parent="Theme.AppCompat">
+        <item name="colorPrimary">@color/colorPrimary</item>
+        <item name="android:textColorPrimary">@color/textColorPrimary</item>
+        <item name="android:textColorSecondary">@color/textColorSecondary</item>
+        <item name="actionMenuTextColor">@color/textColorPrimary</item>
+        <item name="android:background">@android:color/transparent</item>
         <item name="android:clickable">false</item>
-        <item name="android:longClickable">false</item>
         <item name="android:focusable">false</item>
+        <item name="android:longClickable">false</item>
+    </style>
+
+    <style name="ToolBarStyle.ToolbarSearch">
+        <item name="android:textColorPrimary">@color/textColorPrimary</item>
+        <item name="android:textColorSecondary">@color/textColorSecondary</item>
+        <item name="actionMenuTextColor">@color/textColorPrimary</item>
+        <item name="android:background">@android:color/darker_gray</item>
     </style>
 
 </resources>

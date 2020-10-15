@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="net.maxsmr.testapp.RecyclerTestActivity">
+    tools:context="net.maxsmr.testapp.recycler.RecyclerTestActivity">
 
     <androidx.appcompat.widget.Toolbar
         android:id="@+id/recycler_test_toolbar"

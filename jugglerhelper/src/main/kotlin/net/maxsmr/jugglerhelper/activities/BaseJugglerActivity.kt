@@ -1,5 +1,6 @@
 package net.maxsmr.jugglerhelper.activities
 
+import android.content.res.AssetManager
 import android.os.Bundle
 import android.view.KeyEvent
 import android.view.MotionEvent
@@ -102,7 +103,7 @@ abstract class BaseJugglerActivity : JugglerActivity() {
         }
     }
 
-    open fun getAssets(): AssetManager? {
+    override fun getAssets(): AssetManager {
         // при переопределении конфигурации (например, в LocaleContextWrapper или applyOverrideConfiguration)
         // возвращает другой инстанс в Context.getAssets() и Context.getResources().getAssets()
         // и не находит там нужные строки

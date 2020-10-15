@@ -30,11 +30,9 @@ abstract class BaseJugglerFragment : JugglerFragment() {
 
     protected open val windowBackground: Drawable? = null
 
-    @ColorInt
-    protected open val statusBarColor: Int = ContextCompat.getColor(requireContext(), R.color.colorStatusBar)
+    protected open val statusBarColor: Int @ColorInt get() = ContextCompat.getColor(requireContext(), R.color.colorStatusBar)
 
-    @ColorInt
-    protected open val navigationBarColor: Int = ContextCompat.getColor(requireContext(), R.color.colorNavigationBar)
+    protected open val navigationBarColor: Int @ColorInt get()  = ContextCompat.getColor(requireContext(), R.color.colorNavigationBar)
 
     protected val mainHandler = Handler(Looper.getMainLooper())
 
@@ -58,7 +56,6 @@ abstract class BaseJugglerFragment : JugglerFragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        initViews(view)
         isCommitAllowed = true
     }
 
@@ -145,10 +142,6 @@ abstract class BaseJugglerFragment : JugglerFragment() {
 
     fun <F : Fragment?> findRootFragmentByClass(clazz: Class<F>?): F? =
             jugglerActivity.findFragmentByClass(clazz)
-
-    protected open fun initViews(view: View) {
-        // override if needed
-    }
 
     @Suppress("UNCHECKED_CAST")
     protected fun <P : State.Params> getParams(): P? {

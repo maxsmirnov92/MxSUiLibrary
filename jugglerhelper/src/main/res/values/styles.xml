@@ -1,0 +1,30 @@
+<resources>
+
+    <style name="TextView">
+        <item name="android:ellipsize">end</item>
+        <item name="android:textColor">@drawable/selector_color_text</item>
+        <item name="android:gravity">start|center_vertical</item>
+        <item name="android:inputType">textNoSuggestions|textMultiLine</item>
+        <item name="fontFamily">sans-serif</item>
+    </style>
+
+    <style name="TextView.NonClickable" parent="TextView">
+        <item name="android:clickable">false</item>
+        <item name="android:focusable">false</item>
+        <item name="android:editable">false</item>
+        <item name="android:textSelectHandle">@drawable/shape_rect_empty</item>
+        <item name="android:textIsSelectable">false</item>
+        <item name="android:longClickable">false</item>
+    </style>
+
+    <!--more preferable to use Button-->
+    <style name="TextView.Clickable" parent="TextView">
+        <item name="android:clickable">true</item>
+        <item name="android:focusable">true</item>
+        <item name="android:textSelectHandle">@drawable/shape_rect_empty</item>
+        <item name="android:background">?android:attr/selectableItemBackground</item>
+        <item name="android:textIsSelectable">false</item>
+        <item name="android:longClickable">false</item>
+    </style>
+
+</resources>

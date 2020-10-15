@@ -62,8 +62,8 @@ abstract class BaseTabsJugglerFragment<PagerAdapter : CustomFragmentStatePagerAd
 
     protected var tabLayout: TabLayout? = null
 
-    @CallSuper
-    override fun initViews(view: View) {
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
         tabLayoutId.let {
             if (it != 0) {
                 tabLayout = view.findViewById(it)

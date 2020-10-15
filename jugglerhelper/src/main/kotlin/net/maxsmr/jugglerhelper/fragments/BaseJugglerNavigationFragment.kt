@@ -34,7 +34,6 @@ abstract class BaseJugglerNavigationFragment : JugglerNavigationFragment(), Draw
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        initViews(view)
         drawerLayout.addDrawerListener(this)
     }
 
@@ -68,17 +67,12 @@ abstract class BaseJugglerNavigationFragment : JugglerNavigationFragment(), Draw
 
     override fun onDrawerStateChanged(newState: Int) {}
 
-    fun changeDrawerState(open: Boolean): Boolean {
-        val drawerGravity = drawerGravity
-        val drawerLayout = drawerLayout
-        if (!open && drawerLayout.isDrawerOpen(drawerGravity)) {
-            drawerLayout.closeDrawer(drawerGravity)
-            return true
-        } else if (open && !drawerLayout.isDrawerOpen(drawerGravity)) {
-            drawerLayout.openDrawer(drawerGravity)
-            return true
-        }
-        return false
+    override fun openDrawer() {
+        changeDrawerState(true)
+    }
+
+    override fun closeDrawer() {
+        changeDrawerState(false)
     }
 
     fun revertDrawerState() {
@@ -91,7 +85,16 @@ abstract class BaseJugglerNavigationFragment : JugglerNavigationFragment(), Draw
         }
     }
 
-    protected open fun initViews(view: View) {
-        // override if needed
+    private fun changeDrawerState(open: Boolean): Boolean {
+        val drawerGravity = drawerGravity
+        val drawerLayout = drawerLayout
+        if (!open && drawerLayout.isDrawerOpen(drawerGravity)) {
+            drawerLayout.closeDrawer(drawerGravity)
+            return true
+        } else if (open && !drawerLayout.isDrawerOpen(drawerGravity)) {
+            drawerLayout.openDrawer(drawerGravity)
+            return true
+        }
+        return false
     }
 }
