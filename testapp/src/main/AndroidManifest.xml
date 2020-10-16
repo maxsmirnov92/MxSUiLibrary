@@ -12,18 +12,19 @@
         android:theme="@style/AppTheme">
         <activity
             android:name=".recycler.RecyclerTestActivity"
+            android:exported="true"
             android:label="@string/activity_recycler_test">
-
+            <intent-filter>
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
         </activity>
         <activity
             android:name=".juggler.MainJugglerActivity"
             android:label="@string/activity_juggler_test">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
-
         </activity>
     </application>
 

@@ -13,9 +13,12 @@
   See the License for the specific language governing permissions and
   limitations under the License.
  */
-package net.maxsmr.android.recyclerview.adapters.diff
+package ru.surfstudio.android.easyadapter.diff.async.base
+
+import ru.surfstudio.android.easyadapter.diff.base.Differ
+import androidx.recyclerview.widget.DiffUtil.DiffResult
 
 /**
- * Content used in unique data checking.
+ * [Differ] which capable to calculate [DiffResult] in a worker thread.
  */
-data class ItemInfo(val id: String, val hash: String)
+internal interface AsyncDiffer : Differ

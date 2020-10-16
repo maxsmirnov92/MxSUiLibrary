@@ -10,10 +10,9 @@ android {
 
 dependencies {
 
-    api project(":easyadapter")
-
-    // Android + Support
     api "com.google.android.material:material:$materialVersion"
     api "androidx.recyclerview:recyclerview:$androidxRecyclerViewVersion"
+
+//    api project(":easyadapter")
 //    api (name: 'easyadapter', ext:'aar')
 }

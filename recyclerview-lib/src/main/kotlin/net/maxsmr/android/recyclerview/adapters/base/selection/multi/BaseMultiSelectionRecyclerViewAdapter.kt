@@ -198,7 +198,7 @@ abstract class BaseMultiSelectionRecyclerViewAdapter<I, VH : BaseSelectionRecycl
             }
         }
         setItemsSelectedByPositions(targetUnselected, false, false)
-        setItemsSelectedByPositions(targetSelected, true)
+        setItemsSelectedByPositions(targetSelected, true, false)
     }
 
     override fun invalidateSelectionIndexOnRemove(from: Int, count: Int) {
@@ -229,7 +229,7 @@ abstract class BaseMultiSelectionRecyclerViewAdapter<I, VH : BaseSelectionRecycl
                 }
             }
             setItemsSelectedByPositions(targetUnselected, false, false)
-            setItemsSelectedByPositions(targetSelected, true)
+            setItemsSelectedByPositions(targetSelected, true, false)
         }
     }
 
@@ -251,8 +251,8 @@ abstract class BaseMultiSelectionRecyclerViewAdapter<I, VH : BaseSelectionRecycl
             }
 			}
         }
-        setItemsSelectedByPositions(targetSelected, true)
-        setItemsSelectedByPositions(targetUnselected, false)
+        setItemsSelectedByPositions(targetUnselected, false, false)
+        setItemsSelectedByPositions(targetSelected, true, false)
     }
 
     override fun resetSelection() {
@@ -283,7 +283,7 @@ abstract class BaseMultiSelectionRecyclerViewAdapter<I, VH : BaseSelectionRecycl
 
     fun setItemSelectedByPosition(position: Int, isSelected: Boolean): Boolean {
         rangeCheck(position)
-        return selectionHelper.setItemSelectedByPosition(position, position, isSelected, false)
+        return selectionHelper.setItemSelectedByPosition(position, position, isSelected, false, true)
     }
 
     fun toggleItemsSelectedByPositions(positions: Collection<Int>?): Boolean {
@@ -339,16 +339,8 @@ abstract class BaseMultiSelectionRecyclerViewAdapter<I, VH : BaseSelectionRecycl
         selectionHelper.clear()
     }
 
-    private fun setItemsSelectedByPositions(positions: Collection<Int>?, isSelected: Boolean, needRangeCheck: Boolean): Boolean {
-        if (positions != null) {
-            for (pos in positions) {
-                if (needRangeCheck || isSelected) {
-                    rangeCheck(pos)
-                }
-            }
-        }
-        return selectionHelper.setItemsSelectedByPositions(positions, isSelected, false)
-    }
+    private fun setItemsSelectedByPositions(positions: Collection<Int>?, isSelected: Boolean, needRangeCheck: Boolean): Boolean =
+            selectionHelper.setItemsSelectedByPositions(positions, isSelected, false, needRangeCheck)
 
     interface ItemSelectedChangeListener : BaseItemSelectedChangeListener {
 

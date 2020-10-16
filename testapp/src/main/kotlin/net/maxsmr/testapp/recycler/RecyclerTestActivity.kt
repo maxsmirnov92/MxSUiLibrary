@@ -23,7 +23,6 @@ import net.maxsmr.android.recyclerview.adapters.itemcontroller.BaseFocusableItem
 import net.maxsmr.android.recyclerview.adapters.itemcontroller.BaseSelectableItemController
 import net.maxsmr.android.recyclerview.adapters.itemcontroller.BaseSelectableItemController.SelectMode.MULTI
 import net.maxsmr.android.recyclerview.adapters.itemcontroller.BaseSelectableItemController.SelectMode.SINGLE
-import net.maxsmr.android.recyclerview.adapters.itemcontroller.wrapper.SelectableData
 import net.maxsmr.testapp.R
 import net.maxsmr.testapp.recycler.AdapterType.BASE
 import net.maxsmr.testapp.recycler.AdapterType.EASY
@@ -35,6 +34,7 @@ import net.maxsmr.testapp.recycler.adapter.controller.TestItemController
 import net.maxsmr.testapp.recycler.adapter.controller.TestMultiItemController
 import ru.surfstudio.android.easyadapter.EasyAdapter
 import ru.surfstudio.android.easyadapter.ItemList
+import ru.surfstudio.android.easyadapter.item.wrapper.SelectableData
 import java.util.*
 
 @Suppress("UNCHECKED_CAST")

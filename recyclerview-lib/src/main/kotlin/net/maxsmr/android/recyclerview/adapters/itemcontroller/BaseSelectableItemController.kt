@@ -6,7 +6,7 @@ import android.widget.Checkable
 import androidx.annotation.CallSuper
 import androidx.annotation.LayoutRes
 import androidx.recyclerview.widget.RecyclerView.NO_POSITION
-import net.maxsmr.android.recyclerview.adapters.itemcontroller.wrapper.SelectableData
+import ru.surfstudio.android.easyadapter.item.wrapper.SelectableData
 
 /**
  * Базовый item controller для реализации

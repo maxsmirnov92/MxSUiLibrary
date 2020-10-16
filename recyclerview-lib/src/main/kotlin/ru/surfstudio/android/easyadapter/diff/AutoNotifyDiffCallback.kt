@@ -13,24 +13,26 @@
   See the License for the specific language governing permissions and
   limitations under the License.
  */
-package net.maxsmr.android.recyclerview.adapters.diff
+package ru.surfstudio.android.easyadapter.diff
 
 import androidx.recyclerview.widget.DiffUtil
+import ru.surfstudio.android.easyadapter.item.ItemInfo
 
 /**
  * Implementation of [DiffUtil.Callback].
  * It is used to calculate difference between two lists of data depending on their [ItemInfo].
  */
 class AutoNotifyDiffCallback constructor(
-        private val infiniteScrollLoopsCount: Int,
         private val lastItemsInfo: List<ItemInfo>,
         private val newItemsInfo: List<ItemInfo>,
-        private val infiniteScroll: Boolean
+        private val infiniteScrollLoopsCount: Int
 ) : DiffUtil.Callback() {
 
     init {
-        require(infiniteScrollLoopsCount > 0) { "infiniteScrollLoopsCount cannot be less or equal zero: $infiniteScrollLoopsCount" }
+        require(infiniteScrollLoopsCount >= 0) { "infiniteScrollLoopsCount cannot be less or zero: $infiniteScrollLoopsCount" }
     }
+
+    val infiniteScroll = infiniteScrollLoopsCount > 0
 
     private val MAGIC_NUMBER = 3578121127L.toString() // used for making ids unique
 

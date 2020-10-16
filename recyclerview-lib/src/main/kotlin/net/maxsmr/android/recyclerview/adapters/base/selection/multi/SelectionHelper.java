@@ -20,7 +20,7 @@ import static androidx.recyclerview.widget.RecyclerView.NO_POSITION;
 final class SelectionHelper {
 
     private final HolderWrapperTracker tracker = new HolderWrapperTracker();
-    private final LinkedHashSet<Integer> selectedItems = new LinkedHashSet<>();
+    private final Set<Integer> selectedItems = new LinkedHashSet<>();
 
     @NotNull
     private final HolderClickListener holderClickListener;
@@ -105,16 +105,17 @@ final class SelectionHelper {
             int wrapperPosition,
             boolean fromUser
     ) {
-        return setItemSelectedByPosition(position, wrapperPosition, false, fromUser);
+        return setItemSelectedByPosition(position, wrapperPosition, false, fromUser, true);
     }
 
     public boolean setItemSelectedByPosition(
             int position,
             int wrapperPosition,
             boolean isSelected,
-            boolean fromUser
+            boolean fromUser,
+            boolean needRangeCheck
     ) {
-        if (canSelectAtPosition(position) && position != NO_POSITION) {
+        if ((!needRangeCheck || canSelectAtPosition(position)) && position != NO_POSITION) {
             boolean isAlreadySelected = isItemSelected(position);
             if (isSelected) {
                 selectedItems.add(position);
@@ -139,13 +140,14 @@ final class SelectionHelper {
     public boolean setItemsSelectedByPositions(
             @Nullable Collection<Integer> positions,
             boolean isSelected,
-            boolean fromUser
+            boolean fromUser,
+            boolean needRangeCheck
     ) {
         boolean success = false;
         if (positions != null && !positions.isEmpty()) {
             success = true;
             for (int pos : positions) {
-                if (!setItemSelectedByPosition(pos, NO_POSITION, isSelected, fromUser)) {
+                if (!setItemSelectedByPosition(pos, NO_POSITION, isSelected, fromUser, needRangeCheck)) {
                     success = false;
                 }
             }
@@ -154,7 +156,7 @@ final class SelectionHelper {
     }
 
     public boolean toggleItemSelectedByPosition(int position, int wrapperPosition, boolean fromUser) {
-        return setItemSelectedByPosition(position, wrapperPosition, !isItemSelected(position), fromUser);
+        return setItemSelectedByPosition(position, wrapperPosition, !isItemSelected(position), fromUser, true);
     }
 
     public boolean toggleItemsSelectedByPositions(@Nullable Collection<Integer> positions, boolean fromUser) {
@@ -300,11 +302,11 @@ final class SelectionHelper {
                         return resetItemSelectedByPosition(position, wrapperPosition, true);
                     } else {
                         // current state is selected, triggering reselect, state must be not changed
-                        setItemSelectedByPosition(position, wrapperPosition, true, true);
+                        setItemSelectedByPosition(position, wrapperPosition, true, true, true);
                         return false;
                     }
                 } else {
-                    return setItemSelectedByPosition(position, wrapperPosition, true, true);
+                    return setItemSelectedByPosition(position, wrapperPosition, true, true, true);
                 }
             }
             return false;

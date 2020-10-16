@@ -6,6 +6,8 @@ import androidx.annotation.CallSuper
 import androidx.annotation.LayoutRes
 import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.RecyclerView.NO_POSITION
+import ru.surfstudio.android.easyadapter.controller.loadable.LoadableItemController
+import ru.surfstudio.android.easyadapter.holder.LoadableViewHolder
 
 /**
  * Базовый класс, для [LoadableItemController],

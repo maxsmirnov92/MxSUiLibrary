@@ -1,5 +1,4 @@
 <resources>
-    <string name="app_name">JugglerHelper</string>
     <string name="empty"/>
     <string name="loading">Loading…</string>
     <string name="no_data">No data</string>

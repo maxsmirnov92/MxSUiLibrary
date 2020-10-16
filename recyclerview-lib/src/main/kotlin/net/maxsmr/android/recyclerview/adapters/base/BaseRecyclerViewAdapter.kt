@@ -14,8 +14,8 @@ import androidx.recyclerview.widget.RecyclerView.NO_ID
 import net.maxsmr.android.recyclerview.adapters.base.drag.ITouchHelperAdapter
 import net.maxsmr.android.recyclerview.adapters.base.drag.OnMotionTouchListener
 import net.maxsmr.android.recyclerview.adapters.base.drag.OnStartDragListener
-import net.maxsmr.android.recyclerview.adapters.diff.AutoNotifyDiffCallback
-import net.maxsmr.android.recyclerview.adapters.diff.ItemInfo
+import ru.surfstudio.android.easyadapter.diff.AutoNotifyDiffCallback
+import ru.surfstudio.android.easyadapter.item.ItemInfo
 import java.util.*
 
 const val INFINITE_SCROLL_LOOPS_COUNT_DEFAULT = 100
@@ -631,10 +631,9 @@ abstract class BaseRecyclerViewAdapter<I, VH : BaseRecyclerViewAdapter.ViewHolde
         val newItemInfo = extractRealItemInfo()
         val diffResult = DiffUtil.calculateDiff(
                 AutoNotifyDiffCallback(
-                        infiniteScrollLoopsCount,
                         lastItemsInfo,
                         newItemInfo,
-                        allowInfiniteScroll
+                        if (allowInfiniteScroll) infiniteScrollLoopsCount else 0
                 )
         )
         diffResult.dispatchUpdatesTo(this)

@@ -4,11 +4,11 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.CheckBox
 import android.widget.TextView
-import net.maxsmr.android.recyclerview.adapters.itemcontroller.view.LoadableItemView
 import net.maxsmr.testapp.recycler.adapter.TestItem
 import net.maxsmr.android.recyclerview.adapters.itemcontroller.BaseSelectableItemController
-import net.maxsmr.android.recyclerview.adapters.itemcontroller.wrapper.SelectableData
 import net.maxsmr.testapp.R
+import ru.surfstudio.android.easyadapter.item.wrapper.SelectableData
+import ru.surfstudio.android.easyadapter.view.LoadableItemView
 
 class TestMultiItemController : BaseSelectableItemController<TestItem, TestMultiItemController.Holder>() {
 
