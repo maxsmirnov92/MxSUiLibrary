@@ -5,7 +5,7 @@ buildscript {
     apply from: 'buildSrc/config.gradle'
 
     ext {
-        commonUtilsVersion = "1.1.0.2"
+//        commonUtilsVersion = "1.1.0.2"
         jugglerVersion = "0.1.23"
         nestableViewPagerVersion = "0.2.0"
     }

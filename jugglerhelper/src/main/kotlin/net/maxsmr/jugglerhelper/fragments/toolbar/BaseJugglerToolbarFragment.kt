@@ -10,7 +10,6 @@ import androidx.annotation.LayoutRes
 import me.ilich.juggler.gui.JugglerActivity
 import me.ilich.juggler.gui.JugglerToolbarFragment
 import me.ilich.juggler.states.State
-import net.maxsmr.commonutils.data.text.EMPTY_STRING
 import net.maxsmr.jugglerhelper.fragments.BaseJugglerFragment
 import net.maxsmr.jugglerhelper.navigation.NavigationMode
 
@@ -86,7 +85,7 @@ abstract class BaseJugglerToolbarFragment : JugglerToolbarFragment() {
     protected open fun initToolbar() {
         toolbar?.setNavigationOnClickListener { jugglerActivity.onSupportNavigateUp() }
         jugglerActivity.supportActionBar?.let { actionBar ->
-            actionBar.title = EMPTY_STRING
+            actionBar.title = ""
             actionBar.setDisplayShowTitleEnabled(true)
             actionBar.show()
         }

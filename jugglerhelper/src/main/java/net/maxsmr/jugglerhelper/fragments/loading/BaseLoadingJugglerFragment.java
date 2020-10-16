@@ -12,7 +12,6 @@ import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Build;
 import android.os.Bundle;
-import android.text.TextUtils;
 import android.view.View;
 import android.widget.Button;
 import android.widget.LinearLayout;
@@ -25,12 +24,11 @@ import androidx.annotation.IdRes;
 import androidx.core.content.ContextCompat;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
-import net.maxsmr.commonutils.android.gui.fonts.FontsHolder;
-import net.maxsmr.commonutils.android.gui.progressable.DialogProgressable;
-import net.maxsmr.commonutils.android.gui.progressable.Progressable;
-import net.maxsmr.commonutils.android.gui.progressable.WrappedProgressable;
 import net.maxsmr.jugglerhelper.R;
 import net.maxsmr.jugglerhelper.fragments.BaseJugglerFragment;
+import net.maxsmr.jugglerhelper.progressable.DialogProgressable;
+import net.maxsmr.jugglerhelper.progressable.Progressable;
+import net.maxsmr.jugglerhelper.progressable.WrappedProgressable;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;

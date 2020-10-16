@@ -27,7 +27,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
-import static net.maxsmr.commonutils.data.CompareUtilsKt.objectsEqual;
 
 @Deprecated
 public abstract class BaseListLoadingJugglerFragment<I, Adapter extends BaseRecyclerViewAdapter<I, ?>>
@@ -217,7 +216,7 @@ public abstract class BaseListLoadingJugglerFragment<I, Adapter extends BaseRecy
     }
 
     protected boolean isDuplicateItems(@Nullable I one, @Nullable I another) {
-        return objectsEqual(one, another); // TODO default
+        return one == another;
     }
 
     /**

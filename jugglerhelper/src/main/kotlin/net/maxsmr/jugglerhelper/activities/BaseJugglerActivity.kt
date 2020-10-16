@@ -9,8 +9,9 @@ import androidx.fragment.app.Fragment
 import me.ilich.juggler.Juggler
 import me.ilich.juggler.gui.JugglerActivity
 import me.ilich.juggler.states.State
-import net.maxsmr.commonutils.android.gui.fragments.FragmentFinder
 import net.maxsmr.jugglerhelper.fragments.BaseJugglerFragment
+import net.maxsmr.jugglerhelper.utils.FragmentSearchParams
+import net.maxsmr.jugglerhelper.utils.findFragment
 
 abstract class BaseJugglerActivity : JugglerActivity() {
 
@@ -111,14 +112,7 @@ abstract class BaseJugglerActivity : JugglerActivity() {
         return getResources().getAssets()
     }
 
-    fun findFragmentById(id: Int): Fragment? =
-            FragmentFinder.findFragmentById(supportFragmentManager, id)?.second
-
-    fun findFragmentByTag(tag: String?): Fragment? =
-            FragmentFinder.findFragmentByTag(supportFragmentManager, tag)?.second
-
-    fun <F : Fragment?> findFragmentByClass(clazz: Class<F>?): F? =
-            FragmentFinder.findFragmentByClass(supportFragmentManager, clazz)?.second
+    fun <F : Fragment> findFragment(params: FragmentSearchParams<F>)= findFragment(supportFragmentManager, params)
 
     protected open fun overrideInitialState(state: State<*>?): State<*>? = state
 }

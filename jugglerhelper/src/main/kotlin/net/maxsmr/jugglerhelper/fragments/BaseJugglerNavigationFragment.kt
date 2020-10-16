@@ -9,7 +9,6 @@ import androidx.core.view.GravityCompat
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.drawerlayout.widget.DrawerLayout.DrawerListener
 import me.ilich.juggler.gui.JugglerNavigationFragment
-import net.maxsmr.commonutils.android.gui.hideKeyboard
 
 abstract class BaseJugglerNavigationFragment : JugglerNavigationFragment(), DrawerListener {
 
@@ -58,11 +57,11 @@ abstract class BaseJugglerNavigationFragment : JugglerNavigationFragment(), Draw
     override fun onDrawerSlide(drawerView: View, slideOffset: Float) {}
 
     override fun onDrawerOpened(drawerView: View) {
-        hideKeyboard(activity)
+//        hideKeyboard(activity)
     }
 
     override fun onDrawerClosed(drawerView: View) {
-        hideKeyboard(activity)
+//        hideKeyboard(activity)
     }
 
     override fun onDrawerStateChanged(newState: Int) {}

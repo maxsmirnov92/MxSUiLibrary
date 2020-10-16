@@ -6,7 +6,6 @@ import android.view.View
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.annotation.IdRes
-import net.maxsmr.commonutils.data.text.EMPTY_STRING
 
 abstract class BaseCustomJugglerToolbarFragment : BaseJugglerToolbarFragment() {
 
@@ -20,8 +19,7 @@ abstract class BaseCustomJugglerToolbarFragment : BaseJugglerToolbarFragment() {
         with(toolbarTitleId) {
             val titleView = if (this != 0) view?.findViewById<TextView>(this) else null
             if (titleView != null) {
-                super.applyTitle(EMPTY_STRING)
-                // TODO setTextOrHide
+                super.applyTitle("")
                 titleView.text = title
                 titleView.visibility = if (TextUtils.isEmpty(title)) View.GONE else View.VISIBLE
             } else {

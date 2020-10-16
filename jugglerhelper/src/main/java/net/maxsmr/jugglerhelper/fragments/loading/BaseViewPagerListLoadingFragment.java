@@ -8,8 +8,6 @@ import androidx.annotation.IdRes;
 import androidx.viewpager.widget.ViewPager;
 
 import net.maxsmr.android.recyclerview.adapters.BasePagerAdapter;
-import net.maxsmr.commonutils.android.gui.views.ViewPagerIndicator;
-
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -17,13 +15,16 @@ import java.util.Collection;
 import java.util.List;
 
 @Deprecated
-public abstract class BaseViewPagerListLoadingFragment<I, Adapter extends BasePagerAdapter<I, ?>>
+public abstract class BaseViewPagerListLoadingFragment<Indicator extends View, I, Adapter extends BasePagerAdapter<I, ?>>
         extends BaseLoadingJugglerFragment<List<I>> implements ViewPager.OnPageChangeListener {
 
     protected ViewPager viewPager;
 
+    /**
+     * ViewPagerIndicator
+     */
     @Nullable
-    protected ViewPagerIndicator viewPagerIndicator;
+    protected Indicator viewPagerIndicator;
 
     protected Adapter adapter;
 
@@ -135,9 +136,9 @@ public abstract class BaseViewPagerListLoadingFragment<I, Adapter extends BasePa
 
     protected void processEmpty() {
         super.processEmpty();
-        if (viewPagerIndicator != null) {
-            viewPagerIndicator.notifyDataSetChanged();
-        }
+//        if (viewPagerIndicator != null) {
+//            viewPagerIndicator.notifyDataSetChanged();
+//        }
         final int targetPosition = getTargetPagerPosition();
         if (targetPosition >= 0 && targetPosition < adapter.getCount()) {
             viewPager.setCurrentItem(targetPosition);
@@ -194,13 +195,13 @@ public abstract class BaseViewPagerListLoadingFragment<I, Adapter extends BasePa
 
     protected void applyAdapter() {
         viewPager.setAdapter(adapter);
-        if (viewPagerIndicator != null) {
-            if (adapter != null) {
-                viewPagerIndicator.setViewPager(viewPager);
-            } else {
-                viewPagerIndicator.setViewPager(null);
-            }
-        }
+//        if (viewPagerIndicator != null) {
+//            if (adapter != null) {
+//                viewPagerIndicator.setViewPager(viewPager);
+//            } else {
+//                viewPagerIndicator.setViewPager(null);
+//            }
+//        }
     }
 
     protected void reloadAdapter(Collection<I> items) {

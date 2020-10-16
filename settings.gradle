@@ -1,4 +1,4 @@
-include ':recyclerview-lib'
+include ':jugglerhelper'
 // ':easyadapter'
 // ':recyclerview-lib'
 // ':jugglerhelper'

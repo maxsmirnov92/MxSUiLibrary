@@ -1,8 +1,6 @@
 package net.maxsmr.jugglerhelper.fragments.splash
 
 import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
 import android.view.View
 import androidx.annotation.IdRes
 import net.maxsmr.jugglerhelper.fragments.BaseJugglerFragment

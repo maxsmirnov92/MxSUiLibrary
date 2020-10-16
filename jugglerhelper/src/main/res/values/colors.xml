@@ -37,6 +37,7 @@
     <color name="colorProgressBarPrimary">@color/colorPrimary</color>
     <color name="colorProgressBarEnd">#fc8f19</color>
 
+    <color name="colorTabBackground">@color/colorAccent</color>
     <color name="colorTabIndicator">@color/colorControlActivated</color>
     <color name="colorTabTextNormal">@color/textColorNormal</color>
     <color name="colorTabTextSelected">@color/colorTabTextNormal</color>

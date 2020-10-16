@@ -15,18 +15,21 @@ import com.google.android.material.tabs.TabLayout
 import com.google.android.material.tabs.TabLayout.TabGravity
 import me.ilich.juggler.gui.JugglerActivity
 import me.ilich.juggler.states.State
-import net.maxsmr.commonutils.android.gui.fonts.FontsHolder
-import net.maxsmr.commonutils.android.gui.fragments.adapters.CustomFragmentStatePagerAdapter
-import net.maxsmr.commonutils.data.Predicate
-import net.maxsmr.commonutils.data.stringsEqual
 import net.maxsmr.jugglerhelper.R
+import net.maxsmr.jugglerhelper.adapter.CustomFragmentStatePagerAdapter
+import net.maxsmr.jugglerhelper.utils.FragmentSearchParams
+import net.maxsmr.jugglerhelper.utils.findFragment
 import java.lang.reflect.Field
 
 private val ARG_TAB_FRAGMENT_INDEX = BaseTabsJugglerFragment::class.java.simpleName + ".ARG_TAB_FRAGMENT_INDEX"
 
 private const val INIT_TABS_DELAY_DEFAULT = 200L
 
-abstract class BaseTabsJugglerFragment<PagerAdapter : CustomFragmentStatePagerAdapter?> : BaseJugglerFragment(), OnPageChangeListener, View.OnClickListener {
+/**
+ * [BaseJugglerFragment] с использованием фрагментного адаптера [CustomFragmentStatePagerAdapter]
+ * ViewPager - обязателен, TabLayout - нет
+ */
+abstract class BaseTabsJugglerFragment<PagerAdapter : CustomFragmentStatePagerAdapter> : BaseJugglerFragment(), OnPageChangeListener, View.OnClickListener {
 
     override val layoutId: Int = R.layout.tabs
 
@@ -34,7 +37,7 @@ abstract class BaseTabsJugglerFragment<PagerAdapter : CustomFragmentStatePagerAd
     protected open val pagerId: Int = R.id.pager
 
     @IdRes
-    protected open val tabLayoutId: Int = R.id.tab_layout
+    protected open val tabLayoutId: Int = R.id.tabLayout
 
     @TabGravity
     protected open val tabGravity: Int = TabLayout.GRAVITY_CENTER
@@ -43,10 +46,13 @@ abstract class BaseTabsJugglerFragment<PagerAdapter : CustomFragmentStatePagerAd
 
     protected open val initCustomTabViewsDelay: Long = INIT_TABS_DELAY_DEFAULT
 
-    protected val customViewTabsMap = mutableMapOf<View, String>()
+    /**
+     * Кастомный набор созданных вьюх как альтернатива [TabLayout]
+     */
+    protected val customViewTabsMap = mutableMapOf<String, View>()
 
     protected val initialTabFragmentIndex: Int = savedInstanceState?.getInt(ARG_TAB_FRAGMENT_INDEX)
-                    ?: (arguments?.getInt(ARG_TAB_FRAGMENT_INDEX) ?: 0)
+            ?: (arguments?.getInt(ARG_TAB_FRAGMENT_INDEX) ?: 0)
 
     @Suppress("UNCHECKED_CAST")
     protected val statePagerAdapter: PagerAdapter?
@@ -92,8 +98,8 @@ abstract class BaseTabsJugglerFragment<PagerAdapter : CustomFragmentStatePagerAd
         // due to juggler fragments init order (first 'content' fragment)
         mainHandler.postDelayed({
             if (isAdded) {
-                fillCustomViewTabsMap(customViewTabsMap)
-                for (v in customViewTabsMap.keys) {
+                initCustomViewTabsMap(customViewTabsMap)
+                for (v in customViewTabsMap.values) {
                     v.setOnClickListener(this)
                 }
                 refreshCustomViewTabsByPager()
@@ -111,7 +117,6 @@ abstract class BaseTabsJugglerFragment<PagerAdapter : CustomFragmentStatePagerAd
         viewPager.removeOnPageChangeListener(this)
     }
 
-
     override fun onPageSelected(position: Int) {
         refreshCustomViewTabsByPager()
     }
@@ -124,17 +129,15 @@ abstract class BaseTabsJugglerFragment<PagerAdapter : CustomFragmentStatePagerAd
     override fun onClick(v: View) {
         val adapter = statePagerAdapter
         if (adapter != null) {
-            val entry = findCustomViewTabByView(v)
-            if (entry != null) {
+            val pair = findCustomViewTabByView(v)
+            if (pair != null) {
                 var selectedIndex = RecyclerView.NO_POSITION
                 for (index in 0 until currentPagesCount) {
-                    val fragment = adapter.getFragmentInstance(index)
-                    if (fragment != null) {
-                        val tag = getTagForPagerFragment(fragment)
-                        if (!TextUtils.isEmpty(tag) && stringsEqual(entry.value, tag, false)) {
-                            selectedIndex = index
-                            break
-                        }
+                    val fragmentInfo = adapter.getFragmentInfo(index)
+                    val tag = fragmentInfo.tag
+                    if (!TextUtils.isEmpty(tag) && pair.first == tag) {
+                        selectedIndex = index
+                        break
                     }
                 }
                 if (selectedIndex in 0 until currentPagesCount) {
@@ -188,29 +191,19 @@ abstract class BaseTabsJugglerFragment<PagerAdapter : CustomFragmentStatePagerAd
         } ?: viewPager.setCurrentItem(position, true)
     }
 
-    fun selectTabByFragment(fragment: Fragment?) {
+    fun <F : Fragment> selectTabByFragment(params: FragmentSearchParams<F>) {
         val adapter = statePagerAdapter ?: throw RuntimeException("Adapter is not initialized")
-        val pair = adapter.findByInstance(fragment)
+        val pair = findFragment(adapter.fragments, params)
         if (pair?.first != null) {
             selectTab(pair.first)
         }
     }
 
-    fun selectTabByFragmentClass(fragmentClass: Class<Fragment?>?) {
-        val adapter = statePagerAdapter ?: throw RuntimeException("Adapter is not initialized")
-        val pair = adapter.findByClass(fragmentClass)
-        if (pair?.first != null) {
-            selectTab(pair.first)
-        }
-    }
-
-    protected abstract fun fillCustomViewTabsMap(viewTabsMap: Map<View, String>)
+    protected abstract fun initCustomViewTabsMap(viewTabsMap: MutableMap<String, View>)
 
     protected abstract fun createStatePagerAdapter(): PagerAdapter
 
-    protected open fun getTabIconForFragment(f: Fragment?): Drawable? = null
-
-    protected fun getTagForPagerFragment(fragment: Fragment): String? = fragment.tag
+    protected open fun getTabIconForPagerFragment(f: Fragment?): Drawable? = null
 
     protected fun selectAdapterPage(index: Int, updateIfNotSelected: Boolean) {
         var selected = false
@@ -238,11 +231,10 @@ abstract class BaseTabsJugglerFragment<PagerAdapter : CustomFragmentStatePagerAd
             if (customViewTabsMap.isNotEmpty()) {
                 for (index in 0 until currentPagesCount) {
                     val isSelected = currentSelectedPageIndex == index
-                    val fragment = adapter.getFragmentInstance(index)
-                    val tag = if (fragment != null) getTagForPagerFragment(fragment) else null
-                    val viewEntry = findCustomViewTabByTag(tag)
-                    if (viewEntry != null) {
-                        refreshCustomViewTab(viewEntry.key, tag, isSelected)
+                    val fragmentInfo = adapter.getFragmentInfo(index)
+                    val tag = fragmentInfo.tag
+                    findCustomViewTabByTag(tag)?.let {
+                        refreshCustomViewTab(it.second, tag, isSelected)
                     }
                 }
             }
@@ -253,17 +245,22 @@ abstract class BaseTabsJugglerFragment<PagerAdapter : CustomFragmentStatePagerAd
         tabView.isSelected = isSelected
     }
 
-    protected fun findCustomViewTabByTag(tag: String?): Map.Entry<View, String>? =
-            Predicate.Methods.find(customViewTabsMap.entries) { stringsEqual(it.value, tag, false) }
+    protected fun findCustomViewTabByTag(tag: String?): Pair<String, View>? =
+            customViewTabsMap.entries.find { it.key == tag }?.let { Pair(it.key, it.value) }
 
-    protected fun findCustomViewTabByView(view: View?): Map.Entry<View, String>? =
-            Predicate.Methods.find(customViewTabsMap.entries) { it.key === view }
+    protected fun findCustomViewTabByView(view: View?): Pair<String, View>? =
+            customViewTabsMap.entries.find { it.value == view }?.let { Pair(it.key, it.value) }
 
     @Deprecated("")
     protected fun setTabsTypeface(alias: String?) {
-        if (tabLayout != null && !TextUtils.isEmpty(alias)) {
-            for (i in 0 until tabLayout!!.tabCount) {
-                val tab = tabLayout!!.getTabAt(i)
+//    FontsHolder.getInstance().apply(tabView, alias, false)
+    }
+
+    protected fun getTabViews(): Map<Int, View> {
+        val tabViews = mutableMapOf<Int, View>()
+        tabLayout?.let {
+            for (i in 0 until it.tabCount) {
+                val tab = it.getTabAt(i)
                 if (tab != null) {
                     var field: Field? = null
                     try {
@@ -272,18 +269,17 @@ abstract class BaseTabsJugglerFragment<PagerAdapter : CustomFragmentStatePagerAd
                         e.printStackTrace()
                     }
                     if (field != null) {
-                        var tabView: View? = null
                         try {
                             field.isAccessible = true
-                            tabView = field[tab] as View
+                            tabViews[i] = field[tab] as View
                         } catch (e: IllegalAccessException) {
                             e.printStackTrace()
                         }
-                        FontsHolder.getInstance().apply(tabView, alias, false)
                     }
                 }
             }
         }
+        return tabViews
     }
 
     @CallSuper
@@ -299,7 +295,7 @@ abstract class BaseTabsJugglerFragment<PagerAdapter : CustomFragmentStatePagerAd
             if (adapter != null) {
                 for (i in 0 until adapter.count) {
                     val f = adapter.getFragmentInstance(i)
-                    val tabIcon = getTabIconForFragment(f)
+                    val tabIcon = getTabIconForPagerFragment(f)
                     if (tabIcon != null) {
                         val tab = it.getTabAt(i)
                         if (tab != null) {

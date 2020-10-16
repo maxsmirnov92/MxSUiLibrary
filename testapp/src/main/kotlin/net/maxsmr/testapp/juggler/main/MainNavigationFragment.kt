@@ -7,7 +7,6 @@ import kotlinx.android.synthetic.main.fragment_main_navigation.*
 import me.ilich.juggler.change.NewActivityAdd
 import net.maxsmr.jugglerhelper.fragments.BaseJugglerNavigationFragment
 import net.maxsmr.testapp.R
-import net.maxsmr.testapp.juggler.MainJugglerActivity
 import net.maxsmr.testapp.juggler.custom.CustomState
 import org.jetbrains.annotations.NotNull
 

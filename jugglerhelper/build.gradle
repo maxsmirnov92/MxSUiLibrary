@@ -4,9 +4,9 @@ dependencies {
 
     api "androidx.swiperefreshlayout:swiperefreshlayout:$androidxSwipeRefreshVersion"
 
-    api "net.maxsmr:commonutils:$commonUtilsVersion"
-    api project(':recyclerview-lib')
-//    api "net.maxsmr:recyclerview-lib:${project.getModuleVersionNameByPath(":recyclerview-lib")}"
+//    api "net.maxsmr:commonutils:$commonUtilsVersion"
+//    api project(':recyclerview-lib')
+    api "net.maxsmr:recyclerview-lib:${project.getModuleVersionNameByPath(":recyclerview-lib")}"
 
     api "me.ilich:juggler:$jugglerVersion"
 }

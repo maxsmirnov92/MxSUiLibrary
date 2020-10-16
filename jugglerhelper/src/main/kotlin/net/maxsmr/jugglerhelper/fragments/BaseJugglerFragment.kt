@@ -16,10 +16,11 @@ import androidx.fragment.app.Fragment
 import me.ilich.juggler.gui.JugglerActivity
 import me.ilich.juggler.gui.JugglerFragment
 import me.ilich.juggler.states.State
-import net.maxsmr.commonutils.android.gui.fragments.FragmentFinder
 import net.maxsmr.jugglerhelper.R
 import net.maxsmr.jugglerhelper.activities.BaseJugglerActivity
 import net.maxsmr.jugglerhelper.fragments.toolbar.BaseJugglerToolbarFragment
+import net.maxsmr.jugglerhelper.utils.FragmentSearchParams
+import net.maxsmr.jugglerhelper.utils.findFragment
 
 abstract class BaseJugglerFragment : JugglerFragment() {
 
@@ -125,23 +126,10 @@ abstract class BaseJugglerFragment : JugglerFragment() {
         }
     }
 
-    fun findChildFragmentById(id: Int): Fragment? =
-            FragmentFinder.findFragmentById(childFragmentManager, id)?.second
+    // TODO parentFragmentManager not found
+//    fun <F : Fragment> findParentFragment(params: FragmentSearchParams<F>)= findFragment(parentFragmentManager, params)
 
-    fun findChildFragmentByTag(tag: String?): Fragment? =
-            FragmentFinder.findFragmentByTag(childFragmentManager, tag)?.second
-
-    fun <F : Fragment?> findChildFragmentByClass(clazz: Class<F>?): F? =
-            FragmentFinder.findFragmentByClass(childFragmentManager, clazz)?.second
-
-    fun findRootFragmentById(id: Int): Fragment? =
-            jugglerActivity.findFragmentById(id)
-
-    fun findRootFragmentByTag(tag: String?): Fragment? =
-            jugglerActivity.findFragmentByTag(tag)
-
-    fun <F : Fragment?> findRootFragmentByClass(clazz: Class<F>?): F? =
-            jugglerActivity.findFragmentByClass(clazz)
+    fun <F : Fragment> findChildFragment(params: FragmentSearchParams<F>)= findFragment(childFragmentManager, params)
 
     @Suppress("UNCHECKED_CAST")
     protected fun <P : State.Params> getParams(): P? {

@@ -21,10 +21,33 @@
         app:tabSelectedTextColor="@color/colorTabTextSelected"
         app:tabTextColor="@color/colorTabTextNormal" />
 
+    <LinearLayout
+        android:id="@+id/llCustomTabs"
+        android:layout_width="match_parent"
+        android:layout_height="100dp"
+        android:layout_below="@+id/tabLayout"
+        android:orientation="horizontal">
+
+        <View
+            android:id="@+id/viewTabOne"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:background="@drawable/background_tab_one" />
+
+        <View
+            android:id="@+id/viewTabTwo"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:background="@drawable/background_tab_two" />
+
+    </LinearLayout>
+
     <androidx.viewpager.widget.ViewPager
         android:id="@+id/pager"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_below="@+id/tabLayout" />
+        android:layout_below="@+id/llCustomTabs" />
 
 </RelativeLayout>
