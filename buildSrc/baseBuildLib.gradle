@@ -6,14 +6,8 @@ apply from: "$rootDir/buildSrc/buildUtils.gradle"
 
 apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
-apply plugin: 'kotlin-android-extensions'
+apply plugin: 'kotlin-parcelize'
 apply plugin: 'kotlin-kapt'
-
-androidExtensions {
-    // to enable @Parcelize feature
-    experimental = true
-}
-
 
 android {
     signingConfigs {
@@ -91,14 +85,17 @@ android {
     }
     kotlinOptions {
         jvmTarget = '1.8'
+        freeCompilerArgs = ["$jvmDefaultArg"]
     }
-
 }
 
 dependencies {
 
     // libs/*.jar
     api fileTree(dir: 'libs', include: ['*.jar', '*.aar'])
+
+    // Jetbrains annotations
+    api "org.jetbrains:annotations:$jetbrainsAnnotationsVersion"
 
     // Kotlin
     implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlinVersion"

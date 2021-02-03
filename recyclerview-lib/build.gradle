@@ -1,13 +1,5 @@
 apply from: "$rootDir/buildSrc/androidLib.gradle"
 
-android {
-
-    packagingOptions {
-        exclude 'META-INF/easyadapter_debug.kotlin_module'
-        exclude 'META-INF/easyadapter_release.kotlin_module'
-    }
-}
-
 dependencies {
 
     api "com.google.android.material:material:$materialVersion"
