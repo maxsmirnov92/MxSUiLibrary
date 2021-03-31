@@ -1,5 +1,4 @@
 include ':recyclerview-lib'
-// ':easyadapter'
-// ':recyclerview-lib'
-// ':jugglerhelper'
-// ':testapp'
+include ':jugglerhelper'
+include ':testapp'
+//include ':easyadapter'

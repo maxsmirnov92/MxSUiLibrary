@@ -3,7 +3,8 @@ package net.maxsmr.testapp.recycler.adapter.base
 import android.content.Context
 import android.view.View
 import android.view.ViewGroup
-import kotlinx.android.synthetic.main.item_test_single.view.*
+import android.widget.RadioButton
+import android.widget.TextView
 import net.maxsmr.android.recyclerview.adapters.base.selection.BaseSingleSelectionRecyclerViewAdapter
 import net.maxsmr.testapp.R
 import net.maxsmr.testapp.recycler.adapter.TestItem
@@ -41,8 +42,8 @@ class TestSingleAdapter(
             parent: ViewGroup
     ) : BaseSelectableViewHolder<TestItem>(parent, R.layout.item_test_single) {
 
-        private val testRadio = itemView.test_rb
-        private val testText = itemView.test_tv
+        private val testRadio = itemView.findViewById<RadioButton>(R.id.test_rb)
+        private val testText = itemView.findViewById<TextView>(R.id.test_tv)
 
         // важно, иначе не будет скролла из-за перехвата от корневой itemView
         override val draggableView: View = testRadio

@@ -3,7 +3,8 @@ package net.maxsmr.testapp.recycler.adapter.base
 import android.content.Context
 import android.view.View
 import android.view.ViewGroup
-import kotlinx.android.synthetic.main.item_test_multi.view.*
+import android.widget.CheckBox
+import android.widget.TextView
 import net.maxsmr.android.recyclerview.adapters.base.selection.multi.BaseMultiSelectionRecyclerViewAdapter
 import net.maxsmr.testapp.R
 import net.maxsmr.testapp.recycler.adapter.TestItem
@@ -27,8 +28,8 @@ class TestMultiAdapter(
             parent: ViewGroup
     ) : BaseSelectableViewHolder<TestItem>(parent, R.layout.item_test_multi) {
 
-        private val testCheck = itemView.test_cb
-        private val testText = itemView.test_tv
+        private val testCheck = itemView.findViewById<CheckBox>(R.id.test_cb)
+        private val testText = itemView.findViewById<TextView>(R.id.test_tv)
 
         override val draggableView: View = testCheck
 

@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.view.KeyEvent
 import android.view.Menu
 import android.view.MenuItem
+import android.widget.Button
 import android.widget.RadioButton
 import android.widget.RadioGroup
 import android.widget.Toast
@@ -12,7 +13,6 @@ import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.RecyclerView.NO_POSITION
-import kotlinx.android.synthetic.main.activity_recycler_test.*
 import net.maxsmr.android.recyclerview.adapters.base.BaseRecyclerViewAdapter
 import net.maxsmr.android.recyclerview.adapters.base.drag.DragAndDropTouchHelperCallback
 import net.maxsmr.android.recyclerview.adapters.base.drag.OnStartDragHelperListener
@@ -48,20 +48,6 @@ class RecyclerTestActivity : AppCompatActivity(), BaseRecyclerViewAdapter.ItemsE
             TestItem("test5")
     )
 
-    private var adapterType: AdapterType = BASE
-        set(value) {
-            if (value != field) {
-                val previousType = field
-                field = value
-                refreshRecyclerByAdapterType()
-                Toast.makeText(
-                        this,
-                        getString(R.string.recycler_test_adapter_type_changed_message, previousType.name, value.name),
-                        Toast.LENGTH_SHORT
-                ).show()
-            }
-        }
-
     private val easyAdapter = EasyAdapter()
 
     private val noneItemController = TestItemController()
@@ -90,6 +76,27 @@ class RecyclerTestActivity : AppCompatActivity(), BaseRecyclerViewAdapter.ItemsE
     private val singleTouchHelper = ItemTouchHelper(DragAndDropTouchHelperCallback(singleAdapter))
     private val multiTouchHelper = ItemTouchHelper(DragAndDropTouchHelperCallback(multiAdapter))
 
+    private lateinit var typeSelectRadioGroup: RadioGroup
+    private lateinit var testRecycler: RecyclerView
+    private lateinit var typeSwitchButton: Button
+    private lateinit var currentSelectedButton: Button
+    private lateinit var generateDataButton: Button
+    private lateinit var clearDataButton: Button
+
+    private var adapterType: AdapterType = BASE
+        set(value) {
+            if (value != field) {
+                val previousType = field
+                field = value
+                refreshRecyclerByAdapterType()
+                Toast.makeText(
+                        this,
+                        getString(R.string.recycler_test_adapter_type_changed_message, previousType.name, value.name),
+                        Toast.LENGTH_SHORT
+                ).show()
+            }
+        }
+
     private var isMultiItemControllerInUse = false
 
     private var currentBaseAdapter: BaseRecyclerViewAdapter<TestItem, BaseRecyclerViewAdapter.ViewHolder<TestItem>> =
@@ -114,7 +121,7 @@ class RecyclerTestActivity : AppCompatActivity(), BaseRecyclerViewAdapter.ItemsE
         initViews()
         initListeners()
 
-        recycler_type_select_rg.check(R.id.recycler_type_none_rb)
+        typeSelectRadioGroup.check(R.id.recycler_type_none_rb)
     }
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
@@ -122,9 +129,8 @@ class RecyclerTestActivity : AppCompatActivity(), BaseRecyclerViewAdapter.ItemsE
         return true
     }
 
-    override fun onOptionsItemSelected(item: MenuItem?): Boolean {
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
         var result = true
-        item?.let {
             when (item.itemId) {
                 R.id.action_recycler_toggle_infinite_scroll -> toggleInfiniteScroll()
                 R.id.action_recycler_toggle_draggable -> toggleDraggable()
@@ -134,7 +140,6 @@ class RecyclerTestActivity : AppCompatActivity(), BaseRecyclerViewAdapter.ItemsE
                 R.id.action_recycler_action_clear_all -> clearAllSelected()
                 else -> result = false
             }
-        }
         return result
     }
 
@@ -185,7 +190,7 @@ class RecyclerTestActivity : AppCompatActivity(), BaseRecyclerViewAdapter.ItemsE
 
     override fun onKeyUp(keyCode: Int, event: KeyEvent?): Boolean {
         var result = false
-        SelectType.resolveByIndex(getSelectedIndexInRadioGroup(recycler_type_select_rg))?.let { type ->
+        SelectType.resolveByIndex(getSelectedIndexInRadioGroup(typeSelectRadioGroup))?.let { type ->
             if (adapterType == BASE && type == SelectType.SINGLE) {
                 val adapter = currentBaseAdapter as BaseSingleSelectionRecyclerViewAdapter<*,*>
                 when(keyCode) {
@@ -204,16 +209,23 @@ class RecyclerTestActivity : AppCompatActivity(), BaseRecyclerViewAdapter.ItemsE
     }
 
     private fun initViews() {
+        typeSelectRadioGroup = findViewById(R.id.recycler_type_select_rg)
+        testRecycler = findViewById(R.id.recycler_test_rv)
+        typeSwitchButton = findViewById(R.id.recycler_type_switch_btn)
+        currentSelectedButton = findViewById(R.id.recycler_current_selected_btn)
+        generateDataButton = findViewById(R.id.recycler_generate_data_btn)
+        clearDataButton = findViewById(R.id.recycler_clear_data_btn)
+
         initToolbar()
         initRecycler()
     }
 
     private fun initToolbar() {
-        setSupportActionBar(recycler_test_toolbar)
+        setSupportActionBar(findViewById(R.id.recycler_test_toolbar))
     }
 
     private fun initRecycler() {
-        recycler_test_rv.layoutManager = LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false)
+        testRecycler.layoutManager = LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false)
     }
 
     private fun initListeners() {
@@ -228,19 +240,19 @@ class RecyclerTestActivity : AppCompatActivity(), BaseRecyclerViewAdapter.ItemsE
             true
         }
 
-        recycler_type_select_rg.setOnCheckedChangeListener { group, checkedId ->
+        typeSelectRadioGroup.setOnCheckedChangeListener { group, checkedId ->
             refreshRecyclerByAdapterType()
         }
-        recycler_type_switch_btn.setOnClickListener {
+        typeSwitchButton.setOnClickListener {
             toggleAdapterType()
         }
-        recycler_current_selected_btn.setOnClickListener {
+        currentSelectedButton.setOnClickListener {
             showCurrentSelectedToast()
         }
-        recycler_generate_data_btn.setOnClickListener {
+        generateDataButton.setOnClickListener {
             generateAdapterData()
         }
-        recycler_clear_data_btn.setOnClickListener {
+        clearDataButton.setOnClickListener {
             clearAdapterData()
         }
     }
@@ -257,7 +269,7 @@ class RecyclerTestActivity : AppCompatActivity(), BaseRecyclerViewAdapter.ItemsE
      * По типу адаптера рефрешнуть [RecyclerView]
      */
     private fun refreshRecyclerByAdapterType() {
-        SelectType.resolveByIndex(getSelectedIndexInRadioGroup(recycler_type_select_rg))?.let { type ->
+        SelectType.resolveByIndex(getSelectedIndexInRadioGroup(typeSelectRadioGroup))?.let { type ->
             val resultAdapter: RecyclerView.Adapter<*>
             if (adapterType == BASE) {
                 val previousData = currentBaseAdapter.items as List<TestItem>
@@ -273,7 +285,7 @@ class RecyclerTestActivity : AppCompatActivity(), BaseRecyclerViewAdapter.ItemsE
                     SelectType.MULTI -> multiTouchHelper
                 }
                 previousTouchHelper?.attachToRecyclerView(null)
-                currentTouchHelper?.attachToRecyclerView(recycler_test_rv)
+                currentTouchHelper?.attachToRecyclerView(testRecycler)
                 currentBaseAdapter.setItems(previousData)
                 resultAdapter = currentBaseAdapter
             } else {
@@ -295,7 +307,7 @@ class RecyclerTestActivity : AppCompatActivity(), BaseRecyclerViewAdapter.ItemsE
                 }
                 resultAdapter = easyAdapter
             }
-            recycler_test_rv.adapter = resultAdapter
+            testRecycler.adapter = resultAdapter
         }
     }
 

@@ -27,7 +27,7 @@ class MainNavigationState : ContentToolbarNavigationEndState<VoidParams>(VoidPar
     override fun getUpNavigationIcon(context: Context, params: VoidParams?): Drawable?
             = AppCompatResources.getDrawable(context, R.drawable.ic_menu)
 
-    override fun getTitle(context: Context, params: VoidParams?): String? = context.getString(R.string.main_title)
+    override fun getTitle(context: Context, params: VoidParams?): String = context.getString(R.string.main_title)
 
     override fun getTag(): String? = MainNavigationState::class.java.simpleName
 }
