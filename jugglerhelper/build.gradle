@@ -8,5 +8,6 @@ dependencies {
 //    api "net.maxsmr:recyclerview-lib:${project.getModuleVersionNameByPath(":recyclerview-lib")}"
     api project(':recyclerview-lib')
 
-    api "me.ilich:juggler:$jugglerVersion"
+//    api "me.ilich:juggler:$jugglerVersion"
+    api files('libs/juggler-0.1.22.aar')
 }
