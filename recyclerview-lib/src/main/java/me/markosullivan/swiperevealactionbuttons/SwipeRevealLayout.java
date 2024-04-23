@@ -1,5 +1,7 @@
 package me.markosullivan.swiperevealactionbuttons;
 
+import net.maxsmr.android.recyclerview.R;
+
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.res.Resources;
@@ -17,8 +19,6 @@ import android.view.ViewGroup;
 import androidx.core.view.GestureDetectorCompat;
 import androidx.core.view.ViewCompat;
 import androidx.customview.widget.ViewDragHelper;
-
-import com.bejibx.android.recyclerview.R;
 
 import org.jetbrains.annotations.Nullable;
 

@@ -1,11 +1,11 @@
 package com.bejibx.android.recyclerview.layoutmanager;
 
+import net.maxsmr.android.recyclerview.R;
+
 import android.content.Context;
 
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
-
-import com.bejibx.android.recyclerview.R;
 
 public class GridAutofitLayoutManager extends GridLayoutManager
 {

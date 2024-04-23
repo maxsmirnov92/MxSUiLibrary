@@ -100,7 +100,7 @@ abstract class BaseMultiSelectionRecyclerViewAdapter<I, VH : BaseSelectionRecycl
 
 
     @CallSuper
-    override fun bindSelection(holder: VH, item: I?, position: Int) {
+    override fun bindSelection(holder: VH, item: I, position: Int) {
         selectionHelper.wrapSelectable(
                 holder,
                 canSelectItemByClick(item, position),
@@ -162,7 +162,7 @@ abstract class BaseMultiSelectionRecyclerViewAdapter<I, VH : BaseSelectionRecycl
 
     @Suppress("UNCHECKED_CAST")
     override fun handleSelected(holder: ViewHolder<*>, isSelected: Boolean) {
-        if (holder is BaseSelectableItemController.BaseSelectableViewHolder<*>) {
+        if (holder is BaseSelectableViewHolder<*>) {
             handleSelected(holder as VH, isSelected)
         }
     }
@@ -228,28 +228,30 @@ abstract class BaseMultiSelectionRecyclerViewAdapter<I, VH : BaseSelectionRecycl
                     it.remove()
                 }
             }
-            setItemsSelectedByPositions(targetUnselected, false, false)
-            setItemsSelectedByPositions(targetSelected, true, false)
+            setItemsSelectedByPositions(targetUnselected, isSelected = false, needRangeCheck = false)
+            setItemsSelectedByPositions(targetSelected, isSelected = true, needRangeCheck = false)
         }
     }
 
-    override fun invalidateSelectionIndexOnSwap(from: Int, to: Int) {
+    override fun invalidateSelectionIndexOnMove(from: Int, to: Int) {
         val targetSelected = mutableListOf<Int>()
         val targetUnselected = mutableListOf<Int>()
         if (to in 0..listItemCount && from in 0..listItemCount) {
-            val containsFrom = selectedItemsPositions.contains(from)
-            val containsTo = selectedItemsPositions.contains(to)
-			if (containsFrom && !containsTo 
-					|| !containsFrom && containsTo) {
-			if (containsFrom) {
-                targetSelected.add(to)
-                targetUnselected.add(from)
+            selectedItemsPositions.forEach {
+                val previousSelection = it
+                var selected: Int = previousSelection
+                if (selected in from..to || selected in to..from) {
+                    if (selected > from) {
+                        selected--
+                    } else {
+                        selected++
+                    }
+                }
+                if (previousSelection != selected) {
+                    targetUnselected.add(previousSelection)
+                    targetSelected.add(selected)
+                }
             }
-            if (containsTo) {
-                targetSelected.add(from)
-                targetUnselected.add(to)
-            }
-			}
         }
         setItemsSelectedByPositions(targetUnselected, false, false)
         setItemsSelectedByPositions(targetSelected, true, false)
@@ -300,7 +302,7 @@ abstract class BaseMultiSelectionRecyclerViewAdapter<I, VH : BaseSelectionRecycl
         return selectionHelper.toggleItemSelectedByPosition(position, position, false)
     }
 
-    fun setItemsSelected(items: Collection<I?>?, isSelected: Boolean): Boolean {
+    fun setItemsSelected(items: Collection<I>?, isSelected: Boolean): Boolean {
         val positions = ArrayList<Int>()
         if (items != null) {
             for (item in items) {
@@ -313,13 +315,13 @@ abstract class BaseMultiSelectionRecyclerViewAdapter<I, VH : BaseSelectionRecycl
         return setItemsSelectedByPositions(positions, isSelected)
     }
 
-    fun setItemSelected(item: I?, isSelected: Boolean) =
+    fun setItemSelected(item: I, isSelected: Boolean) =
             setItemsSelected(listOf(item), isSelected)
 
     fun toggleAllItemsSelected() =
             toggleItemsSelected(items)
 
-    fun toggleItemsSelected(items: Collection<I?>?): Boolean {
+    fun toggleItemsSelected(items: Collection<I>?): Boolean {
         val positions = ArrayList<Int>()
         if (items != null) {
             for (item in items) {
@@ -332,7 +334,7 @@ abstract class BaseMultiSelectionRecyclerViewAdapter<I, VH : BaseSelectionRecycl
         return toggleItemsSelectedByPositions(positions)
     }
 
-    fun toggleItemSelected(item: I?) =
+    fun toggleItemSelected(item: I) =
             toggleItemsSelected(listOf(item))
 
     protected fun releaseSelectionHelper() {

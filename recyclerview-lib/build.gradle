@@ -1,5 +1,9 @@
 apply from: "$rootDir/buildSrc/androidLib.gradle"
 
+android {
+    namespace 'net.maxsmr.android.recyclerview'
+}
+
 dependencies {
 
     api "com.google.android.material:material:$materialVersion"

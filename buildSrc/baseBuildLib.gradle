@@ -17,21 +17,23 @@ android {
             props.load(new FileInputStream(propsFile))
 
             storeFile file("${System.getenv('ANDROID_HOME')}/release.keystore")
-            storePassword props['signingPassword']
             keyAlias props['alias']
+            storePassword props['signingPassword']
             keyPassword props['signingPassword']
         }
     }
 
-    compileSdkVersion rootProject.ext.sdkVersion
-    buildToolsVersion rootProject.ext.buildToolsVersion
+    compileSdkVersion rootProject.ext.compileSdkVersion
+//    buildToolsVersion rootProject.ext.buildToolsVersion
 
     defaultConfig {
         minSdkVersion rootProject.ext.minSdkVersion
-        targetSdkVersion rootProject.ext.sdkVersion
+        targetSdkVersion rootProject.ext.targetSdkVersion
         def module = project.getModuleInfoByPath(project.path)
         versionCode project.getModuleVersionCode(module)
         versionName project.getModuleVersionName(module)
+        setProperty("archivesBaseName", "${project.name}-${versionName}")
+
         vectorDrawables.useSupportLibrary = true
 
         consumerProguardFiles "consumer-rules.pro"
@@ -42,7 +44,7 @@ android {
         targetCompatibility sourceCompatibilityVersion
     }
 
-    lintOptions {
+    lint {
         checkReleaseBuilds false
         abortOnError false
     }
@@ -64,18 +66,6 @@ android {
 //            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
 
-        libraryVariants.all { variant ->
-            variant.outputs.all { output ->
-                def baseName = "${project.name}-${variant.name}"
-                def outputFileName = "${baseName}.aar"
-                println "Setting aar name to $outputFileName for variant ${variant.name}"
-                output.outputFileName = outputFileName
-                setProperty("archivesBaseName", project.name)
-                if (variant.name == "release") {
-                    project.ext.releaseArchivesBaseName = baseName
-                }
-            }
-        }
 //        productFlavors.all { flavor ->
 //        }
     }
@@ -85,25 +75,30 @@ android {
     }
     kotlinOptions {
         jvmTarget = jvmVersion
-        freeCompilerArgs = ["$jvmDefaultArg"]
+    }
+
+    libraryVariants.all { variant ->
+        variant.outputs.all { output ->
+            def module = project.getModuleInfoByPath(project.path)
+            def baseName = "${project.name}-${variant.name}-${project.getModuleVersionName(module)}"
+            def outputFileName = "${baseName}.aar"
+            println "Setting aar name to $outputFileName for variant ${variant.name}"
+            output.outputFileName = outputFileName
+        }
     }
 }
 
 dependencies {
 
     // libs/*.jar
-    api fileTree(dir: 'libs', include: ['*.jar', '*.aar'])
+    implementation fileTree(dir: 'libs', include: ['*.jar', '*.aar'])
 
     // Jetbrains annotations
     api "org.jetbrains:annotations:$jetbrainsAnnotationsVersion"
-
-    // Kotlin
-    implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlinVersion"
-    implementation "org.jetbrains.kotlin:kotlin-reflect:$kotlinVersion"
 }
 
 configurations {
     javadocDependencies
 }
 
-apply from: "$rootDir/buildSrc/deploy.gradle"
+//apply from: "$rootDir/buildSrc/deploy.gradle"

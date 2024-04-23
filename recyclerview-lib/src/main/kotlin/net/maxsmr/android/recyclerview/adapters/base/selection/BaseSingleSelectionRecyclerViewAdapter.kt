@@ -66,7 +66,7 @@ abstract class BaseSingleSelectionRecyclerViewAdapter<I, VH : BaseSelectionRecyc
     }
 
     @CallSuper
-    override fun bindSelection(holder: VH, item: I?, position: Int) {
+    override fun bindSelection(holder: VH, item: I, position: Int) {
 
         holder.clickableView?.let { view ->
             if (canSelectItemByClick(item, position)) {
@@ -135,25 +135,18 @@ abstract class BaseSingleSelectionRecyclerViewAdapter<I, VH : BaseSelectionRecyc
         }
     }
 
-    override fun invalidateSelectionIndexOnSwap(from: Int, to: Int) {
+    override fun invalidateSelectionIndexOnMove(from: Int, to: Int) {
         if (from in 0..listItemCount && to in 0..listItemCount) {
-            var shouldNotify = false
-            var previousSelection = NO_POSITION
-            if (selectedPosition != NO_POSITION) {
-                when (selectedPosition) {
-                    from -> {
-                        selectedPosition = to
-                        previousSelection = from
-                        shouldNotify = true
-                    }
-                    to -> {
-                        selectedPosition = from
-                        previousSelection = to
-                        shouldNotify = true
-                    }
+            val previousSelection = selectedPosition
+            var selected: Int = previousSelection
+            if (selected in from..to || selected in to..from) {
+                if (selected > from) {
+                    selected--
+                } else {
+                    selected++
                 }
             }
-            if (shouldNotify) {
+            if (previousSelection != selected) {
                 onSelectionChanged(previousSelection, selectedPosition, false)
             }
         }

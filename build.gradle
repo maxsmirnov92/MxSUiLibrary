@@ -6,19 +6,19 @@ buildscript {
 
     ext {
 //        commonUtilsVersion = "1.1.0.2"
-        jugglerVersion = "0.1.23"
-        nestableViewPagerVersion = "0.2.0"
+//        jugglerVersion = "0.1.23"
+//        nestableViewPagerVersion = "0.2.0"
     }
 
     repositories {
-        jcenter()
         google()
+        maven { url "https://plugins.gradle.org/m2/" }
     }
     dependencies {
 
         classpath "com.android.tools.build:gradle:$gradlePluginVersion"
-        classpath "com.jfrog.bintray.gradle:gradle-bintray-plugin:$bintrayGradleVersion"
-        classpath "com.github.dcendents:android-maven-gradle-plugin:$mavenGradleVersion"
+//        classpath "com.jfrog.bintray.gradle:gradle-bintray-plugin:$bintrayGradleVersion"
+//        classpath "com.github.dcendents:android-maven-gradle-plugin:$mavenGradleVersion"
 
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinGradlePluginVersion"
 
@@ -30,14 +30,13 @@ buildscript {
 allprojects {
 
     repositories {
-        jcenter()
         google()
         mavenCentral()
         maven { url 'https://dl.google.com/dl/android/maven2' }
-        maven { url 'https://dl.bintray.com/maxsmirnov92/maven' }
-        maven { url 'https://dl.bintray.com/dsokolov/maven' }
+//        maven { url 'https://dl.bintray.com/maxsmirnov92/maven' }
+//        maven { url 'https://dl.bintray.com/dsokolov/maven' }
 //        maven { url "https://dl.bintray.com/surf/maven" }
-        maven { url 'https://artifactory.surfstudio.ru/artifactory/libs-release-local' }
+//        maven { url 'https://artifactory.surfstudio.ru/artifactory/libs-release-local' }
         flatDir {
             dirs 'libs'
         }

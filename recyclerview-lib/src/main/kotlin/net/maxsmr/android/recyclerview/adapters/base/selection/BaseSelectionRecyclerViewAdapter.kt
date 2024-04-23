@@ -34,27 +34,27 @@ abstract class BaseSelectionRecyclerViewAdapter<I, VH : BaseSelectionRecyclerVie
             }
         }
 
-    override fun canSetClickListener(item: I?, position: Int): Boolean =
+    override fun canSetClickListener(item: I, position: Int): Boolean =
             super.canSetClickListener(item, position) && !canSelectItemByClick(item, position)
 
 
-    override fun canSetLongClickListener(item: I?, position: Int): Boolean =
+    override fun canSetLongClickListener(item: I, position: Int): Boolean =
             super.canSetLongClickListener(item, position) && !canSelectItemByLongClick(item, position)
 
     @CallSuper
-    override fun bindItem(holder: VH, item: I?, position: Int) {
+    override fun bindItem(holder: VH, item: I, position: Int) {
         super.bindItem(holder, item, position)
         bindSelection(holder, item, getListPosition(position))
     }
 
     @CallSuper
-    override fun onItemAdded(to: Int, item: I?, previousSize: Int) {
+    override fun onItemAdded(to: Int, item: I, previousSize: Int) {
         invalidateSelectionIndexOnAdd(to, 1)
         super.onItemAdded(to, item, previousSize)
     }
 
     @CallSuper
-    override fun onItemsAdded(to: Int, items: Collection<I?>, previousSize: Int) {
+    override fun onItemsAdded(to: Int, items: Collection<I>, previousSize: Int) {
         invalidateSelectionIndexOnAdd(to, listItemCount)
         super.onItemsAdded(to, items, previousSize)
     }
@@ -66,7 +66,7 @@ abstract class BaseSelectionRecyclerViewAdapter<I, VH : BaseSelectionRecyclerVie
     }
 
     @CallSuper
-    override fun onItemRemoved(position: Int, item: I?) {
+    override fun onItemRemoved(position: Int, item: I) {
         invalidateSelectionIndexOnRemove(position, 1)
         super.onItemRemoved(position, item)
     }
@@ -77,18 +77,18 @@ abstract class BaseSelectionRecyclerViewAdapter<I, VH : BaseSelectionRecyclerVie
         super.onItemsRangeRemoved(from, to, previousSize, removedItems)
     }
 
-    override fun onItemsSwapped(fromPosition: Int, fromItem: I?, toPosition: Int, toItem: I?) {
+    override fun onItemMoved(fromPosition: Int, toPosition: Int, item: I) {
         allowNotifyOnChange = false
-        invalidateSelectionIndexOnSwap(fromPosition, toPosition)
+        invalidateSelectionIndexOnMove(fromPosition, toPosition)
         allowNotifyOnChange = true
-        super.onItemsSwapped(fromPosition, fromItem, toPosition, toItem)
+        super.onItemMoved(fromPosition, toPosition, item)
     }
 
     final override fun bindData(holder: VH, position: Int, item: I) {
         holder.bindData(position, item, listItemCount, isItemPositionSelected(position))
     }
 
-    final override fun bindEmptyData(holder: VH, position: Int, item: I?) {
+    final override fun bindEmptyData(holder: VH, position: Int, item: I) {
         holder.bindEmptyData(position, item, listItemCount, isItemPositionSelected(position))
     }
 
@@ -121,10 +121,10 @@ abstract class BaseSelectionRecyclerViewAdapter<I, VH : BaseSelectionRecyclerVie
 
     protected abstract fun invalidateSelectionIndexOnRemove(from: Int, count: Int)
 
-    protected abstract fun invalidateSelectionIndexOnSwap(from: Int, to: Int)
+    protected abstract fun invalidateSelectionIndexOnMove(from: Int, to: Int)
 
     @CallSuper
-    protected open fun bindSelection(holder: VH, item: I?, position: Int) {
+    protected open fun bindSelection(holder: VH, item: I, position: Int) {
         val isSelected = isItemPositionSelected(position)
         // not calling handleSelected(holder, isSelected) cause it's already in VH
         if (isSelected) {
@@ -185,7 +185,7 @@ abstract class BaseSelectionRecyclerViewAdapter<I, VH : BaseSelectionRecyclerVie
             super.bindData(position, item, count)
         }
 
-        final override fun bindEmptyData(position: Int, item: I?, count: Int) {
+        final override fun bindEmptyData(position: Int, item: I, count: Int) {
             super.bindEmptyData(position, item, count)
         }
 
@@ -196,7 +196,7 @@ abstract class BaseSelectionRecyclerViewAdapter<I, VH : BaseSelectionRecyclerVie
         }
 
         @CallSuper
-        open fun bindEmptyData(position: Int, item: I?, count: Int, isSelected: Boolean) {
+        open fun bindEmptyData(position: Int, item: I, count: Int, isSelected: Boolean) {
             bindEmptyData(position, item, count)
             handleSelected(isSelected)
         }
