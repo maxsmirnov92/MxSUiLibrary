@@ -60,12 +60,12 @@ sealed class Divider {
      * @param marginUnit единицы измерения отступа
      */
     class Image @JvmOverloads constructor(
-            val src: Drawable,
-            private val marginStart: Int = 0,
-            private val marginTop: Int = 0,
-            private val marginEnd: Int = 0,
-            private val marginBottom: Int = 0,
-            private val marginUnit: Int = TypedValue.COMPLEX_UNIT_DIP
+        val src: Drawable,
+        private val marginStart: Int = 0,
+        private val marginTop: Int = 0,
+        private val marginEnd: Int = 0,
+        private val marginBottom: Int = 0,
+        private val marginUnit: Int = TypedValue.COMPLEX_UNIT_DIP
     ) : Divider() {
 
         override fun width(context: Context, withMargins: Boolean): Int {
@@ -145,7 +145,7 @@ sealed class Divider {
                        marginUnit: Int = TypedValue.COMPLEX_UNIT_DIP): Image? {
                 context ?: return null
                 val drawable = ContextCompat.getDrawable(context, drawableRes)
-                        ?: return null
+                    ?: return null
                 return Image(drawable, marginStart, marginTop, marginEnd, marginBottom, marginUnit)
             }
 
@@ -168,7 +168,7 @@ sealed class Divider {
                 context ?: return null
                 val styledAttributes = context.obtainStyledAttributes(intArrayOf(android.R.attr.listDivider))
                 val drawable = styledAttributes.getDrawable(0)
-                styledAttributes?.recycle()
+                styledAttributes.recycle()
                 drawable ?: return null
                 return Image(drawable, marginStart, marginTop, marginEnd, marginBottom, marginUnit)
             }
