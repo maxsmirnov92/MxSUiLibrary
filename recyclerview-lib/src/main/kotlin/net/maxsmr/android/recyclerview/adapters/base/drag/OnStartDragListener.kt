@@ -1,6 +1,7 @@
 package net.maxsmr.android.recyclerview.adapters.base.drag
 
 import androidx.recyclerview.widget.RecyclerView
+import androidx.recyclerview.widget.RecyclerView.ViewHolder
 
 /**
  * Listener for manual initiation of a drag.

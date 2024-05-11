@@ -8,7 +8,7 @@ private const val DRAG_FLAGS = ItemTouchHelper.UP or ItemTouchHelper.DOWN
 private const val SWIPE_FLAGS = ItemTouchHelper.START or ItemTouchHelper.END
 
 open class DragAndDropTouchHelperCallback(
-        private val adapter: ITouchHelperAdapter
+    private val adapter: ITouchHelperAdapter
 ) : ItemTouchHelper.Callback() {
 
     override fun getMovementFlags(recyclerView: RecyclerView, viewHolder: RecyclerView.ViewHolder): Int {

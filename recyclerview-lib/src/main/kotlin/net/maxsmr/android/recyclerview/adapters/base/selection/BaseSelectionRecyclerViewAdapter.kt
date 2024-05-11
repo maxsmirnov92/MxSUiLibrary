@@ -72,7 +72,7 @@ abstract class BaseSelectionRecyclerViewAdapter<I, VH : BaseSelectionRecyclerVie
     }
 
     @CallSuper
-    override fun onItemsRangeRemoved(from: Int, to: Int, previousSize: Int, removedItems: List<I?>) {
+    override fun onItemsRangeRemoved(from: Int, to: Int, previousSize: Int, removedItems: List<I>) {
         invalidateSelectionIndexOnRemove(from, if (from == to) 1 else to - from)
         super.onItemsRangeRemoved(from, to, previousSize, removedItems)
     }

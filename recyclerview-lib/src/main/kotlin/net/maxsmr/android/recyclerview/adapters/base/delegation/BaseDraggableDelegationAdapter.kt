@@ -12,8 +12,8 @@ import net.maxsmr.android.recyclerview.adapters.base.drag.ITouchHelperAdapter
 import net.maxsmr.android.recyclerview.adapters.base.drag.OnMotionTouchListener
 import net.maxsmr.android.recyclerview.adapters.base.drag.OnStartDragListener
 
-open class BaseDraggableDelegationAdapter<Data : BaseAdapterData>(
-    vararg adapters: AbsListItemAdapterDelegate<Data, Data, DragAndDropViewHolder<Data>>,
+open class BaseDraggableDelegationAdapter<Data : BaseAdapterData, VH: BaseDraggableDelegationAdapter.DragAndDropViewHolder<Data>>(
+    vararg adapters: AbsListItemAdapterDelegate<Data, Data, VH>,
 ) : AsyncListDifferDelegationAdapter<Data>(itemCallback(), *adapters), ITouchHelperAdapter {
 
     val isEmpty get() = itemCount == 0
@@ -46,7 +46,7 @@ open class BaseDraggableDelegationAdapter<Data : BaseAdapterData>(
         val item = getItem(position)
 
         val touchListener = startDragListener
-        if (touchListener != null && canDragItem(item, position) && holder.canDragItem(position, item)) {
+        if (touchListener != null && (canDragItem(item, position) || canDismissItem(item, position))) {
             OnMotionTouchListener(holder, touchListener, holder.itemView.context).let {
                 holder.draggableView?.setOnTouchListener(it)
                 holder.motionTouchListener = it
@@ -62,9 +62,14 @@ open class BaseDraggableDelegationAdapter<Data : BaseAdapterData>(
         holder.onViewRecycled()
     }
 
-    override fun isDismissible(position: Int): Boolean = canDragItem(getItem(position), position)
 
-    override fun isDraggable(position: Int): Boolean = canDragItem(getItem(position), position)
+    override fun onItemMove(from: Int, to: Int): Boolean {
+        if (!isDraggable(from)) {
+            return false
+        }
+        moveItem(from, to)
+        return true
+    }
 
     override fun onItemDismiss(position: Int) {
         if (isDismissible(position)) {
@@ -72,13 +77,9 @@ open class BaseDraggableDelegationAdapter<Data : BaseAdapterData>(
         }
     }
 
-    override fun onItemMove(from: Int, to: Int): Boolean {
-        if (!isDraggable(from) || !isDraggable(to)) {
-            return false
-        }
-        moveItem(from, to)
-        return true
-    }
+    override fun isDraggable(position: Int): Boolean = canDragItem(getItem(position), position)
+
+    override fun isDismissible(position: Int): Boolean = canDismissItem(getItem(position), position)
 
     fun registerItemsEventsListener(listener: ItemsEventsListener<Data>) {
         itemsEventsObservable.registerObserver(listener)
@@ -124,7 +125,9 @@ open class BaseDraggableDelegationAdapter<Data : BaseAdapterData>(
         return true
     }
 
-    protected open fun canDragItem(item: Data?, position: Int) = startDragListener != null
+    protected open fun canDragItem(item: Data, position: Int): Boolean = true
+
+    protected open fun canDismissItem(item: Data, position: Int): Boolean = true
 
     @CallSuper
     protected open fun onItemRemoved(position: Int, item: Data) {
@@ -174,9 +177,7 @@ open class BaseDraggableDelegationAdapter<Data : BaseAdapterData>(
 
         open val draggableView: View? = null
 
-        var motionTouchListener: OnMotionTouchListener? = null
-
-        open fun canDragItem(position: Int, data: Data) = true
+        internal var motionTouchListener: OnMotionTouchListener? = null
 
         @CallSuper
         open fun onViewRecycled() {

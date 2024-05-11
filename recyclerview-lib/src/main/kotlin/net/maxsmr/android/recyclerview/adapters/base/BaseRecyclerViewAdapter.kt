@@ -11,6 +11,7 @@ import androidx.annotation.MainThread
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.RecyclerView.NO_ID
+import androidx.recyclerview.widget.RecyclerView.NO_POSITION
 import net.maxsmr.android.recyclerview.adapters.base.drag.ITouchHelperAdapter
 import net.maxsmr.android.recyclerview.adapters.base.drag.OnMotionTouchListener
 import net.maxsmr.android.recyclerview.adapters.base.drag.OnStartDragListener
@@ -120,7 +121,7 @@ abstract class BaseRecyclerViewAdapter<I, VH : BaseRecyclerViewAdapter.ViewHolde
     override fun getItemCount() = if (allowInfiniteScroll) infiniteScrollLoopsCount * listItemCount else listItemCount
 
     override fun onItemMove(from: Int, to: Int): Boolean {
-        if (!isDraggable(from) || !isDraggable(to)) {
+        if (!isDraggable(from)) {
             return false
         }
         moveItem(getListPosition(from), getListPosition(to))
@@ -135,7 +136,7 @@ abstract class BaseRecyclerViewAdapter<I, VH : BaseRecyclerViewAdapter.ViewHolde
 
     override fun isDraggable(position: Int): Boolean = canDragItem(getItem(getListPosition(position)), position)
 
-    override fun isDismissible(position: Int): Boolean = canDragItem(getItem(getListPosition(position)), position)
+    override fun isDismissible(position: Int): Boolean = canDismissItem(getItem(getListPosition(position)), position)
 
     @CallSuper
     override fun onViewRecycled(holder: VH) {
@@ -297,11 +298,16 @@ abstract class BaseRecyclerViewAdapter<I, VH : BaseRecyclerViewAdapter.ViewHolde
         return replacedItem
     }
 
-    fun replaceItem(replaceableItem: I, newItem: I): I {
-        return replaceItem(indexOf(replaceableItem), newItem)
+    fun replaceItem(replaceableItem: I, newItem: I): Boolean {
+        val index = indexOf(replaceableItem)
+        if (index == NO_POSITION) {
+            return false
+        }
+        replaceItem(index, newItem)
+        return true
     }
 
-    fun replaceItemsRange(from: Int, to: Int, newItems: Collection<I>?): List<I?> {
+    fun replaceItemsRange(from: Int, to: Int, newItems: Collection<I>?): List<I> {
         allowNotifyOnChange = false
         val replacedItems = removeItemsRange(from, to)
         addItems(newItems)
@@ -311,7 +317,12 @@ abstract class BaseRecyclerViewAdapter<I, VH : BaseRecyclerViewAdapter.ViewHolde
     }
 
     fun removeItem(item: I): I? {
-        return removeItem(indexOf(item))
+        val index = indexOf(item)
+        return if (index == NO_POSITION) {
+            null
+        } else {
+            removeItem(index)
+        }
     }
 
     @Throws(IndexOutOfBoundsException::class)
@@ -422,7 +433,7 @@ abstract class BaseRecyclerViewAdapter<I, VH : BaseRecyclerViewAdapter.ViewHolde
     }
 
     @CallSuper
-    protected open fun onItemsRangeRemoved(from: Int, to: Int, previousSize: Int, removedItems: List<I?>) {
+    protected open fun onItemsRangeRemoved(from: Int, to: Int, previousSize: Int, removedItems: List<I>) {
         itemsEventsObservable.notifyItemsRangeRemoved(from, to, previousSize, removedItems)
         if (allowNotifyOnChange) {
             notifyItemRangeRemoved(from, to - from)
@@ -464,7 +475,9 @@ abstract class BaseRecyclerViewAdapter<I, VH : BaseRecyclerViewAdapter.ViewHolde
 
     protected open fun canBindFocusForItem(holder: VH, item: I, position: Int) = pendingFocusPosition == position
 
-    protected open fun canDragItem(item: I, position: Int) = startDragListener != null
+    protected open fun canDragItem(item: I, position: Int) = true
+
+    protected open fun canDismissItem(item: I, position: Int) = true
 
     protected open fun isItemEmpty(item: I, position: Int): Boolean = item == null
 
@@ -487,7 +500,7 @@ abstract class BaseRecyclerViewAdapter<I, VH : BaseRecyclerViewAdapter.ViewHolde
         }
 
         val touchListener = startDragListener
-        if (touchListener != null && canDragItem(item, position) && holder.canDragItem(getListPosition(position), item)) {
+        if (touchListener != null && (canDragItem(item, position) || canDismissItem(item, position))) {
             OnMotionTouchListener(holder, touchListener, context).let {
                 holder.draggableView?.setOnTouchListener(it)
                 holder.motionTouchListener = it
@@ -647,7 +660,7 @@ abstract class BaseRecyclerViewAdapter<I, VH : BaseRecyclerViewAdapter.ViewHolde
 
         var clickListener: View.OnClickListener? = null
         var longClickListener: View.OnLongClickListener? = null
-        var motionTouchListener: OnMotionTouchListener? = null
+        internal var motionTouchListener: OnMotionTouchListener? = null
 
         constructor(parent: ViewGroup, @LayoutRes layoutId: Int) :
                 this(LayoutInflater.from(parent.context).inflate(layoutId, parent, false))
@@ -661,8 +674,6 @@ abstract class BaseRecyclerViewAdapter<I, VH : BaseRecyclerViewAdapter.ViewHolde
         open fun bindEmptyData(position: Int, item: I, count: Int) {
             itemView.visibility = View.GONE
         }
-
-        open fun canDragItem(position: Int, item: I) = true
 
         @CallSuper
         open fun onViewRecycled() {
@@ -742,7 +753,7 @@ abstract class BaseRecyclerViewAdapter<I, VH : BaseRecyclerViewAdapter.ViewHolde
             }
         }
 
-        fun notifyItemsRangeRemoved(from: Int, to: Int, previousSize: Int, removedItems: List<I?>) {
+        fun notifyItemsRangeRemoved(from: Int, to: Int, previousSize: Int, removedItems: List<I>) {
             synchronized(mObservers) {
                 for (l in mObservers) {
                     l.onItemsRangeRemoved(from, to, previousSize, removedItems)
@@ -783,7 +794,7 @@ abstract class BaseRecyclerViewAdapter<I, VH : BaseRecyclerViewAdapter.ViewHolde
 
         fun onItemRemoved(position: Int, item: I)
 
-        fun onItemsRangeRemoved(from: Int, to: Int, previousSize: Int, removedItems: List<I?>)
+        fun onItemsRangeRemoved(from: Int, to: Int, previousSize: Int, removedItems: List<I>)
 
         fun onItemsMoved(fromPosition: Int, toPosition: Int, item: I)
     }
