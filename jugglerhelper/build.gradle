@@ -5,7 +5,6 @@ android {
 }
 
 dependencies {
-
     api "androidx.swiperefreshlayout:swiperefreshlayout:$androidxSwipeRefreshVersion"
 
 //    api "net.maxsmr:commonutils:$commonUtilsVersion"
@@ -13,5 +12,5 @@ dependencies {
     api project(':recyclerview-lib')
 
 //    api "me.ilich:juggler:$jugglerVersion"
-    api files('libs/juggler-0.1.22.aar')
+    api('jugglerhelper.libs:juggler-0.1.23@aar')
 }

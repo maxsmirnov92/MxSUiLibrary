@@ -9,7 +9,7 @@ dependencies {
     api "com.google.android.material:material:$materialVersion"
     api "androidx.recyclerview:recyclerview:$androidxRecyclerViewVersion"
 
-    api "com.hannesdorfmann:adapterdelegates4-kotlin-dsl:4.3.0"
+    api "com.hannesdorfmann:adapterdelegates4-kotlin-dsl:$adapterdelegates4KotlinVersion"
 
 //    api project(":easyadapter")
 //    api (name: 'easyadapter', ext:'aar')

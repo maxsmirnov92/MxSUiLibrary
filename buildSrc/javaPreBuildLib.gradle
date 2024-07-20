@@ -1,5 +1,6 @@
 apply from: "$rootDir/buildSrc/config.gradle"
 apply from: "$rootDir/buildSrc/buildUtils.gradle"
+apply from: "$rootDir/buildSrc/javaBuildTasks.gradle"
 
 apply plugin: 'java-library'
 apply plugin: 'kotlin'
@@ -12,9 +13,18 @@ java {
     targetCompatibility = sourceCompatibilityVersion
 }
 
+artifacts {
+    archives sourcesJar
+//    archives javadocJar
+}
+
 dependencies {
-    api fileTree(dir: 'libs', include: ['*.jar'])
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
 
     // Jetbrains annotations
     implementation "org.jetbrains:annotations:$jetbrainsAnnotationsVersion"
+
+    testImplementation "junit:junit:$jUnitVersion"
+    testImplementation 'org.jetbrains.kotlin:kotlin-test'
+    testImplementation 'org.jetbrains.kotlin:kotlin-test-junit'
 }

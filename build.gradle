@@ -4,12 +4,6 @@ buildscript {
 
     apply from: 'buildSrc/config.gradle'
 
-    ext {
-//        commonUtilsVersion = "1.1.0.2"
-//        jugglerVersion = "0.1.23"
-//        nestableViewPagerVersion = "0.2.0"
-    }
-
     repositories {
         google()
         maven { url "https://plugins.gradle.org/m2/" }
